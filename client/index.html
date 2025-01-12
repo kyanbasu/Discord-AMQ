@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hello, World</title>
+  </head>
+  <body>
+    <div id="loading" style="position: absolute; width: 100%; height: 100%; background-color: black;align-items: center;z-index: 10000;"><h1>loading...</h1></div>
+    <div class="navbar" id="navbar"><div style="display:flex;align-items: center;"><h2 id="roomName"></h2></div></div>
+    <div id="progress"></div>
+
+    <div class="focusZone">
+      <div id="player">
+        <video id="video-player"></video>
+        <img id="videoPlayerImg" src=""></img>
+        <button id="Skip">skip</button>
+      </div>
+
+      <div class="options" id="options">
+
+        <label>Wielkość kolejki:</label>
+        <input id="queueSize" placeholder="10" value="10" type="number" min="3" max="100" style="width:30px"/>
+        <label> (3-100)</label>
+        <br/>
+        <label>Czas zgadywania:</label>
+        <input id="guessTime" placeholder="10" value="10" type="number" min="1" max="30" style="width:30px"/>
+        <label>sekund. (1-30)</label>
+        <br/>
+        <label>Ilość odpowiedzi:</label>
+        <input id="guessesCount" placeholder="4" value="4" type="number" min="2" max="10" style="width:30px"/>
+        <label> (2-10)</label>
+        <br/>
+        <div class="dropdown">
+          <button class="dropbtn" id="themeTypebtn" disabled>OP</button>
+          <div class="dropdown-content" id="themeType">
+          </div>
+        </div> 
+        <br/>        
+
+      </div>
+
+      <div id="guessingZone" class="margin"></div>
+    </div>
+
+    <div class="margin" id="chatContainer">
+      <button id="PlayPause">Graj</button><input type="text" id="animelistname" name="name" placeholder="mal username"><br/>
+      <input id="chatin" placeholder="wiadomość"/>
+      <button id="chatbtn">Wyślij</button>   
+      <nav><ul id="chat"></ul></nav>
+    </div>
+
+    <div class="settings">
+      <img src="/static/music-note.svg" class="settingsIcon"/>
+      <img src="/static/movie.svg" class="settingsIcon" style="float:right"/>
+      <label class="switch" style="transform: translateX(-4px)">
+        <input type="checkbox" checked="1" id="playerTypeSwitch">
+        <span class="slider"></span>
+      </label><br/>
+      <input type="range" id="volume-slider" orient="vertical" style="height:200px" min="0" max="1" step="0.01" />
+      <p style="font-size:30px;margin-top:0;text-align: center;">♫</p>
+    </div>
+    
+    <script type="module" src="/scripts/main.js"></script>
+    <!--<script src="/socket.io/socket.io.js"></script>-->
+    <script type="module">
+      import { PlayPause, Skip } from "/scripts/main.js";
+      //var socket = io("/socket.io");
+
+      //GetAnimeList();
+      document.getElementById("PlayPause").addEventListener("click", PlayPause)
+      document.getElementById("Skip").addEventListener("click", Skip)
+      
+    </script>
+  </body>
+</html>
