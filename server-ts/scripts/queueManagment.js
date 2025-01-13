@@ -1,6 +1,6 @@
 import { rooms, io } from '../server.ts'
 import { shuffleArray, getAudioUrl, downloadFile } from './helpers.js'
-import { systemMessage } from './chat.ts'
+import { systemMessage } from './messaging.ts'
 
 export const addQueue = (async (socket, roomID, malID) => {
     if(!rooms[roomID]) return socket.emit('message', 'Ten pokój nie istnieje')
