@@ -81,9 +81,11 @@ export const playNextQueue = (async (roomID) => {
         }
         guesses.push(audio.name)
         shuffleArray(guesses)
-
-        let imgUrl = rooms[roomID].animeList.filter(e => e.id == Number(audio.link.split('-')[0]))[0].splash
-        await downloadFile(imgUrl, audio.link + ".jpg")
+        
+        try{
+            let imgUrl = rooms[roomID].animeList.filter(e => e.id == Number(audio.link.split('-')[0]))[0].splash
+            await downloadFile(imgUrl, audio.link + ".jpg")
+        } catch{}
 
         let correctGuess = guesses.findIndex(e => e == audio.name)
 

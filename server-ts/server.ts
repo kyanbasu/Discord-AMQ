@@ -33,6 +33,15 @@ interface Anime {
   splash: string;
 }
 
+interface MalAnime {
+  id: number;
+  title: string;
+  main_picture: {
+    medium: string;
+    large: string;
+  };
+}
+
 interface RoomOptions {
   themeType: string;
   guessTime: number;
@@ -61,7 +70,7 @@ const skipTime = 70;
 let rooms: Record<string, Room> = {};
 let sockets: Record<string, string> = {};
 let users: Record<string, { socket: Socket; roomID: string }> = {};
-let alcache: Record<string, string> = {};
+let alcache: Record<string, {id: string; list: Anime[]}> = {};
 
 // Clean cache
 fs.readdir("../client/res/", (err, files) => {
@@ -143,17 +152,15 @@ io.on("connection", (socket) => {
 
     if (alcache[user.id]) {
       try {
-        const list = await getAnimeList(alcache[user.id]);
-        list.forEach((entry: Anime) => {
-          if (!rooms[roomID].animeList.some((e) => e.id === entry.id)) {
-            rooms[roomID].animeList.push({
-              id: entry.id,
-              title: entry.title,
-              splash: entry.splash,
-            });
-          }
-        });
-        socket.emit("message", "Zaaktualizowano liste.", "list", alcache[user.id]);
+        const list = await getAnimeList(alcache[user.id].id);
+        
+        rooms[roomID].animeList = list.map(({ node }) => ({
+          id: node.id,
+          title: node.title,
+          splash: node.main_picture.large,
+        }));
+
+        socket.emit("message", "Zaaktualizowano liste.", "list", alcache[user.id].id);
         chat.userAnnouncement(socket, `Zaaktualizowano liste. (${list.length})`);
       } catch {
         socket.emit("message", "nie znaleziono takiego profilu MAL");
@@ -169,14 +176,14 @@ io.on("connection", (socket) => {
     if (rooms[roomID].gameState === "lobby") {
       try {
         const list = await getAnimeList(listID);
-        const formattedList: Anime[] = list.map((entry: Anime) => ({
-          id: entry.id,
-          title: entry.title,
-          splash: entry.splash,
+        const formattedList: Anime[] = list.map(({ node }) => ({
+          id: node.id,
+          title: node.title,
+          splash: node.main_picture.large,
         }));
 
         rooms[roomID].users[user.id].list = formattedList;
-        alcache[user.id] = listID;
+        alcache[user.id] = {id: listID, list: formattedList}
 
         fs.writeFileSync("./cache.json", JSON.stringify(alcache, null, 2), "utf-8");
         chat.userAnnouncement(socket, `Zaaktualizowano liste. (${formattedList.length})`);
@@ -249,7 +256,10 @@ io.on("connection", (socket) => {
     socket.on('skip', async (roomID) => {
       if(!rooms[roomID]) return socket.emit('exit')
       if(!rooms[roomID].paused && rooms[roomID].canPlayNext){
-        clearTimeout(rooms[roomID].currentTimeout)
+        if (rooms[roomID].currentTimeout !== null) {
+          clearTimeout(rooms[roomID].currentTimeout);
+          rooms[roomID].currentTimeout = null;
+        }
         rooms[roomID].playing = false
         rooms[roomID].currentTimeout = null
         rooms[roomID].canPlayNext = false
