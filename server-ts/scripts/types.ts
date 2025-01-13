@@ -1,11 +1,12 @@
-export { User, Anime, MalAnime, RoomOptions, Room }
+export { User, Anime, MalAnime, RoomOptions, Room };
 
 // Types
 interface User {
   id: string;
-  score?: number;
+  score: number;
   list?: Anime[];
-  guess?: string;
+  guess?: number;
+  global_name: string;
 }
 
 interface Anime {

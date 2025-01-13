@@ -15,13 +15,13 @@ const port = 3001;
 
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
-    cors: { origin: "discordsays.com" },
-  });
+  cors: { origin: "discordsays.com" },
+});
 
 let rooms: Record<string, Room> = {};
 let sockets: Record<string, string> = {};
 let users: Record<string, { socket: Socket; roomID: string }> = {};
-let alcache: Record<string, {id: string; list: Anime[]}> = {};
+let alcache: Record<string, { id: string; list: Anime[] }> = {};
 
 // Clean cache
 fs.readdir("../client/res/", (err, files) => {
@@ -45,7 +45,7 @@ fs.readFile("./cache.json", (err, data) => {
 
 export { alcache, sockets, users, rooms, io };
 
-io.on("connection", (socket) => connection(socket) );
+io.on("connection", (socket) => connection(socket));
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
@@ -74,7 +74,9 @@ app.post("/api/token", async (req: Request, res: Response) => {
       }),
     });
 
-    const { access_token } = (await response.json()) as { access_token: string };
+    const { access_token } = (await response.json()) as {
+      access_token: string;
+    };
     res.send({ access_token });
   } catch (error) {
     console.error(error);
