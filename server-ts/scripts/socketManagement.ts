@@ -1,9 +1,9 @@
 import { Socket } from "socket.io";
 import fs from "node:fs";
 
-import { addQueue, playNextQueue } from "./queueManagment.js";
-import * as chat from "./messaging.ts";
-import { getAnimeList } from "./helpers.js";
+import { addQueue, playNextQueue } from "./queueManagment.ts";
+import * as messaging from "./messaging.ts";
+import { getAnimeList } from "./helpers.ts";
 
 import { alcache, sockets, users, io, rooms } from "../server.ts";
 import { User, Anime } from "./types.ts";
@@ -16,7 +16,7 @@ export const connection = (socket: Socket) => {
           return addQueue(socket, roomID, message.split(" ").at(-1) || "");
         }
     
-        return chat.sendChatMessage(
+        return messaging.sendChatMessage(
           roomID,
           `> ${new Date().toLocaleString("en-GB", { hour12: false }).slice(
             12,
@@ -66,16 +66,10 @@ export const connection = (socket: Socket) => {
     
         if (alcache[user.id]) {
           try {
-            const list = await getAnimeList(alcache[user.id].id);
-            
-            rooms[roomID].animeList = list.map(({ node }) => ({
-              id: node.id,
-              title: node.title,
-              splash: node.main_picture.large,
-            }));
+            rooms[roomID].animeList = await getAnimeList(alcache[user.id].id);
     
             socket.emit("message", "Zaaktualizowano liste.", "list", alcache[user.id].id);
-            chat.userAnnouncement(socket, `Zaaktualizowano liste. (${list.length})`);
+            messaging.userAnnouncement(socket, `Zaaktualizowano liste. (${rooms[roomID].animeList.length})`);
           } catch {
             socket.emit("message", "nie znaleziono takiego profilu MAL");
           }
@@ -85,25 +79,20 @@ export const connection = (socket: Socket) => {
         users[user.id] = { socket: socket, roomID: roomID };
         //console.log(socket);
       });
-    
+      
+      // Update anime list, currently supporting only MyAnimeList, maybe add support for anilist or sth
       socket.on("updateAL", async (roomID: string, user: User, listID: string) => {
         if (rooms[roomID].gameState === "lobby") {
           try {
             const list = await getAnimeList(listID);
-            const formattedList: Anime[] = list.map(({ node }) => ({
-              id: node.id,
-              title: node.title,
-              splash: node.main_picture.large,
-            }));
     
-            rooms[roomID].users[user.id].list = formattedList;
-            alcache[user.id] = {id: listID, list: formattedList}
+            alcache[user.id] = {id: listID, list: list}
     
             fs.writeFileSync("./cache.json", JSON.stringify(alcache, null, 2), "utf-8");
-            chat.userAnnouncement(socket, `Zaaktualizowano liste. (${formattedList.length})`);
+            messaging.userAnnouncement(socket, `Zaaktualizowano liste. (${list.length})`);
           } catch {
             socket.emit("message", "Nie znaleziono takiego profilu MAL");
-            chat.userAnnouncement(socket, "Nie znaleziono takiego profilu MAL");
+            messaging.userAnnouncement(socket, "Nie znaleziono takiego profilu MAL");
           }
         } else {
           socket.emit("message", "Nie można zaaktualizować listy podczas gry!");
@@ -115,7 +104,7 @@ export const connection = (socket: Socket) => {
             console.log(options)
             rooms[roomID].options = options
             io.to(roomID).emit("optionsReload", rooms[roomID].options)
-            chat.systemAnnouncement(roomID, "Zaaktualizowano opcje.")
+            messaging.systemAnnouncement(roomID, "Zaaktualizowano opcje.")
           }
         })
       
@@ -143,7 +132,7 @@ export const connection = (socket: Socket) => {
             // pressed play
             if(rooms[roomID].gameState == 'lobby'){
               rooms[roomID].gameState = 'playing';
-              chat.systemMessage(roomID, 'Gra rozpoczęta!', 'play')
+              messaging.systemMessage(roomID, 'Gra rozpoczęta!', 'play')
               if(rooms[roomID].animeList.length > 0){
                 for (let i = 0; i < rooms[roomID].options.queueSize; i++) {
                   let randomPick = rooms[roomID].animeList[Math.floor(Math.random() * rooms[roomID].animeList.length)]
@@ -152,18 +141,18 @@ export const connection = (socket: Socket) => {
               }
             }
             rooms[roomID].paused = false;
-            if(rooms[roomID].gameState == 'playing') chat.systemMessage(roomID, 'Odpauzowane.', 'play')
+            if(rooms[roomID].gameState == 'playing') messaging.systemMessage(roomID, 'Odpauzowane.', 'play')
             if(rooms[roomID].canPlayNext)
               await playNextQueue(roomID);
           } else {
             // pressed pause
             rooms[roomID].paused = true;
-            chat.systemMessage(roomID, 'Zapauzuje po muzyce...', 'pause')
+            messaging.systemMessage(roomID, 'Zapauzuje po muzyce...', 'pause')
           }
       
         })
       
-        socket.on('guess', async (user, roomID, guess) => {
+        socket.on('guess', async (user, roomID, guess : number) => {
           rooms[roomID].users[user.id].guess = guess
         })
       

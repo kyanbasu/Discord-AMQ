@@ -1,6 +1,8 @@
 import { rooms, io } from '../server.ts'
-import { shuffleArray, getAudioUrl, downloadFile } from './helpers.js'
+import { shuffleArray, getAudioUrl, downloadFile } from './helpers.ts'
 import { systemMessage } from './messaging.ts'
+
+import { Anime } from './types.ts'
 
 export const addQueue = (async (socket, roomID, malID) => {
     if(!rooms[roomID]) return socket.emit('message', 'Ten pokój nie istnieje')
@@ -9,9 +11,11 @@ export const addQueue = (async (socket, roomID, malID) => {
     socket.emit('message', `Dodano ${malID} do kolejki`)
   
     if(!rooms[roomID].paused && !rooms[roomID].playing){
-      clearTimeout(rooms[roomID].currentTimeout)
+        if (rooms[roomID].currentTimeout !== null) {
+            clearTimeout(rooms[roomID].currentTimeout);
+            rooms[roomID].currentTimeout = null;
+          }
       rooms[roomID].playing = false
-      rooms[roomID].currentTimeout = null
   
       await playNextQueue(roomID);
     }
@@ -50,16 +54,16 @@ export const playNextQueue = (async (roomID) => {
         let audio = await getAudioUrl(rooms[roomID].queue[0], rooms[roomID].options.themeType).catch(error => console.error(error));
         if(!audio){
             io.to(roomID).emit('message', `LOG> nie znaleziono ${rooms[roomID].queue[0]}`)
-            rooms[roomID].queueHistory.push(rooms[roomID].queue.shift())
+            rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!)
             rooms[roomID].playing = false
             console.log(`history ${rooms[roomID].queueHistory.toString()}`)
 
-            let newPick = rooms[roomID].animeList.filter(e => (!rooms[roomID].queue.includes(e.id) && !rooms[roomID].queueHistory.includes(e.id)))
-            if(newPick.length == 0){
+            let picker = rooms[roomID].animeList.filter(e => (!rooms[roomID].queue.includes(e.id) && !rooms[roomID].queueHistory.includes(e.id)))
+            if(picker.length == 0){
                 console.log(`anime list is empty`)
                 return await playNextQueue(roomID)
             }
-            newPick = newPick[Math.floor(Math.random() * newPick.length)]
+            const newPick : Anime = picker[Math.floor(Math.random() * picker.length)]
             console.log(`instead added ${newPick.id} ${newPick.title} to queue`)
             rooms[roomID].queue.push(newPick.id)
 
@@ -71,7 +75,7 @@ export const playNextQueue = (async (roomID) => {
 
         console.log(audio)
 
-        let guesses = []
+        let guesses : string[] = []
         let tempList = rooms[roomID].animeList.filter(e => e.id != Number(audio.link.split('-')[0])) // to avoid duplicates in guesses
         //console.log(`removed from list ${rooms[roomID].animeList.filter(e => e.id == Number(audio.link.split('-')[0]))[0].title}`)
         for (let i = 0; i < Math.min(rooms[roomID].options.guessesCount, tempList.length)-1; i++) {
@@ -104,7 +108,7 @@ export const playNextQueue = (async (roomID) => {
                 io.to(roomID).emit('guess', `${audio.name} ${audio.themeType}`)
                 rooms[roomID].canPlayNext = true
 
-                let guessed = []
+                let guessed : string[] = []
                 Object.values(rooms[roomID].users).forEach(usr => {
                     if(correctGuess === usr.guess){
                         usr.score += 1

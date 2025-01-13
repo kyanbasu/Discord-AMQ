@@ -2,6 +2,8 @@ import ffmpeg from 'fluent-ffmpeg'
 import fetch from "node-fetch";
 import fs from "node:fs";
 
+import { Anime } from './types';
+
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export const shuffleArray = (array) => {
     for (var i = array.length - 1; i >= 0; i--) {
@@ -12,22 +14,35 @@ export const shuffleArray = (array) => {
     }
 }
 
-export const downloadFile = (async (url, filename) => {
+export const downloadFile = (async (url: string, filename: string) => {
     const res = await fetch(url);
+    if(!res.body) throw new Error(`Failed to fetch ${url}, response body is null.`);
+
     const fileStream = fs.createWriteStream("../client/res/" + filename);
     await new Promise((resolve, reject) => {
-        res.body.pipe(fileStream);
-        res.body.on("error", reject);
+        res.body!.pipe(fileStream);
+        res.body!.on("error", reject);
         fileStream.on("finish", resolve);
     });
+    
 });
 
-export const getAudioUrl = (malID, themeType = null) => {
+interface AnimeResponse {
+  anime: [{animethemes, name : string}];
+}
+
+interface AudioUrl {
+  link: string;
+  name: string;
+  themeType: string;
+}
+
+export const getAudioUrl: (malID: number, themeType: any) => Promise<AudioUrl> = (malID, themeType = null) => {
     try{
       return new Promise((resolve, reject) => {
         fetch(`https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=MyAnimeList&filter[external_id]=${malID}&include=animethemes.animethemeentries.videos.audio`)
-        .then(response => response.json())
-        .then(obj => {
+        .then(response => response.json() as Promise<AnimeResponse>)
+        .then((obj: AnimeResponse) => {
           if(obj.anime[0] == undefined) return reject()
             
           let _animes;
@@ -41,7 +56,8 @@ export const getAudioUrl = (malID, themeType = null) => {
           let link = entry.animethemeentries[0].videos[0];
   
           if(fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`) && fs.existsSync(`../client/res/${malID}-${entry.slug}.webm`)){
-            return resolve(`../client/res/${malID}-${entry.slug}`)
+            var o : AudioUrl = {link: `${malID}-${entry.slug}`, name: obj.anime[0].name, themeType: entry.slug};
+            return resolve(o)
           }
   
           console.log(`> Downloading ${link.link} (${malID}-${entry.slug})`)
@@ -86,7 +102,7 @@ export const getAudioUrl = (malID, themeType = null) => {
                     if (err) throw err;
                   });
               }, 60000);
-              var o = {link: `${malID}-${entry.slug}`, name: obj.anime[0].name, themeType: entry.slug};
+              var o : AudioUrl = {link: `${malID}-${entry.slug}`, name: obj.anime[0].name, themeType: entry.slug};
               return resolve(o);
             })
           })
@@ -103,28 +119,38 @@ export const getAudioUrl = (malID, themeType = null) => {
       })
     } catch (error){
       console.error(error)
+      throw new Error('Unable to fetch audio');
     }
 }
 
+interface MAL {
+  data: [{node: {
+    id: number, 
+    title: string, 
+    main_picture: { medium: string, large: string }
+  }}];
+}
+
 //only works for MAL for now
-export const getAnimeList = (async (ID) => {
+export const getAnimeList: (ID: string) => Promise<Anime[]> = async (ID: string) => {
     try{
-      return new Promise((resolve, reject) => {
-        fetch(`https://api.myanimelist.net/v2/users/${ID}/animelist?limit=1000&status=watching&status=completed`, {
-          headers: {
-              'X-MAL-CLIENT-ID': 'f01f99efa89d0a650a365dd317ccc931'
-          }
-          })
-          .then(response => response.json())
-          .then(text => {
-            return resolve(text.data)
-          })
-          .catch(error => {
-            console.error(error)
-            return reject(error)
-          })
-        })
-      } catch (error){
-        console.error(error)
+      const res = await fetch(`https://api.myanimelist.net/v2/users/${ID}/animelist?limit=1000&status=watching&status=completed`,
+                              { headers: { 'X-MAL-CLIENT-ID': 'f01f99efa89d0a650a365dd317ccc931' } })
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch anime list. Status: ${res.status}`);
       }
-})
+
+      const json = (await res.json()) as MAL;
+      const list: Anime[] = json.data.map(({ node }) => ({
+        id: node.id,
+        title: node.title,
+        splash: node.main_picture.large,
+      }));
+
+      return list;
+    } catch (error){
+      console.error(error.message)
+      throw new Error('Unable to fetch anime list');
+    }
+}
