@@ -3,7 +3,6 @@ import fetch from "node-fetch";
 import fs from "node:fs";
 
 import { Anime } from "./types";
-import { resolve } from "node:path";
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export const shuffleArray = (array: any[]) => {
@@ -15,17 +14,12 @@ export const shuffleArray = (array: any[]) => {
   }
 };
 
-export const downloadFile: (
-  url: string,
-  filename: string
-) => Promise<void> = async (url: string, filename: string) => {
+export const downloadFile = async (url: string, filename: string) => {
   const res = await fetch(url);
-  if (!res.body) {
+  if (!res.body)
     throw new Error(`Failed to fetch ${url}, response body is null.`);
-  }
 
   const fileStream = fs.createWriteStream("../client/res/" + filename);
-
   await new Promise((resolve, reject) => {
     res.body!.pipe(fileStream);
     res.body!.on("error", reject);
@@ -58,11 +52,10 @@ export const getAudioUrl: (
 
           let _animes;
           if (themeType == "ALL") _animes = obj.anime[0].animethemes;
-          else {
+          else
             _animes = obj.anime[0].animethemes.filter(
               (e) => e.type == themeType
             );
-          }
 
           if (_animes.length == 0) return reject();
           let entry = _animes[Math.floor(_animes.length * Math.random())];
@@ -108,7 +101,7 @@ export const getAudioUrl: (
                   setTimeout(function () {
                     if (
                       fs.existsSync(`../client/res/${malID}-${entry.slug}.webm`)
-                    ) {
+                    )
                       fs.unlink(
                         `../client/res/${malID}-${entry.slug}.webm`,
                         (err) => {
@@ -116,29 +109,26 @@ export const getAudioUrl: (
                           console.log(`${malID}-${entry.slug} was deleted`);
                         }
                       );
-                    }
 
                     if (
                       fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`)
-                    ) {
+                    )
                       fs.unlink(
                         `../client/res/${malID}-${entry.slug}.ogg`,
                         (err) => {
                           if (err) throw err;
                         }
                       );
-                    }
 
                     if (
                       fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`)
-                    ) {
+                    )
                       fs.unlink(
                         `../client/res/${malID}-${entry.slug}.jpg`,
                         (err) => {
                           if (err) throw err;
                         }
                       );
-                    }
                   }, 60000);
                   var o: AudioUrl = {
                     link: `${malID}-${entry.slug}`,

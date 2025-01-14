@@ -6,7 +6,7 @@ import * as messaging from "./messaging.ts";
 import { getAnimeList } from "./helpers.ts";
 
 import { alcache, sockets, users, io, rooms } from "../server.ts";
-import { User, Anime } from "./types.ts";
+import { User, RoomOptions } from "./types.ts";
 
 export const connection = (socket: Socket) => {
   socket.on("message", (roomID: string, message: string) => {
@@ -129,7 +129,7 @@ export const connection = (socket: Socket) => {
     }
   });
 
-  socket.on("updateOptions", async (roomID, user, options) => {
+  socket.on("updateOptions", async (roomID: string, user: User, options: RoomOptions) => {
     if (rooms[roomID] && user.id == rooms[roomID].host) {
       console.log(options);
       rooms[roomID].options = options;
@@ -138,7 +138,7 @@ export const connection = (socket: Socket) => {
     }
   });
 
-  socket.on("addQueue", async (roomID, malID) => {
+  socket.on("addQueue", async (roomID: string, malID: number) => {
     addQueue(socket, roomID, malID);
     /*if(!rooms[roomID].canPlayNext) return socket.emit('message', 'You must wait to play next song')
       chat.sendChatMessage(roomID, `LOG> downloading ${malID}`)
@@ -156,7 +156,7 @@ export const connection = (socket: Socket) => {
       }, 5000);*/
   });
 
-  socket.on("playPause", async (roomID) => {
+  socket.on("playPause", async (roomID: string) => {
     if (!rooms[roomID]) return socket.emit("exit");
     if (rooms[roomID].paused) {
       // pressed play
@@ -184,11 +184,11 @@ export const connection = (socket: Socket) => {
     }
   });
 
-  socket.on("guess", async (user, roomID, guess: number) => {
+  socket.on("guess", async (user: User, roomID: string, guess: number) => {
     rooms[roomID].users[user.id].guess = guess;
   });
 
-  socket.on("skip", async (roomID) => {
+  socket.on("skip", async (roomID: string) => {
     if (!rooms[roomID]) return socket.emit("exit");
     if (!rooms[roomID].paused && rooms[roomID].canPlayNext) {
       if (rooms[roomID].currentTimeout !== null) {
@@ -203,7 +203,7 @@ export const connection = (socket: Socket) => {
     }
   });
 
-  socket.on("discord-auth", (user) => {
+  socket.on("discord-auth", (user: any) => {
     console.log(user);
   });
 

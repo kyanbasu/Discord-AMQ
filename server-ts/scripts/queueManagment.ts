@@ -11,18 +11,18 @@ export const addQueue = async (
   malID: number
 ) => {
   if (!rooms[roomID]) {
-    userAnnouncement(socket, "Ten pokój nie istnieje.");
+    userAnnouncement(socket, "Ten pokój nie istnieje");
     return;
   }
   if (
     rooms[roomID].queue.includes(malID) ||
     rooms[roomID].queueHistory.includes(malID)
   ) {
-    userAnnouncement(socket, `${malID} jest już w kolejce.`);
+    userAnnouncement(socket, `${malID} jest już w kolejce`);
     return;
   }
   rooms[roomID].queue.push(malID);
-  userAnnouncement(socket, `Dodano ${malID} do kolejki.`);
+  userAnnouncement(socket, `Dodano ${malID} do kolejki`);
 
   if (!rooms[roomID].paused && !rooms[roomID].playing) {
     if (rooms[roomID].currentTimeout !== null) {
@@ -35,9 +35,7 @@ export const addQueue = async (
   }
 };
 
-export const playNextQueue: (roomID: string) => Promise<void> = async (
-  roomID: string
-) => {
+export const playNextQueue = async (roomID: string) => {
   if (
     !rooms[roomID] ||
     rooms[roomID].playing ||
@@ -98,12 +96,13 @@ export const playNextQueue: (roomID: string) => Promise<void> = async (
       );
       if (picker.length == 0) {
         console.log(`anime list is empty`);
-
+        await playNextQueue(roomID);
         return;
       }
       const newPick: Anime = picker[Math.floor(Math.random() * picker.length)];
       console.log(`instead added ${newPick.id} ${newPick.title} to queue`);
       rooms[roomID].queue.push(newPick.id);
+
       await playNextQueue(roomID);
       return;
     }
