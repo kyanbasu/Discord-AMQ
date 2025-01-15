@@ -1,7 +1,7 @@
 import { Socket } from "socket.io";
 import fs from "node:fs";
 
-import { addQueue, playNextQueue } from "./queueManagment.ts";
+import { addQueue, playNextQueue } from "./queueManagement.ts";
 import * as messaging from "./messaging.ts";
 import { getAnimeList } from "./helpers.ts";
 
