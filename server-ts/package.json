@@ -18,7 +18,11 @@
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/socket.io": "^3.0.1",
-    "@types/express": "^5.0.0"
+    "bun-types": "^1.1.43"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   }
 }
