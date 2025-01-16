@@ -29,6 +29,7 @@ dist-ssr
 *.sln
 *.sw?
 
+db.sqlite
 cache.json
 */res/*
 test*
