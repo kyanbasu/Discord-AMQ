@@ -6,7 +6,7 @@ import path from "node:path";
 import http from "node:http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { connection } from "./scripts/socketManagement.ts";
-import { Room, Anime } from "./scripts/types.ts";
+import { Room, Anime, User } from "./scripts/types.ts";
 import { Database } from "bun:sqlite";
 import { getUser, initdb } from "./scripts/databaseManagement.ts";
 
@@ -16,14 +16,12 @@ const app = express();
 const port = 3001;
 
 const server = http.createServer(app);
-const io = new SocketIOServer(server, {
+const io: SocketIOServer = new SocketIOServer(server, {
   cors: { origin: "discordsays.com" },
 });
 
 let rooms: Record<string, Room> = {};
-let sockets: Record<string, string> = {};
-let users: Record<string, { socket: Socket; roomID: string }> = {};
-let alcache: Record<string, { id: string; list: Anime[] }> = {};
+let users: Record<number, User> = {};
 
 const db = new Database("db.sqlite");
 
@@ -44,12 +42,7 @@ fs.readdir("../client/res/", (err, files) => {
 // Allow express to parse JSON bodies
 app.use(express.json());
 
-fs.readFile("./cache.json", (err, data) => {
-  if (err) return console.error(err);
-  alcache = JSON.parse(data.toString());
-});
-
-export { alcache, sockets, users, rooms, io, db };
+export { users, rooms, io, db };
 
 io.on("connection", (socket) => connection(socket));
 

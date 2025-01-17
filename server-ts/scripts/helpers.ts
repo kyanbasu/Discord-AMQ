@@ -14,6 +14,10 @@ export const shuffleArray = (array: any[]) => {
   }
 };
 
+export const randomFromArray = (array: any[]) => {
+  return array[Math.floor(Math.random() * array.length)];
+};
+
 export const downloadFile = async (url: string, filename: string) => {
   const res = await fetch(url);
   if (!res.body)
@@ -28,7 +32,7 @@ export const downloadFile = async (url: string, filename: string) => {
 };
 
 interface AnimeResponse {
-  anime: [{ animethemes; name: string }];
+  anime: [{ animethemes: any; name: string }];
 }
 
 interface AudioUrl {
@@ -54,7 +58,7 @@ export const getAudioUrl: (
           if (themeType == "ALL") _animes = obj.anime[0].animethemes;
           else
             _animes = obj.anime[0].animethemes.filter(
-              (e) => e.type == themeType
+              (e: any) => e.type == themeType
             );
 
           if (_animes.length == 0) return reject();
@@ -189,7 +193,7 @@ export const getAnimeList: (ID: string) => Promise<Anime[]> = async (
 
     return list;
   } catch (error) {
-    console.error(error.message);
+    if (error instanceof Error) console.error(error.message);
     throw new Error("Unable to fetch anime list");
   }
 };

@@ -1,12 +1,27 @@
-export { User, Anime, MalAnime, RoomOptions, Room };
+import { Socket } from "socket.io";
+
+// Interfaces/Types
+export { User, DiscordUser, Anime, MalAnime, RoomOptions, Room };
+
+// Enums
+export { GameState, ThemeType };
 
 // Types
+interface DiscordUser {
+  id: number; // discord id
+  avatar: string; // discord avatar
+  global_name: string; // discord global name
+}
+
 interface User {
-  id: string | number; // discord id
-  score?: number;
+  id: number; // discord id
+  discord?: DiscordUser;
+  name?: string;
+  socket?: Socket;
+  roomID?: string;
   list?: Anime[];
   guess?: number;
-  global_name?: string; // discord global name
+  score?: number;
 }
 
 interface Anime {
@@ -24,25 +39,33 @@ interface MalAnime {
   };
 }
 
+enum ThemeType {
+  OP,
+  ED,
+  ALL,
+}
+
 interface RoomOptions {
-  themeType: string;
+  themeType: ThemeType;
   guessTime: number;
   queueSize: number;
-  guessType: number;
   guessesCount: number;
 }
 
+enum GameState {
+  LOBBY,
+  PLAYING,
+}
+
 interface Room {
-  users: Record<string, User>;
+  users: number[];
   queue: number[];
   queueHistory: number[];
-  playing: boolean;
-  paused: boolean;
+  playerPaused: boolean;
   canPlayNext: boolean;
-  gameState: string;
-  host: string;
+  gameState: GameState;
+  hostID: number;
   currentTimeout: NodeJS.Timeout | null;
   chathistory: string;
-  animeList: Anime[];
   options: RoomOptions;
 }
