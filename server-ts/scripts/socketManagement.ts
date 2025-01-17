@@ -7,6 +7,7 @@ import { getAnimeList } from "./helpers.ts";
 
 import { alcache, sockets, users, io, rooms } from "../server.ts";
 import { User, RoomOptions } from "./types.ts";
+import { updateUser } from "./databaseManagement.ts";
 
 export const connection = (socket: Socket) => {
   socket.on("message", (roomID: string, message: string) => {
@@ -76,24 +77,26 @@ export const connection = (socket: Socket) => {
       socket.emit("message", "Dołączanie do trwającej gry...", "playing");
     }
 
-    if (alcache[user.id]) {
-      try {
-        rooms[roomID].animeList = await getAnimeList(alcache[user.id].id);
+    // fetch user to cache
 
-        socket.emit(
-          "message",
-          "Zaaktualizowano liste.",
-          "list",
-          alcache[user.id].id
-        );
-        messaging.userAnnouncement(
-          socket,
-          `Zaaktualizowano liste. (${rooms[roomID].animeList.length})`
-        );
-      } catch {
-        socket.emit("message", "nie znaleziono takiego profilu MAL");
-      }
-    }
+    // if (alcache[user.id]) {
+    //   try {
+    //     rooms[roomID].animeList = await getAnimeList(alcache[user.id].id);
+
+    //     socket.emit(
+    //       "message",
+    //       "Zaaktualizowano liste.",
+    //       "list",
+    //       alcache[user.id].id
+    //     );
+    //     messaging.userAnnouncement(
+    //       socket,
+    //       `Zaaktualizowano liste. (${rooms[roomID].animeList.length})`
+    //     );
+    //   } catch {
+    //     socket.emit("message", "nie znaleziono takiego profilu MAL");
+    //   }
+    // }
     socket.emit("optionsReload", rooms[roomID].options);
     sockets[socket.id] = user.id;
     users[user.id] = { socket: socket, roomID: roomID };
@@ -108,6 +111,9 @@ export const connection = (socket: Socket) => {
 
         alcache[user.id] = { id: listID, list: list };
 
+        // Update user in database, including not exisitng animes and user-anime relations
+        updateUser(user.id, user.global_name, list);
+
         fs.writeFileSync(
           "./cache.json",
           JSON.stringify(alcache, null, 2),
@@ -117,8 +123,9 @@ export const connection = (socket: Socket) => {
           socket,
           `Zaaktualizowano liste. (${list.length})`
         );
-      } catch {
-        socket.emit("message", "Nie znaleziono takiego profilu MAL");
+      } catch(e) {
+        if(e instanceof Error)
+          console.log("Nie znaleziono takiego profilu MAL " + e.message);
         messaging.userAnnouncement(
           socket,
           "Nie znaleziono takiego profilu MAL"

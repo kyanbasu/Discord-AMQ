@@ -2,11 +2,11 @@ export { User, Anime, MalAnime, RoomOptions, Room };
 
 // Types
 interface User {
-  id: string;
-  score: number;
+  id: string | number; // discord id
+  score?: number;
   list?: Anime[];
   guess?: number;
-  global_name: string;
+  global_name?: string; // discord global name
 }
 
 interface Anime {

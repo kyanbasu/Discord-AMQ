@@ -8,6 +8,7 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { connection } from "./scripts/socketManagement.ts";
 import { Room, Anime } from "./scripts/types.ts";
 import { Database } from "bun:sqlite";
+import { getUser, initdb } from "./scripts/databaseManagement.ts";
 
 dotenv.config({ path: "../.env" });
 
@@ -25,6 +26,8 @@ let users: Record<string, { socket: Socket; roomID: string }> = {};
 let alcache: Record<string, { id: string; list: Anime[] }> = {};
 
 const db = new Database("db.sqlite");
+
+initdb();
 
 // Clean cache
 fs.readdir("../client/res/", (err, files) => {

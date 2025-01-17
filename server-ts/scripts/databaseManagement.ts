@@ -1,7 +1,7 @@
 import { db } from "../server";
-import { Anime } from "./types";
+import { Anime, User } from "./types";
 
-export const init = () => {
+export const initdb = () => {
   db.run(`
         CREATE TABLE IF NOT EXISTS anime (
             id INTEGER PRIMARY KEY,
@@ -20,12 +20,28 @@ export const init = () => {
 
   db.run(`
         CREATE TABLE IF NOT EXISTS user_anime (
-          user_id TEXT NOT NULL,
+          user_id INTEGER NOT NULL,
           anime_id INTEGER NOT NULL,
           FOREIGN KEY (user_id) REFERENCES users(id),
           FOREIGN KEY (anime_id) REFERENCES anime(id)
         );
     `);
+};
+
+export const getUser = (userId: number, withAnimeList: boolean = false) => {
+  let user = db
+    .query(
+      `
+      SELECT id, name, updated
+      FROM users
+      WHERE id = ?
+  `
+    )
+    .get(userId) as User | undefined;
+
+  if (user && withAnimeList) user.list = getUserAnimeList(userId);
+
+  return user;
 };
 
 export const getUserAnimeList = (userId: number) => {
@@ -43,11 +59,19 @@ export const getUserAnimeList = (userId: number) => {
   return userAnime;
 };
 
-export const updateUser = (userId: number, name: string) => {
+export const updateUser = (
+  userId: number | string,
+  name: string,
+  animes: Anime[]
+) => {
+  userId = Number(userId);
+
   const insertUser = db.prepare(
     "INSERT OR REPLACE INTO users (id, name, updated) VALUES (?, ?, ?)"
   );
   insertUser.run(userId, name, Date.now());
+
+  linkUserAnimes(userId, animes);
 };
 
 export const linkUserAnimes = (userId: number, animes: Anime[]) => {
@@ -66,7 +90,7 @@ export const linkUserAnimes = (userId: number, animes: Anime[]) => {
 
   replaceUserAnimeTransaction();
 
-  //insertAnimes(animes);
+  insertAnimes(animes);
 };
 
 export const insertAnimes = (animes: Anime[]) => {
