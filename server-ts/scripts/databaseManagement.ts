@@ -17,16 +17,16 @@ export const updateUser = async (
   aniname?: string
 ) => {
   let userData: UserSchema = {
-    id: userId,
+    _id: userId,
     name: name,
     updated: Date.now(),
-    list: animes.map((a) => a.id),
+    list: animes.map((a) => a._id),
     malname: malname,
     aniname: aniname,
   };
   try {
     await UserSchema.findOneAndUpdate(
-      { id: userData.id }, // Find by ID
+      { _id: userData._id }, // Find by ID
       { $set: userData }, // Update fields
       { upsert: true, new: true } // Create if not exists, return updated document
     );
@@ -46,7 +46,7 @@ export const updateAnimes = async (animes: AnimeSchema[]) => {
   try {
     const bulkOps = animes.map((anime) => ({
       updateOne: {
-        filter: { id: anime.id }, // Find by ID
+        filter: { _id: anime._id }, // Find by ID
         update: { $set: anime }, // Update fields
         upsert: true, // Insert if not found
       },

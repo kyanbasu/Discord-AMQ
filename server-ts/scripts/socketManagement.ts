@@ -43,10 +43,10 @@ export const connection = (socket: Socket) => {
 
   socket.on("join-room", async (roomID: string, discordUser: DiscordUser) => {
     socket.join(roomID);
-    let userDoc = await UserSchema.findOne({ id: discordUser.id });
+    let userDoc = await UserSchema.findOne({ _id: discordUser.id });
 
-    if(userDoc){
-      socket.emit("data", "list", userDoc.malname)
+    if (userDoc) {
+      socket.emit("data", "list", userDoc.malname);
     }
 
     let user: User = {
@@ -110,15 +110,25 @@ export const connection = (socket: Socket) => {
   // Update anime list, currently supporting only MyAnimeList, maybe add support for anilist or sth
   socket.on(
     "updateAL",
-    async (roomID: string, user: DiscordUser, malname: string) => {
+    async (roomID: string, discordUser: DiscordUser, malname: string) => {
       if (rooms[roomID].gameState === GameState.LOBBY) {
         try {
           const list = await getAnimeList(malname);
 
           if (!list) throw new Error("failed to fetch anime list");
 
+          // Update in cache
+          users[discordUser.id].list = list.map(e => e._id);
+          socket.emit("data", "list", malname); // idk just to make sure user has correct name in input field
+          
+
           // Update user in database, including not exisitng animes and user-anime relations
-          updateUser(user.id, user.global_name, list, (malname = malname));
+          updateUser(
+            discordUser.id,
+            discordUser.global_name,
+            list,
+            (malname = malname)
+          );
 
           messaging.userAnnouncement(socket, `Updated list. (${list.length})`);
         } catch (e) {
@@ -187,19 +197,18 @@ export const connection = (socket: Socket) => {
   });
 
   socket.on("guess", async (user: User, guess: number) => {
-    if(guess)
-      users[user.id].guess = guess;
+    if (guess) users[user.id].guess = guess;
   });
 
   socket.on("skip", async (roomID: string) => {
     if (!rooms[roomID]) return socket.emit("exit");
-    console.log(rooms[roomID])
+    console.log(rooms[roomID]);
     if (!rooms[roomID].playerPaused && rooms[roomID].canPlayNext) {
       if (rooms[roomID].currentTimeout !== null) {
         clearTimeout(rooms[roomID].currentTimeout);
         rooms[roomID].currentTimeout = null;
       }
-      
+
       rooms[roomID].playerPlaying = false;
       rooms[roomID].currentTimeout = null;
       rooms[roomID].canPlayNext = false;

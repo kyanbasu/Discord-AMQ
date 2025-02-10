@@ -111,12 +111,12 @@ export const playNextQueue = async (roomID: string) => {
 
       let aniid = randomFromArray(picker);
       const newPick: AnimeSchema | null = await AnimeSchema.findOne({
-        id: aniid,
+        _id: aniid,
       });
       if (!newPick) throw new Error(`No anime in database, id: ${aniid}`);
 
-      console.log(`instead added ${newPick.id} ${newPick.title} to queue`);
-      rooms[roomID].queue.push(newPick.id);
+      console.log(`instead added ${newPick._id} ${newPick.title} to queue`);
+      rooms[roomID].queue.push(newPick._id);
 
       await playNextQueue(roomID);
       return;
@@ -145,7 +145,7 @@ export const playNextQueue = async (roomID: string) => {
       concatLists.splice(rng, 1);
     }
 
-    let guesses: string[] = (await AnimeSchema.find({ id: { $in: ids } })).map(
+    let guesses: string[] = (await AnimeSchema.find({ _id: { $in: ids } })).map(
       (ani) => ani.title
     );
 

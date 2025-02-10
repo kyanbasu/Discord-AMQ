@@ -3,7 +3,7 @@ import * as mongoose from "mongoose";
 // User
 const userSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true },
+    _id: { type: String, required: true },
     name: { type: String, required: true },
     malname: { type: String, required: false }, //myanimelist
     aniname: { type: String, required: false }, //anilist
@@ -21,7 +21,7 @@ export const UserSchema = mongoose.model("User", userSchema);
 // Anime
 const animeSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true },
+    _id: { type: String, required: true },
     title: { type: String, required: true },
     splash: { type: String, required: true },
   },

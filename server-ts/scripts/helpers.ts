@@ -68,7 +68,7 @@ export const getAudioUrl: (
 
           if (!fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`)) {
             try {
-              let imgUrl = await AnimeSchema.findOne({ id: malID });
+              let imgUrl = await AnimeSchema.findOne({ _id: malID });
               console.log(imgUrl);
               if (imgUrl)
                 await downloadFile(imgUrl.splash, `${malID}-${entry.slug}.jpg`);
@@ -196,7 +196,7 @@ export const getAnimeList: (ID: string) => Promise<AnimeSchema[]> = async (
 
     const json = (await res.json()) as MAL;
     const list: AnimeSchema[] = json.data.map(({ node }) => ({
-      id: node.id,
+      _id: node.id,
       title: node.title,
       splash: node.main_picture.large,
     }));
