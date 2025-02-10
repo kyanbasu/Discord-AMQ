@@ -4,7 +4,7 @@ import {
   RPCCloseCodes,
 } from "@discord/embedded-app-sdk";
 
-patchUrlMappings([{ prefix: ".proxy/", target: "discordsays.com/" }]);
+patchUrlMappings([{ prefix: ".proxy/", target: "discordsays.com/.proxy/" }]);
 
 //import rocketLogo from '/rocket.png';
 import "../css/style.css";
@@ -18,7 +18,7 @@ let options;
 let dscstatus = {
   activity: {
     type: 0,
-    details: "W lobby",
+    details: "In the lobby",
     assets: {
       large_text: "change this in prod",
       small_image: "map-mainframe",
@@ -54,14 +54,14 @@ document.getElementById("playerTypeSwitch").dispatchEvent(new Event("change"));
 socket.on("audio", async (url, guesses) => {
   console.log(guesses);
   for (let i = 0; i < guesses.length; i++) {
-    document.getElementById("guess" + i).innerHTML = guesses[i];
+    document.getElementById(`guess${i}`).innerHTML = guesses[i];
     document.getElementById(`guess${i}`).classList.remove("guessButton");
   }
   document.getElementById("guessingZone").hidden = false;
   document.getElementById("options").hidden = true;
   songCounter += 1;
 
-  dscstatus.activity.details = `W grze ${songCounter} z ${options.queueSize}`;
+  dscstatus.activity.details = `In game ${songCounter} of ${options.queueSize}`;
   await discordSdk.commands.setActivity(dscstatus);
 
   player.hidden = true;
@@ -78,7 +78,7 @@ socket.on("audio", async (url, guesses) => {
 socket.on("guess", (name) => {
   player.hidden = false;
   document.getElementById("guessingZone").hidden = true;
-  displayMessage(`To było ${name}`);
+  displayMessage(`That was ${name}`);
   setTimeout(() => {
     document.getElementById("Skip").hidden = false;
   }, 3000);
@@ -86,7 +86,7 @@ socket.on("guess", (name) => {
 
 socket.on("correctlyGuessed", (e) => {
   displayMessage(
-    `<span style="color: var(--maincontrast)">Poprawnie zgadli: ${e}</span>`
+    `<span style="color: var(--maincontrast)"> Correctly guessed: ${e}</span>`
   );
 });
 
@@ -100,30 +100,26 @@ socket.on("addAvatar", (user, isHost) => {
   appendUserAvatar(user, isHost);
 });
 
-socket.on("message", async (text, additionalInfo = null, data = null) => {
+socket.on("message", async (text, additionalInfo = null) => {
   displayMessage(text);
   switch (additionalInfo) {
     case "pause":
-      document.getElementById("PlayPause").innerHTML = "Graj";
+      document.getElementById("PlayPause").innerHTML = "Play";
       break;
 
     case "play":
-      document.getElementById("PlayPause").innerHTML = "Pauza";
+      document.getElementById("PlayPause").innerHTML = "Pause";
       break;
 
     case "end":
-      document.getElementById("PlayPause").innerHTML = "Graj";
+      document.getElementById("PlayPause").innerHTML = "Play";
       videoPlayer.src = "";
       player.hidden = true;
       document.getElementById("guessingZone").hidden = true;
       document.getElementById("options").hidden = false;
-      dscstatus.activity.details = "W lobby";
+      dscstatus.activity.details = "In the lobby";
       songCounter = 0;
       await discordSdk.commands.setActivity(dscstatus);
-      break;
-
-    case "list":
-      document.getElementById("animelistname").value = data;
       break;
 
     case "playing": //when lobby is in game and playing
@@ -136,6 +132,16 @@ socket.on("message", async (text, additionalInfo = null, data = null) => {
       break;
   }
 });
+
+socket.on("data", (type, data) => {
+  switch(type){
+    case "list":
+      document.getElementById("animelistname").value = data;
+      break;
+    default:
+      break;
+  }
+})
 
 socket.on("announce", (message, importanceLevel = 0) => {
   displayAnnoucement(message, importanceLevel);
@@ -272,6 +278,9 @@ Options are:
 function optionsReload(options) {
   document.getElementById("guessingZone").innerHTML = ""; // clears guessing zone
 
+  //TODO: guessTypes idk
+  options.guessType = 0
+
   //currently only works with picker
   switch (options.guessType) {
     case 0: //picker
@@ -288,7 +297,18 @@ function optionsReload(options) {
       break;
   }
 
-  document.getElementById("themeTypebtn").innerHTML = options.themeType;
+  document.getElementById("themeTypebtn").innerHTML = (() => {
+    switch(options.themeType){
+      case 0:
+        return "OP"
+      case 1:
+        return "ED"
+      case 2:
+        return "ALL"
+      default:
+        return "OP"
+    }
+  })();
   document.getElementById("queueSize").value = options.queueSize;
   document.getElementById("guessTime").value = options.guessTime;
   document.getElementById("guessesCount").value = options.guessesCount;
@@ -329,17 +349,17 @@ function setupOptionsGUI() {
 
   let btnOP = document.createElement("button");
   btnOP.innerHTML = "OP";
-  btnOP.addEventListener("click", () => setThemeType("OP"));
+  btnOP.addEventListener("click", () => setThemeType(0));
   document.getElementById("themeType").append(btnOP);
 
   let btnED = document.createElement("button");
   btnED.innerHTML = "ED";
-  btnED.addEventListener("click", () => setThemeType("ED"));
+  btnED.addEventListener("click", () => setThemeType(1));
   document.getElementById("themeType").append(btnED);
 
   let btnALL = document.createElement("button");
   btnALL.innerHTML = "ALL";
-  btnALL.addEventListener("click", () => setThemeType("ALL"));
+  btnALL.addEventListener("click", () => setThemeType(2));
   document.getElementById("themeType").append(btnALL);
 
   let queueSizeInput = document.getElementById("queueSize");
@@ -421,7 +441,6 @@ function Guess(evt) {
   socket.emit(
     "guess",
     auth.user,
-    `${discordSdk.guildId}/${discordSdk.channelId}`,
     evt.currentTarget.index
   );
   for (let i = 0; i < options.guessesCount; i++) {

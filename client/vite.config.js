@@ -32,6 +32,7 @@ export default defineConfig({
     },
     hmr: {
       clientPort: 443,
-    }
+    },
+    allowedHosts: ["fax-neil-church-applicants.trycloudflare.com", "localhost"]
   },
 });
