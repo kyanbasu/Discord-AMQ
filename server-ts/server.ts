@@ -6,9 +6,10 @@ import path from "node:path";
 import http from "node:http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { connection } from "./scripts/socketManagement.ts";
-import { Room, Anime, User } from "./scripts/types.ts";
-import { Database } from "bun:sqlite";
-import { getUser, initdb } from "./scripts/databaseManagement.ts";
+import { DiscordUser, Room, User } from "./scripts/types.ts";
+import { initdb } from "./scripts/databaseManagement.ts";
+
+initdb();
 
 dotenv.config({ path: "../.env" });
 
@@ -21,11 +22,8 @@ const io: SocketIOServer = new SocketIOServer(server, {
 });
 
 let rooms: Record<string, Room> = {};
-let users: Record<number, User> = {};
-
-const db = new Database("db.sqlite");
-
-initdb();
+let users: Record<string, User> = {};
+let discordUsers: Record<string, DiscordUser> = {};
 
 // Clean cache
 fs.readdir("../client/res/", (err, files) => {
@@ -42,7 +40,7 @@ fs.readdir("../client/res/", (err, files) => {
 // Allow express to parse JSON bodies
 app.use(express.json());
 
-export { users, rooms, io, db };
+export { users, discordUsers, rooms, io };
 
 io.on("connection", (socket) => connection(socket));
 

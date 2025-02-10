@@ -2,7 +2,8 @@ import ffmpeg from "fluent-ffmpeg";
 import fetch from "node-fetch";
 import fs from "node:fs";
 
-import { Anime } from "./types";
+import { AnimeSchema } from "./schema";
+import { ThemeType } from "./types";
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export const shuffleArray = (array: any[]) => {
@@ -42,28 +43,37 @@ interface AudioUrl {
 }
 
 export const getAudioUrl: (
-  malID: number,
-  themeType: string
-) => Promise<AudioUrl> = (malID, themeType = "ALL") => {
+  malID: string,
+  themeType: ThemeType
+) => Promise<AudioUrl> = (malID, themeType = ThemeType.ALL) => {
   try {
     return new Promise((resolve, reject) => {
       fetch(
         `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=MyAnimeList&filter[external_id]=${malID}&include=animethemes.animethemeentries.videos.audio`
       )
         .then((response) => response.json() as Promise<AnimeResponse>)
-        .then((obj: AnimeResponse) => {
+        .then(async (obj: AnimeResponse) => {
           if (obj.anime[0] == undefined) return reject();
 
           let _animes;
-          if (themeType == "ALL") _animes = obj.anime[0].animethemes;
+          if (themeType == ThemeType.ALL) _animes = obj.anime[0].animethemes;
           else
             _animes = obj.anime[0].animethemes.filter(
-              (e: any) => e.type == themeType
+              (e: any) => e.type == ThemeType[themeType]
             );
 
           if (_animes.length == 0) return reject();
           let entry = _animes[Math.floor(_animes.length * Math.random())];
           let link = entry.animethemeentries[0].videos[0];
+
+          if (!fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`)) {
+            try {
+              let imgUrl = await AnimeSchema.findOne({ id: malID });
+              console.log(imgUrl);
+              if (imgUrl)
+                await downloadFile(imgUrl.splash, `${malID}-${entry.slug}.jpg`);
+            } catch {}
+          }
 
           if (
             fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`) &&
@@ -162,7 +172,7 @@ interface MAL {
   data: [
     {
       node: {
-        id: number;
+        id: string;
         title: string;
         main_picture: { medium: string; large: string };
       };
@@ -171,7 +181,7 @@ interface MAL {
 }
 
 //only works for MAL for now
-export const getAnimeList: (ID: string) => Promise<Anime[]> = async (
+export const getAnimeList: (ID: string) => Promise<AnimeSchema[]> = async (
   ID: string
 ) => {
   try {
@@ -185,7 +195,7 @@ export const getAnimeList: (ID: string) => Promise<Anime[]> = async (
     }
 
     const json = (await res.json()) as MAL;
-    const list: Anime[] = json.data.map(({ node }) => ({
+    const list: AnimeSchema[] = json.data.map(({ node }) => ({
       id: node.id,
       title: node.title,
       splash: node.main_picture.large,

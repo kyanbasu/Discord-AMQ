@@ -33,3 +33,4 @@ db.sqlite
 cache.json
 */res/*
 test*
+*/config.json

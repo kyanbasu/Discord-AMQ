@@ -1,35 +1,40 @@
 import { Socket } from "socket.io";
-import { rooms, io } from "../server.ts";
-import { shuffleArray, getAudioUrl, downloadFile } from "./helpers.ts";
+import { rooms, io, users, discordUsers } from "../server.ts";
+import {
+  shuffleArray,
+  getAudioUrl,
+  downloadFile,
+  randomFromArray,
+} from "./helpers.ts";
 import { systemMessage, userAnnouncement } from "./messaging.ts";
-
-import { Anime } from "./types.ts";
+import { GameState } from "./types.ts";
+import { AnimeSchema } from "./schema.ts";
 
 export const addQueue = async (
   socket: Socket,
   roomID: string,
-  malID: number
+  malID: string
 ) => {
   if (!rooms[roomID]) {
-    userAnnouncement(socket, "Ten pokój nie istnieje");
+    userAnnouncement(socket, "This room does not exist");
     return;
   }
   if (
     rooms[roomID].queue.includes(malID) ||
     rooms[roomID].queueHistory.includes(malID)
   ) {
-    userAnnouncement(socket, `${malID} jest już w kolejce`);
+    userAnnouncement(socket, `${malID} is already in queue`);
     return;
   }
   rooms[roomID].queue.push(malID);
-  userAnnouncement(socket, `Dodano ${malID} do kolejki`);
+  userAnnouncement(socket, `Added ${malID} to queue`);
 
-  if (!rooms[roomID].paused && !rooms[roomID].playing) {
+  if (!rooms[roomID].playerPaused && !rooms[roomID].playerPlaying) {
     if (rooms[roomID].currentTimeout !== null) {
       clearTimeout(rooms[roomID].currentTimeout);
       rooms[roomID].currentTimeout = null;
     }
-    rooms[roomID].playing = false;
+    rooms[roomID].playerPlaying = false;
 
     await playNextQueue(roomID);
   }
@@ -38,7 +43,7 @@ export const addQueue = async (
 export const playNextQueue = async (roomID: string) => {
   if (
     !rooms[roomID] ||
-    rooms[roomID].playing ||
+    rooms[roomID].playerPlaying ||
     rooms[roomID].currentTimeout != null
   )
     return; //to probably remove duplicate processes
@@ -49,32 +54,32 @@ export const playNextQueue = async (roomID: string) => {
     return;
   }
 
-  if (!rooms[roomID].paused) {
+  if (!rooms[roomID].playerPaused) {
     //summary after all songs
     if (rooms[roomID].queue.length == 0) {
       let o = "";
       let sortedUsers = Object.values(rooms[roomID].users).sort(
-        (a, b) => b.score - a.score
+        (a, b) => users[b].score - users[a].score
       );
       //.map(user => user) //not needed
 
       sortedUsers.forEach((u) => {
-        o += `${u.global_name} ${u.score}pkt<br/>`;
+        o += `${discordUsers[u].global_name} ${users[u].score}p<br/>`;
       });
 
-      rooms[roomID].gameState = "lobby";
-      rooms[roomID].paused = true;
+      rooms[roomID].gameState = GameState.LOBBY;
+      rooms[roomID].playerPaused = true;
       rooms[roomID].canPlayNext = true;
       io.to(roomID).emit(
         "message",
-        `<span style="color: var(--maincontrast)">> Koniec.<br/>> Wyniki:<br/>${o}</span>`,
+        `<span style="color: var(--maincontrast)">> The end.<br/>> Results:<br/>${o}</span>`,
         "end"
       );
       return;
     }
-    systemMessage(roomID, "Bufferuje...");
+    systemMessage(roomID, "Buffering...");
     //io.to(roomID).emit('message', `LOG> pobieranie ${rooms[roomID].queue[0]}`)
-    if (!rooms[roomID].playing) rooms[roomID].playing = true;
+    if (!rooms[roomID].playerPlaying) rooms[roomID].playerPlaying = true;
     rooms[roomID].canPlayNext = false;
     let audio = await getAudioUrl(
       rooms[roomID].queue[0],
@@ -86,20 +91,30 @@ export const playNextQueue = async (roomID: string) => {
         `LOG> nie znaleziono ${rooms[roomID].queue[0]}`
       );
       rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
-      rooms[roomID].playing = false;
+      rooms[roomID].playerPlaying = false;
       console.log(`history ${rooms[roomID].queueHistory.toString()}`);
 
-      let picker = rooms[roomID].animeList.filter(
-        (e) =>
-          !rooms[roomID].queue.includes(e.id) &&
-          !rooms[roomID].queueHistory.includes(e.id)
+      let tempList = users[randomFromArray(rooms[roomID].users)].list
+
+      if(!tempList) return
+
+      let picker = tempList.filter(
+        (e: string) =>
+          !rooms[roomID].queue.includes(e) &&
+          !rooms[roomID].queueHistory.includes(e)
       );
       if (picker.length == 0) {
         console.log(`anime list is empty`);
         await playNextQueue(roomID);
         return;
       }
-      const newPick: Anime = picker[Math.floor(Math.random() * picker.length)];
+
+      let aniid = randomFromArray(picker);
+      const newPick: AnimeSchema | null = await AnimeSchema.findOne({
+        id: aniid,
+      });
+      if (!newPick) throw new Error(`No anime in database, id: ${aniid}`);
+
       console.log(`instead added ${newPick.id} ${newPick.title} to queue`);
       rooms[roomID].queue.push(newPick.id);
 
@@ -112,37 +127,40 @@ export const playNextQueue = async (roomID: string) => {
 
     console.log(audio);
 
-    let guesses: string[] = [];
-    let tempList = rooms[roomID].animeList.filter(
-      (e) => e.id != Number(audio.link.split("-")[0])
-    ); // to avoid duplicates in guesses
+    let concatLists: (string | undefined)[] = rooms[roomID].users
+      .flatMap((user) => users[user].list)
+      .filter((e) => e != audio.link.split("-")[0]); // to avoid duplicates in guesses
+
     //console.log(`removed from list ${rooms[roomID].animeList.filter(e => e.id == Number(audio.link.split('-')[0]))[0].title}`)
+
+    let ids: string[] = [];
     for (
       let i = 0;
-      i < Math.min(rooms[roomID].options.guessesCount, tempList.length) - 1;
+      i < Math.min(rooms[roomID].options.guessesCount, concatLists.length) - 1;
       i++
     ) {
-      let rng = Math.floor(Math.random() * tempList.length);
-      guesses.push(tempList[rng].title);
-      tempList.splice(rng, 1);
+      let rng = Math.floor(Math.random() * concatLists.length);
+      if (!concatLists[rng]) return;
+      ids.push(concatLists[rng]);
+      concatLists.splice(rng, 1);
     }
+
+    let guesses: string[] = (await AnimeSchema.find({ id: { $in: ids } })).map(
+      (ani) => ani.title
+    );
+
     guesses.push(audio.name);
     shuffleArray(guesses);
-
-    try {
-      let imgUrl = rooms[roomID].animeList.filter(
-        (e) => e.id == Number(audio.link.split("-")[0])
-      )[0].splash;
-      await downloadFile(imgUrl, audio.link + ".jpg");
-    } catch {}
 
     let correctGuess = guesses.findIndex((e) => e == audio.name);
 
     Object.values(rooms[roomID].users).forEach((u) => {
-      u.guess = undefined;
+      users[u].guess = undefined;
     });
+    console.log(audio.link)
+    console.log(guesses)
     io.to(roomID).emit("audio", audio.link, guesses);
-    systemMessage(roomID, "Gram...");
+    systemMessage(roomID, "Playing...");
     //io.to(roomID).emit('message', `LOG> gram ${audio.name} ${audio.themeType}`)
     rooms[roomID].queue.shift();
 
@@ -155,28 +173,28 @@ export const playNextQueue = async (roomID: string) => {
 
         let guessed: string[] = [];
         Object.values(rooms[roomID].users).forEach((usr) => {
-          if (correctGuess === usr.guess) {
-            usr.score += 1;
-            guessed.push(usr.global_name);
+          if (correctGuess === users[usr].guess) {
+            users[usr].score += 1;
+            guessed.push(discordUsers[usr].global_name);
           }
         });
 
         io.to(roomID).emit("correctlyGuessed", guessed.join(", "));
         systemMessage(
           roomID,
-          `Pozostało ${rooms[roomID].queue.length} utworów w kolejce.`
+          `Queue: ${rooms[roomID].queue.length} songs remaining.`
         );
 
         rooms[roomID].currentTimeout = setTimeout(async () => {
           if (!rooms[roomID]) return;
-          rooms[roomID].playing = false;
+          rooms[roomID].playerPlaying = false;
           rooms[roomID].currentTimeout = null;
           await playNextQueue(roomID);
           return;
-        }, (90 - rooms[roomID].options.guessTime) * 1000);
-      }, rooms[roomID].options.guessTime * 1000 + 1000);
+        }, (90 - rooms[roomID].options.guessTime) * 1000) as unknown as NodeJS.Timeout;
+      }, rooms[roomID].options.guessTime * 1000 + 1000) as unknown as NodeJS.Timeout;
     }
   } else {
-    systemMessage(roomID, "Zapauzowano.");
+    systemMessage(roomID, "Paused.");
   }
 };

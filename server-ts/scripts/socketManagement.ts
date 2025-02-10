@@ -4,7 +4,7 @@ import { addQueue, playNextQueue } from "./queueManagement.ts";
 import * as messaging from "./messaging.ts";
 import { getAnimeList, randomFromArray } from "./helpers.ts";
 
-import { users, io, rooms } from "../server.ts";
+import { users, io, rooms, discordUsers } from "../server.ts";
 import {
   User,
   RoomOptions,
@@ -12,7 +12,8 @@ import {
   ThemeType,
   DiscordUser,
 } from "./types.ts";
-import { getUser, updateUser } from "./databaseManagement.ts";
+import { updateUser } from "./databaseManagement.ts";
+import { UserSchema } from "./schema.ts";
 
 export const connection = (socket: Socket) => {
   socket.on("message", (roomID: string, message: string) => {
@@ -20,7 +21,10 @@ export const connection = (socket: Socket) => {
 
     if (message.includes("!play")) {
       try {
-        addQueue(socket, roomID, Number(message.split(" ").at(-1)));
+        let q = message.split(" ").at(-1);
+        if (!q) throw new Error(`Could not add to queue, message: ${message}`);
+
+        addQueue(socket, roomID, q);
       } catch (e) {
         throw new Error(`Could not add to queue, message: ${message}`);
       }
@@ -39,25 +43,31 @@ export const connection = (socket: Socket) => {
 
   socket.on("join-room", async (roomID: string, discordUser: DiscordUser) => {
     socket.join(roomID);
-    let user: User = { id: discordUser.id };
-    user.discord = discordUser;
-    user.score = 0;
-    user.socket = socket;
-    user.roomID = roomID;
+    let userDoc = await UserSchema.findOne({ id: discordUser.id });
 
-    let dbuserdata = getUser(user.id, true);
-    if (dbuserdata) {
-      user.list = dbuserdata.list;
-      user.name = dbuserdata.name;
+    if(userDoc){
+      socket.emit("data", "list", userDoc.malname)
     }
 
+    let user: User = {
+      id: discordUser.id,
+      name: userDoc?.name,
+      list: userDoc?.list ? userDoc.list.map(String) : [],
+      score: 0,
+      socket: socket,
+      roomID: roomID,
+    };
+
     users[user.id] = user;
+
+    discordUsers[discordUser.id] = discordUser;
 
     if (!rooms[roomID]) {
       rooms[roomID] = {
         queue: [],
         queueHistory: [],
         playerPaused: true,
+        playerPlaying: false,
         canPlayNext: true,
         gameState: GameState.LOBBY,
         hostID: user.id,
@@ -82,7 +92,7 @@ export const connection = (socket: Socket) => {
       rooms[roomID].users.forEach((usrID) => {
         socket.emit(
           "addAvatar",
-          users[usrID].discord,
+          discordUsers[usrID],
           usrID === rooms[roomID].hostID
         );
       });
@@ -91,7 +101,7 @@ export const connection = (socket: Socket) => {
     }
 
     if (rooms[roomID].gameState === GameState.PLAYING) {
-      socket.emit("message", "Dołączanie do trwającej gry...", "playing");
+      socket.emit("message", "Joining to game...", "playing");
     }
 
     socket.emit("optionsReload", rooms[roomID].options);
@@ -100,30 +110,24 @@ export const connection = (socket: Socket) => {
   // Update anime list, currently supporting only MyAnimeList, maybe add support for anilist or sth
   socket.on(
     "updateAL",
-    async (roomID: string, user: DiscordUser, listID: string) => {
+    async (roomID: string, user: DiscordUser, malname: string) => {
       if (rooms[roomID].gameState === GameState.LOBBY) {
         try {
-          const list = await getAnimeList(listID);
+          const list = await getAnimeList(malname);
 
           if (!list) throw new Error("failed to fetch anime list");
 
           // Update user in database, including not exisitng animes and user-anime relations
-          updateUser(user.id, listID, list);
+          updateUser(user.id, user.global_name, list, (malname = malname));
 
-          messaging.userAnnouncement(
-            socket,
-            `Zaaktualizowano liste. (${list.length})`
-          );
+          messaging.userAnnouncement(socket, `Updated list. (${list.length})`);
         } catch (e) {
           if (e instanceof Error)
-            console.log("Nie znaleziono takiego profilu MAL " + e.message);
-          messaging.userAnnouncement(
-            socket,
-            "Nie znaleziono takiego profilu MAL"
-          );
+            console.log("Couldn't find MAL profile " + e.message);
+          messaging.userAnnouncement(socket, "MAL profile not found");
         }
       } else {
-        socket.emit("message", "Nie można zaaktualizować listy podczas gry!");
+        socket.emit("message", "You cannot update anime list during game!");
       }
     }
   );
@@ -135,12 +139,12 @@ export const connection = (socket: Socket) => {
         console.log(options);
         rooms[roomID].options = options;
         io.to(roomID).emit("optionsReload", rooms[roomID].options);
-        messaging.systemAnnouncement(roomID, "Zaaktualizowano opcje.");
+        messaging.systemAnnouncement(roomID, "Options updated.");
       }
     }
   );
 
-  socket.on("addQueue", async (roomID: string, malID: number) => {
+  socket.on("addQueue", async (roomID: string, malID: string) => {
     addQueue(socket, roomID, malID);
   });
 
@@ -167,33 +171,36 @@ export const connection = (socket: Socket) => {
           }
 
           let randomPick = randomFromArray(selectedUser.list);
-          rooms[roomID].queue.push(randomPick.id);
+          rooms[roomID].queue.push(randomPick);
         }
-        messaging.systemMessage(roomID, "Gra rozpoczęta!", "play");
+        messaging.systemMessage(roomID, "Game has started!", "play");
       }
       rooms[roomID].playerPaused = false;
       if (rooms[roomID].gameState == GameState.PLAYING)
-        messaging.systemMessage(roomID, "Odpauzowane.", "play");
+        messaging.systemMessage(roomID, "Unpaused.", "play");
       if (rooms[roomID].canPlayNext) await playNextQueue(roomID);
     } else {
       // pressed pause
       rooms[roomID].playerPaused = true;
-      messaging.systemMessage(roomID, "Zapauzuje po muzyce...", "pause");
+      messaging.systemMessage(roomID, "Will pause after song...", "pause");
     }
   });
 
-  socket.on("guess", async (user: User, roomID: string, guess: number) => {
-    users[user.id].guess = guess;
+  socket.on("guess", async (user: User, guess: number) => {
+    if(guess)
+      users[user.id].guess = guess;
   });
 
   socket.on("skip", async (roomID: string) => {
     if (!rooms[roomID]) return socket.emit("exit");
+    console.log(rooms[roomID])
     if (!rooms[roomID].playerPaused && rooms[roomID].canPlayNext) {
       if (rooms[roomID].currentTimeout !== null) {
         clearTimeout(rooms[roomID].currentTimeout);
         rooms[roomID].currentTimeout = null;
       }
-      //rooms[roomID].playing = false;
+      
+      rooms[roomID].playerPlaying = false;
       rooms[roomID].currentTimeout = null;
       rooms[roomID].canPlayNext = false;
 
