@@ -134,14 +134,19 @@ socket.on("message", async (text, additionalInfo = null) => {
 });
 
 socket.on("data", (type, data) => {
-  switch(type){
+  switch (type) {
     case "list":
       document.getElementById("animelistname").value = data;
       break;
     default:
       break;
   }
-})
+});
+
+socket.on("cacheURL", (url) => {
+  console.log(url);
+  preloadMedia(url, selectedPlayerType);
+});
 
 socket.on("announce", (message, importanceLevel = 0) => {
   displayAnnoucement(message, importanceLevel);
@@ -196,6 +201,7 @@ import {
   removeFadeOut,
   displayMessage,
   displayAnnoucement,
+  preloadMedia,
 } from "./helpers";
 
 //removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
@@ -279,7 +285,7 @@ function optionsReload(options) {
   document.getElementById("guessingZone").innerHTML = ""; // clears guessing zone
 
   //TODO: guessTypes idk
-  options.guessType = 0
+  options.guessType = 0;
 
   //currently only works with picker
   switch (options.guessType) {
@@ -298,15 +304,15 @@ function optionsReload(options) {
   }
 
   document.getElementById("themeTypebtn").innerHTML = (() => {
-    switch(options.themeType){
+    switch (options.themeType) {
       case 0:
-        return "OP"
+        return "OP";
       case 1:
-        return "ED"
+        return "ED";
       case 2:
-        return "ALL"
+        return "ALL";
       default:
-        return "OP"
+        return "OP";
     }
   })();
   document.getElementById("queueSize").value = options.queueSize;
@@ -438,11 +444,7 @@ export function PlayPause() {
 }
 
 function Guess(evt) {
-  socket.emit(
-    "guess",
-    auth.user,
-    evt.currentTarget.index
-  );
+  socket.emit("guess", auth.user, evt.currentTarget.index);
   for (let i = 0; i < options.guessesCount; i++) {
     document.getElementById(`guess${i}`).classList.remove("guessButton");
   }

@@ -109,3 +109,41 @@ export function displayAnnoucement(message, importanceLevel) {
     }, 500); // Wait for the fade-out animation to complete
   }, 5000);
 }
+
+export function preloadMedia(baseName, selectedPlayerType) {
+  if (selectedPlayerType == "ogg") {
+    // Preload Image
+    let tempImg = new Image();
+    tempImg.src = `${baseName}.jpg?preload=true`;
+
+    // Preload Audio
+    let tempAudio = new Audio();
+    tempAudio.src = `${baseName}.ogg?preload=true`;
+    tempAudio.preload = "auto";
+    tempAudio.muted = true; // Allow loading without sound issues
+    tempAudio.play().catch(() => {}); // Play silently to force buffering
+
+    // Fetch more data using the Fetch API
+    fetch(`${baseName}.ogg`, {
+      method: "GET",
+      headers: { Range: "bytes=0-100000" },
+    }) // Request first 100KB
+      .then((res) => res.blob())
+      .catch(() => {});
+  } else {
+    // Preload Video
+    let tempVideo = document.createElement("video");
+    tempVideo.src = `${baseName}.webm?preload=true`;
+    tempVideo.preload = "auto";
+    tempVideo.muted = true;
+    tempVideo.play().catch(() => {}); // Auto-play forces buffering
+
+    // Fetch more data using the Fetch API
+    fetch(`${baseName}.webm`, {
+      method: "GET",
+      headers: { Range: "bytes=0-400000" },
+    }) // Request first 400KB
+      .then((res) => res.blob())
+      .catch(() => {});
+  }
+}

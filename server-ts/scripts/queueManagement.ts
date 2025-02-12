@@ -94,9 +94,9 @@ export const playNextQueue = async (roomID: string) => {
       rooms[roomID].playerPlaying = false;
       console.log(`history ${rooms[roomID].queueHistory.toString()}`);
 
-      let tempList = users[randomFromArray(rooms[roomID].users)].list
+      let tempList = users[randomFromArray(rooms[roomID].users)].list;
 
-      if(!tempList) return
+      if (!tempList) return;
 
       let picker = tempList.filter(
         (e: string) =>
@@ -121,11 +121,23 @@ export const playNextQueue = async (roomID: string) => {
       await playNextQueue(roomID);
       return;
     }
+
+    // convert it to worker-buffer system
+    // anime queue object to contain promise to download and buffer
+    if (rooms[roomID].queue.length > 1) {
+      getAudioUrl(rooms[roomID].queue[1], rooms[roomID].options.themeType).then(
+        (cacheAudio) => {
+          if (cacheAudio) {
+            console.log("cached: " + cacheAudio.link);
+            io.emit("cacheURL", cacheAudio.link);
+          }
+        }
+      );
+    }
+
     //if(!audio) return io.to(roomID).emit('message', `Failed to find audio`)
 
     if (!rooms[roomID]) return;
-
-    console.log(audio);
 
     let concatLists: (string | undefined)[] = rooms[roomID].users
       .flatMap((user) => users[user].list)
@@ -157,8 +169,8 @@ export const playNextQueue = async (roomID: string) => {
     Object.values(rooms[roomID].users).forEach((u) => {
       users[u].guess = undefined;
     });
-    console.log(audio.link)
-    console.log(guesses)
+    console.log(audio.link);
+    console.log(guesses);
     io.to(roomID).emit("audio", audio.link, guesses);
     systemMessage(roomID, "Playing...");
     //io.to(roomID).emit('message', `LOG> gram ${audio.name} ${audio.themeType}`)

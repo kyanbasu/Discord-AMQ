@@ -143,7 +143,7 @@ export const getAudioUrl: (
                           if (err) throw err;
                         }
                       );
-                  }, 60000);
+                  }, 120000);
                   var o: AudioUrl = {
                     link: `${malID}-${entry.slug}`,
                     name: obj.anime[0].name,
