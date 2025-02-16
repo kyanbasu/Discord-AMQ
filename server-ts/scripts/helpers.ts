@@ -46,126 +46,117 @@ export const getAudioUrl: (
   malID: string,
   themeType: ThemeType
 ) => Promise<AudioUrl> = (malID, themeType = ThemeType.ALL) => {
-  try {
-    return new Promise((resolve, reject) => {
-      fetch(
-        `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=MyAnimeList&filter[external_id]=${malID}&include=animethemes.animethemeentries.videos.audio`
-      )
-        .then((response) => response.json() as Promise<AnimeResponse>)
-        .then(async (obj: AnimeResponse) => {
-          if (obj.anime[0] == undefined) return reject();
+  return new Promise((resolve, reject) => {
+    fetch(
+      `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=MyAnimeList&filter[external_id]=${malID}&include=animethemes.animethemeentries.videos.audio`
+    )
+      .then((response) => response.json() as Promise<AnimeResponse>)
+      .then(async (obj: AnimeResponse) => {
+        if (obj.anime[0] == undefined) return reject();
 
-          let _animes;
-          if (themeType == ThemeType.ALL) _animes = obj.anime[0].animethemes;
-          else
-            _animes = obj.anime[0].animethemes.filter(
-              (e: any) => e.type == ThemeType[themeType]
-            );
+        let _animes;
+        if (themeType == ThemeType.ALL) _animes = obj.anime[0].animethemes;
+        else
+          _animes = obj.anime[0].animethemes.filter(
+            (e: any) => e.type == ThemeType[themeType]
+          );
 
-          if (_animes.length == 0) return reject();
-          let entry = _animes[Math.floor(_animes.length * Math.random())];
-          let link = entry.animethemeentries[0].videos[0];
+        if (_animes.length == 0) return reject();
+        let entry = _animes[Math.floor(_animes.length * Math.random())];
+        let link = entry.animethemeentries[0].videos[0];
 
-          if (!fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`)) {
-            try {
-              let imgUrl = await AnimeSchema.findOne({ _id: malID });
-              console.log(imgUrl);
-              if (imgUrl)
-                await downloadFile(imgUrl.splash, `${malID}-${entry.slug}.jpg`);
-            } catch {}
-          }
+        if (!fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`)) {
+          try {
+            let imgUrl = await AnimeSchema.findOne({ _id: malID });
+            console.log(imgUrl);
+            if (imgUrl)
+              await downloadFile(imgUrl.splash, `${malID}-${entry.slug}.jpg`);
+          } catch {}
+        }
 
-          if (
-            fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`) &&
-            fs.existsSync(`../client/res/${malID}-${entry.slug}.webm`)
-          ) {
-            var o: AudioUrl = {
-              link: `${malID}-${entry.slug}`,
-              name: obj.anime[0].name,
-              themeType: entry.slug,
-            };
-            return resolve(o);
-          }
+        if (
+          fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`) &&
+          fs.existsSync(`../client/res/${malID}-${entry.slug}.webm`)
+        ) {
+          var o: AudioUrl = {
+            link: `${malID}-${entry.slug}`,
+            name: obj.anime[0].name,
+            themeType: entry.slug,
+          };
+          return resolve(o);
+        }
 
-          console.log(`> Downloading ${link.link} (${malID}-${entry.slug})`);
+        console.log(`> Downloading ${link.link} (${malID}-${entry.slug})`);
 
-          ffmpeg()
-            .input(link.link)
-            //.outputOptions('-ss', '00:20')
-            //.outputOptions('-to', '00:50')
-            .outputOptions("-c", "copy")
-            //.outputOptions('-crf', '18')
-            //.outputOptions('-preset', 'ultrafast')
-            //.outputOptions('-vf', 'scale=640:480')
-            //.outputOptions('-sws_flags', 'fast_bilinear')
-            .saveToFile(`../client/res/${malID}-${entry.slug}.webm`)
-            .on("end", () => {
-              ffmpeg()
-                .input(link.audio.link)
-                //.outputOptions('-ss', '00:20')
-                //.outputOptions('-to', '00:50')
-                .outputOptions("-c", "copy")
-                //.outputOptions('-crf', '18')
-                //.outputOptions('-preset', 'ultrafast')
-                //.outputOptions('-vf', 'scale=640:480')
-                //.outputOptions('-sws_flags', 'fast_bilinear')
-                .saveToFile(`../client/res/${malID}-${entry.slug}.ogg`)
-                .on("end", () => {
-                  console.log("FFmpeg has finished.");
-                  setTimeout(function () {
-                    if (
-                      fs.existsSync(`../client/res/${malID}-${entry.slug}.webm`)
-                    )
-                      fs.unlink(
-                        `../client/res/${malID}-${entry.slug}.webm`,
-                        (err) => {
-                          if (err) throw err;
-                          console.log(`${malID}-${entry.slug} was deleted`);
-                        }
-                      );
+        ffmpeg()
+          .input(link.link)
+          //.outputOptions('-ss', '00:20')
+          //.outputOptions('-to', '00:50')
+          .outputOptions("-c", "copy")
+          //.outputOptions('-crf', '18')
+          //.outputOptions('-preset', 'ultrafast')
+          //.outputOptions('-vf', 'scale=640:480')
+          //.outputOptions('-sws_flags', 'fast_bilinear')
+          .saveToFile(`../client/res/${malID}-${entry.slug}.webm`)
+          .on("end", () => {
+            ffmpeg()
+              .input(link.audio.link)
+              //.outputOptions('-ss', '00:20')
+              //.outputOptions('-to', '00:50')
+              .outputOptions("-c", "copy")
+              //.outputOptions('-crf', '18')
+              //.outputOptions('-preset', 'ultrafast')
+              //.outputOptions('-vf', 'scale=640:480')
+              //.outputOptions('-sws_flags', 'fast_bilinear')
+              .saveToFile(`../client/res/${malID}-${entry.slug}.ogg`)
+              .on("end", () => {
+                console.log("FFmpeg has finished.");
+                setTimeout(function () {
+                  if (
+                    fs.existsSync(`../client/res/${malID}-${entry.slug}.webm`)
+                  )
+                    fs.unlink(
+                      `../client/res/${malID}-${entry.slug}.webm`,
+                      (err) => {
+                        if (err) throw err;
+                        console.log(`${malID}-${entry.slug} was deleted`);
+                      }
+                    );
 
-                    if (
-                      fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`)
-                    )
-                      fs.unlink(
-                        `../client/res/${malID}-${entry.slug}.ogg`,
-                        (err) => {
-                          if (err) throw err;
-                        }
-                      );
+                  if (fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`))
+                    fs.unlink(
+                      `../client/res/${malID}-${entry.slug}.ogg`,
+                      (err) => {
+                        if (err) throw err;
+                      }
+                    );
 
-                    if (
-                      fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`)
-                    )
-                      fs.unlink(
-                        `../client/res/${malID}-${entry.slug}.jpg`,
-                        (err) => {
-                          if (err) throw err;
-                        }
-                      );
-                  }, 120000);
-                  var o: AudioUrl = {
-                    link: `${malID}-${entry.slug}`,
-                    name: obj.anime[0].name,
-                    themeType: entry.slug,
-                  };
-                  return resolve(o);
-                });
-            })
-            //.on('progress', function(progress) { console.log(progress.timemark + ' processed'); })
-            .on("error", (error) => {
-              console.error(error);
-              return reject();
-            });
-        })
-        .catch((e) => {
-          return reject();
-        });
-    });
-  } catch (error) {
-    console.error(error);
-    throw new Error("Unable to fetch audio");
-  }
+                  if (fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`))
+                    fs.unlink(
+                      `../client/res/${malID}-${entry.slug}.jpg`,
+                      (err) => {
+                        if (err) throw err;
+                      }
+                    );
+                }, 120000);
+                var o: AudioUrl = {
+                  link: `${malID}-${entry.slug}`,
+                  name: obj.anime[0].name,
+                  themeType: entry.slug,
+                };
+                return resolve(o);
+              });
+          })
+          //.on('progress', function(progress) { console.log(progress.timemark + ' processed'); })
+          .on("error", (error) => {
+            console.error(error);
+            return reject();
+          });
+      })
+      .catch((e) => {
+        return reject();
+      });
+  });
 };
 
 interface MAL {
