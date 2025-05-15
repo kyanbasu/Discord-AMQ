@@ -118,9 +118,8 @@ export const connection = (socket: Socket) => {
           if (!list) throw new Error("failed to fetch anime list");
 
           // Update in cache
-          users[discordUser.id].list = list.map(e => e._id);
+          users[discordUser.id].list = list.map((e) => e._id);
           socket.emit("data", "list", malname); // idk just to make sure user has correct name in input field
-          
 
           // Update user in database, including not exisitng animes and user-anime relations
           updateUser(
@@ -197,7 +196,8 @@ export const connection = (socket: Socket) => {
   });
 
   socket.on("guess", async (user: User, guess: number) => {
-    if (guess) users[user.id].guess = guess;
+    if (!users[user.id]) return;
+    if (guess) users[user.id].guess = guess-1;
   });
 
   socket.on("skip", async (roomID: string) => {

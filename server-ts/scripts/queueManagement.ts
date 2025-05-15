@@ -56,27 +56,8 @@ export const playNextQueue = async (roomID: string) => {
 
   if (!rooms[roomID].playerPaused) {
     //summary after all songs
-    if (rooms[roomID].queue.length == 0) {
-      let o = "";
-      let sortedUsers = Object.values(rooms[roomID].users).sort(
-        (a, b) => users[b].score - users[a].score
-      );
-      //.map(user => user) //not needed
+    if (rooms[roomID].queue.length == 0) return summary(roomID);
 
-      sortedUsers.forEach((u) => {
-        o += `${discordUsers[u].global_name} ${users[u].score}p<br/>`;
-      });
-
-      rooms[roomID].gameState = GameState.LOBBY;
-      rooms[roomID].playerPaused = true;
-      rooms[roomID].canPlayNext = true;
-      io.to(roomID).emit(
-        "message",
-        `<span style="color: var(--maincontrast)">> The end.<br/>> Results:<br/>${o}</span>`,
-        "end"
-      );
-      return;
-    }
     systemMessage(roomID, "Buffering...");
     //io.to(roomID).emit('message', `LOG> pobieranie ${rooms[roomID].queue[0]}`)
     if (!rooms[roomID].playerPlaying) rooms[roomID].playerPlaying = true;
@@ -125,14 +106,16 @@ export const playNextQueue = async (roomID: string) => {
     // convert it to worker-buffer system
     // anime queue object to contain promise to download and buffer
     if (rooms[roomID].queue.length > 1) {
-      getAudioUrl(rooms[roomID].queue[1], rooms[roomID].options.themeType).then(
-        (cacheAudio) => {
+      getAudioUrl(rooms[roomID].queue[1], rooms[roomID].options.themeType)
+        .then((cacheAudio) => {
           if (cacheAudio) {
             console.log("cached: " + cacheAudio.link);
             io.emit("cacheURL", cacheAudio.link);
           }
-        }
-      );
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
 
     //if(!audio) return io.to(roomID).emit('message', `Failed to find audio`)
@@ -174,7 +157,7 @@ export const playNextQueue = async (roomID: string) => {
     io.to(roomID).emit("audio", audio.link, guesses);
     systemMessage(roomID, "Playing...");
     //io.to(roomID).emit('message', `LOG> gram ${audio.name} ${audio.themeType}`)
-    rooms[roomID].queue.shift();
+    rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
 
     if (rooms[roomID].currentTimeout == null) {
       rooms[roomID].currentTimeout = setTimeout(async () => {
@@ -210,3 +193,25 @@ export const playNextQueue = async (roomID: string) => {
     systemMessage(roomID, "Paused.");
   }
 };
+
+function summary(roomID: string) {
+  let o = "";
+  let sortedUsers = Object.values(rooms[roomID].users).sort(
+    (a, b) => users[b].score - users[a].score
+  );
+  //.map(user => user) //not needed
+
+  sortedUsers.forEach((u) => {
+    o += `${discordUsers[u].global_name} ${users[u].score}p<br/>`;
+    users[u].score = 0; // reset score for next game
+  });
+
+  rooms[roomID].gameState = GameState.LOBBY;
+  rooms[roomID].playerPaused = true;
+  rooms[roomID].canPlayNext = true;
+  io.to(roomID).emit(
+    "message",
+    `<span style="color: var(--maincontrast)">> The end.<br/>> Results:<br/>${o}</span>`,
+    "end"
+  );
+}

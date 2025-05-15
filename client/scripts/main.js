@@ -444,7 +444,7 @@ export function PlayPause() {
 }
 
 function Guess(evt) {
-  socket.emit("guess", auth.user, evt.currentTarget.index);
+  socket.emit("guess", auth.user, evt.currentTarget.index+1);
   for (let i = 0; i < options.guessesCount; i++) {
     document.getElementById(`guess${i}`).classList.remove("guessButton");
   }

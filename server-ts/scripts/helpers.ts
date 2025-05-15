@@ -1,9 +1,9 @@
-import ffmpeg from "fluent-ffmpeg";
-import fetch from "node-fetch";
-import fs from "node:fs";
+//import fs from "node:fs";
+import { join, basename, extname } from "path";
 
 import { AnimeSchema } from "./schema";
 import { ThemeType } from "./types";
+import { privateEncrypt } from "crypto";
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export const shuffleArray = (array: any[]) => {
@@ -19,18 +19,56 @@ export const randomFromArray = (array: any[]) => {
   return array[Math.floor(Math.random() * array.length)];
 };
 
-export const downloadFile = async (url: string, filename: string) => {
-  const res = await fetch(url);
-  if (!res.body)
-    throw new Error(`Failed to fetch ${url}, response body is null.`);
+export async function downloadFile(
+  url: string,
+  outputName: string
+): Promise<string> {
+  // Fetch the file
+  const response = await fetch(url);
 
-  const fileStream = fs.createWriteStream("../client/res/" + filename);
-  await new Promise((resolve, reject) => {
-    res.body!.pipe(fileStream);
-    res.body!.on("error", reject);
-    fileStream.on("finish", resolve);
-  });
-};
+  // Determine extension...
+  const urlObj = new URL(url);
+  const originalName = basename(urlObj.pathname);
+  let extension = extname(originalName);
+
+  if (extension === ".webp") {
+    extension = ".jpg";
+  }
+  // catch errors
+  if (!response.ok) {
+    if (extension === ".jpg") return "../client/undefined.jpg"; // return undefined image
+    throw new Error(
+      `Failed to download ${url}: ${response.status} ${response.statusText}`
+    );
+  }
+
+  // ...and filename
+  const filename = `${outputName}${extension}`;
+  const destPath = join("../client/res", filename);
+
+  // Read as ArrayBuffer and write to disk
+  const arrayBuffer = await response.arrayBuffer();
+  await Bun.write(destPath, new Uint8Array(arrayBuffer));
+
+  return destPath;
+}
+
+export async function downloadMediaBatch(
+  urls: string[],
+  outputBaseName: string
+): Promise<string> {
+  // Kick off all three downloads concurrently, using the same base name
+  const downloads = urls.map((url) => downloadFile(url, outputBaseName));
+
+  console.log("Downloading files:");
+  console.log(urls);
+
+  // Wait for all to complete
+  await Promise.all(downloads);
+
+  // Return the shared base filename
+  return outputBaseName;
+}
 
 interface AnimeResponse {
   anime: [{ animethemes: any; name: string }];
@@ -52,114 +90,74 @@ export const getAudioUrl: (
     )
       .then((response) => response.json() as Promise<AnimeResponse>)
       .then(async (obj: AnimeResponse) => {
-        if (obj.anime[0] == undefined) return reject();
+        if (obj.anime[0] == undefined)
+          return reject(new Error("Error no anime found"));
 
-        let _animes;
-        if (themeType == ThemeType.ALL) _animes = obj.anime[0].animethemes;
+        let _themes;
+        if (themeType == ThemeType.ALL) _themes = obj.anime[0].animethemes;
         else
-          _animes = obj.anime[0].animethemes.filter(
+          _themes = obj.anime[0].animethemes.filter(
             (e: any) => e.type == ThemeType[themeType]
           );
 
-        if (_animes.length == 0) return reject();
-        let entry = _animes[Math.floor(_animes.length * Math.random())];
-        let link = entry.animethemeentries[0].videos[0];
+        if (_themes.length == 0) return reject(new Error("No themes found"));
+        const entry = _themes[Math.floor(_themes.length * Math.random())];
+        const baseName = `${malID}-${entry.slug}`;
 
-        if (!fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`)) {
-          try {
-            let imgUrl = await AnimeSchema.findOne({ _id: malID });
-            console.log(imgUrl);
-            if (imgUrl)
-              await downloadFile(imgUrl.splash, `${malID}-${entry.slug}.jpg`);
-          } catch {}
-        }
+        const o: AudioUrl = {
+          link: `${baseName}`,
+          name: obj.anime[0].name,
+          themeType: entry.slug,
+        };
 
-        if (
-          fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`) &&
-          fs.existsSync(`../client/res/${malID}-${entry.slug}.webm`)
-        ) {
-          var o: AudioUrl = {
-            link: `${malID}-${entry.slug}`,
-            name: obj.anime[0].name,
-            themeType: entry.slug,
-          };
+        if (await Bun.file(`../client/res/${baseName}.jpg`).exists()) {
           return resolve(o);
         }
 
-        console.log(`> Downloading ${link.link} (${malID}-${entry.slug})`);
+        const vidUrl = entry.animethemeentries[0].videos[0].link;
+        const audioUrl = entry.animethemeentries[0].videos[0].audio.link;
+        const imgUrl = await AnimeSchema.findOne({ _id: malID }).then((res) => {
+          if (res) return res.splash;
+          return undefined;
+        });
 
-        ffmpeg()
-          .input(link.link)
-          //.outputOptions('-ss', '00:20')
-          //.outputOptions('-to', '00:50')
-          .outputOptions("-c", "copy")
-          //.outputOptions('-crf', '18')
-          //.outputOptions('-preset', 'ultrafast')
-          //.outputOptions('-vf', 'scale=640:480')
-          //.outputOptions('-sws_flags', 'fast_bilinear')
-          .saveToFile(`../client/res/${malID}-${entry.slug}.webm`)
-          .on("end", () => {
-            ffmpeg()
-              .input(link.audio.link)
-              //.outputOptions('-ss', '00:20')
-              //.outputOptions('-to', '00:50')
-              .outputOptions("-c", "copy")
-              //.outputOptions('-crf', '18')
-              //.outputOptions('-preset', 'ultrafast')
-              //.outputOptions('-vf', 'scale=640:480')
-              //.outputOptions('-sws_flags', 'fast_bilinear')
-              .saveToFile(`../client/res/${malID}-${entry.slug}.ogg`)
-              .on("end", () => {
-                console.log("FFmpeg has finished.");
-                setTimeout(function () {
-                  if (
-                    fs.existsSync(`../client/res/${malID}-${entry.slug}.webm`)
-                  )
-                    fs.unlink(
-                      `../client/res/${malID}-${entry.slug}.webm`,
-                      (err) => {
-                        if (err) throw err;
-                        console.log(`${malID}-${entry.slug} was deleted`);
-                      }
-                    );
+        console.log(`> Downloading ${vidUrl} (${baseName})`);
+        try {
+          var start = Date.now();
+          const result = await downloadMediaBatch(
+            [vidUrl, audioUrl, imgUrl],
+            baseName
+          );
+          console.log(`Downloaded files with base name: ${result}`);
+          console.log(`Time taken batch: ${Date.now() - start}ms`);
+          requestDeletion(baseName);
+          return resolve(o);
+        } catch (error) {
+          console.error(`Error downloading files (${baseName}): ${error}`);
+        }
 
-                  if (fs.existsSync(`../client/res/${malID}-${entry.slug}.ogg`))
-                    fs.unlink(
-                      `../client/res/${malID}-${entry.slug}.ogg`,
-                      (err) => {
-                        if (err) throw err;
-                      }
-                    );
-
-                  if (fs.existsSync(`../client/res/${malID}-${entry.slug}.jpg`))
-                    fs.unlink(
-                      `../client/res/${malID}-${entry.slug}.jpg`,
-                      (err) => {
-                        if (err) throw err;
-                      }
-                    );
-                }, 120000);
-                var o: AudioUrl = {
-                  link: `${malID}-${entry.slug}`,
-                  name: obj.anime[0].name,
-                  themeType: entry.slug,
-                };
-                return resolve(o);
-              });
-          })
-          //.on('progress', function(progress) { console.log(progress.timemark + ' processed'); })
-          .on("error", (error) => {
-            console.error(error);
-            return reject();
-          });
+        return reject(new Error("Error downloading files"));
       })
       .catch((e) => {
-        return reject();
+        console.error(`Error fetching audio URL: ${e}`);
+        return reject(new Error(`Error fetching audio URL: ${e}`));
       });
   });
 };
 
-interface MAL {
+function requestDeletion(baseName: string) {
+  setTimeout(async () => {
+    console.log(`Deleting ${baseName} files`);
+    ["webm", "ogg", "jpg"].forEach(async (ext) => {
+      const res = Bun.file(`../client/res/${baseName}.${ext}`);
+      if (await res.exists()) {
+        await res.delete();
+      }
+    });
+  }, 120_000);
+}
+
+interface MAL { 
   data: [
     {
       node: {
