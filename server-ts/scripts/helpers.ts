@@ -176,7 +176,7 @@ export const getAnimeList: (ID: string) => Promise<AnimeSchema[]> = async (
   try {
     const res = await fetch(
       `https://api.myanimelist.net/v2/users/${ID}/animelist?limit=1000&status=watching&status=completed`,
-      { headers: { "X-MAL-CLIENT-ID": "f01f99efa89d0a650a365dd317ccc931" } }
+      { headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID! } }
     );
 
     if (!res.ok) {
