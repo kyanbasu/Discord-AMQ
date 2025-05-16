@@ -1,5 +1,9 @@
 import crownSrc from "/static/crown.svg";
 
+const isMobile = () => {
+  return navigator.userAgentData && navigator.userAgentData.mobile;
+};
+
 export async function appendUserAvatar(user, isHost = false) {
   const navbar = document.getElementById("navbar");
 
@@ -29,7 +33,7 @@ export async function appendUserAvatar(user, isHost = false) {
     crownImg.setAttribute(
       "style",
       `position:absolute;height:16px;top:${
-        navigator.userAgentData.mobile ? "40px" : "0"
+        isMobile ? "0" : "40px"
       };margin-left:4px;`
     );
     container.appendChild(crownImg);
