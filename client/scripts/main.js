@@ -6,6 +6,21 @@ import {
 
 patchUrlMappings([{ prefix: ".proxy/", target: "discordsays.com/.proxy/" }]);
 
+//closes app on vite reload, because thing would be broken that way
+import.meta.hot.on("vite:beforeFullReload", async () => {
+  await discordSdk.close(RPCCloseCodes.CLOSE_NORMAL, "You exited from app");
+});
+
+import { setupDiscordSdk } from "./discordSetup";
+import {
+  updatePlayerList,
+  appendVoiceChannelName,
+  removeFadeOut,
+  displayMessage,
+  displayAnnoucement,
+  preloadMedia,
+} from "./helpers";
+
 //import rocketLogo from '/rocket.png';
 import "../css/style.css";
 import { io } from "socket.io-client";
@@ -96,8 +111,8 @@ socket.on("optionsReload", (_options) => {
   optionsReload(options);
 });
 
-socket.on("addAvatar", (user, isHost) => {
-  appendUserAvatar(user, isHost);
+socket.on("updatePlayerList", (playerList, host) => {
+  updatePlayerList(playerList, host);
 });
 
 socket.on("message", async (text, additionalInfo = null) => {
@@ -188,21 +203,6 @@ function sendMessage() {
 }
 
 const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
-
-//closes app on vite reload, because thing would be broken that way
-import.meta.hot.on("vite:beforeFullReload", async () => {
-  await discordSdk.close(RPCCloseCodes.CLOSE_NORMAL, "You exited from app");
-});
-
-import { setupDiscordSdk } from "./discordSetup";
-import {
-  appendUserAvatar,
-  appendVoiceChannelName,
-  removeFadeOut,
-  displayMessage,
-  displayAnnoucement,
-  preloadMedia,
-} from "./helpers";
 
 //removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
 setupDiscordSdk(discordSdk).then(async (_auth) => {
@@ -444,7 +444,7 @@ export function PlayPause() {
 }
 
 function Guess(evt) {
-  socket.emit("guess", auth.user, evt.currentTarget.index+1);
+  socket.emit("guess", auth.user, evt.currentTarget.index + 1);
   for (let i = 0; i < options.guessesCount; i++) {
     document.getElementById(`guess${i}`).classList.remove("guessButton");
   }

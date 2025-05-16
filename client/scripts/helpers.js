@@ -4,42 +4,45 @@ const isMobile = () => {
   return navigator.userAgentData && navigator.userAgentData.mobile;
 };
 
-export async function appendUserAvatar(user, isHost = false) {
-  const navbar = document.getElementById("navbar");
+export async function updatePlayerList(playerList, hostID) {
+  const playerListElement = document.getElementById("playerList");
+  playerListElement.innerHTML = ""; // Clear existing list
 
-  let avatarSrc = "";
-  if (user.avatar) {
-    avatarSrc = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`;
-  } else {
-    const defaultAvatarIndex = Math.abs(Number(auth.user.id) >> 22) % 6;
-    avatarSrc = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
-  }
-  const container = document.createElement("div");
-  container.setAttribute(
-    "style",
-    "display:flex;align-items:center;max-width:100px"
-  );
-
-  const avatarImg = document.createElement("img");
-  avatarImg.setAttribute("src", avatarSrc);
-  avatarImg.setAttribute("height", "80%");
-  avatarImg.setAttribute("style", "border-radius: 50%;");
-
-  container.appendChild(avatarImg);
-
-  if (isHost) {
-    const crownImg = document.createElement("img");
-    crownImg.setAttribute("src", crownSrc);
-    crownImg.setAttribute(
+  playerList.forEach((player) => {
+    let avatarSrc = "";
+    if (player.avatar) {
+      avatarSrc = `https://cdn.discordapp.com/avatars/${player.id}/${player.avatar}.png?size=256`;
+    } else {
+      const defaultAvatarIndex = Math.abs(Number(player.id) >> 22) % 6;
+      avatarSrc = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
+    }
+    const container = document.createElement("div");
+    container.setAttribute(
       "style",
-      `position:absolute;height:16px;top:${
-        isMobile ? "0" : "40px"
-      };margin-left:4px;`
+      "display:flex;align-items:center;max-width:100px"
     );
-    container.appendChild(crownImg);
-  }
 
-  navbar.appendChild(container);
+    const avatarImg = document.createElement("img");
+    avatarImg.setAttribute("src", avatarSrc);
+    avatarImg.setAttribute("height", "80%");
+    avatarImg.setAttribute("style", "border-radius: 50%;");
+
+    container.appendChild(avatarImg);
+
+    if (player.id === hostID) {
+      const crownImg = document.createElement("img");
+      crownImg.setAttribute("src", crownSrc);
+      crownImg.setAttribute(
+        "style",
+        `position:absolute;height:16px;top:${
+          isMobile ? "0" : "40px"
+        };margin-left:4px;`
+      );
+      container.appendChild(crownImg);
+    }
+
+    playerListElement.appendChild(container);
+  });
 }
 
 export async function appendVoiceChannelName(discordSdk, socket, user) {

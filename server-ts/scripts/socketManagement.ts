@@ -84,18 +84,12 @@ export const connection = (socket: Socket) => {
 
       rooms[roomID].users.push(user.id);
 
-      socket.emit("addAvatar", discordUser, user.id === rooms[roomID].hostID);
+      updatePlayerList(roomID);
     } else {
       if (!rooms[roomID].users.includes(user.id))
         rooms[roomID].users.push(user.id);
 
-      rooms[roomID].users.forEach((usrID) => {
-        socket.emit(
-          "addAvatar",
-          discordUsers[usrID],
-          usrID === rooms[roomID].hostID
-        );
-      });
+      updatePlayerList(roomID);
 
       socket.emit("message", rooms[roomID].chathistory);
     }
@@ -234,7 +228,18 @@ export const connection = (socket: Socket) => {
       if (index > -1) rooms[roomID].users.splice(index, 1);
 
       if (rooms[roomID].users.length === 0) delete rooms[roomID];
+
+      updatePlayerList(roomID);
     }
     delete users[user.id];
   });
 };
+
+function updatePlayerList(roomID: string) {
+  if (!rooms[roomID]) return;
+  const playerList = rooms[roomID].users.map((userID) => ({
+    id: userID,
+    avatar: discordUsers[userID]?.avatar,
+  }));
+  io.to(roomID).emit("updatePlayerList", playerList, rooms[roomID].hostID);
+}
