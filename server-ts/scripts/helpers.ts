@@ -23,6 +23,9 @@ export async function downloadFile(
   url: string,
   outputName: string
 ): Promise<string> {
+  if(Bun.argv.includes("--no-video") && url.endsWith(".webm")) {
+    return "../client/undefined.jpg";
+  }
   // Fetch the file
   const response = await fetch(url);
 

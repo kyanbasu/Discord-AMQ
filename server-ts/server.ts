@@ -25,6 +25,10 @@ let rooms: Record<string, Room> = {};
 let users: Record<string, User> = {};
 let discordUsers: Record<string, DiscordUser> = {};
 
+fs.mkdir("../client/res/", { recursive: true }, (err) => {
+  if (err && err.code !== "EEXIST") throw err;
+});
+
 // Clean cache
 fs.readdir("../client/res/", (err, files) => {
   if (err) throw err;
