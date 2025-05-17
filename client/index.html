@@ -21,18 +21,18 @@
         <button id="Skip">skip</button>
       </div>
 
-      <div class="options" id="options">
+      <div class="gameSettings" id="options">
 
         <label>Queue size:</label>
-        <input id="queueSize" placeholder="10" value="10" type="number" min="3" max="100" style="width:30px"/>
+        <input id="queueSize" placeholder="10" value="10" type="number" min="3" max="100" style="width:40px" disabled/>
         <label> (3-100)</label>
         <br/>
         <label>Guess time:</label>
-        <input id="guessTime" placeholder="10" value="10" type="number" min="1" max="30" style="width:30px"/>
+        <input id="guessTime" placeholder="10" value="10" type="number" min="1" max="30" style="width:30px" disabled/>
         <label>seconds. (1-30)</label>
         <br/>
         <label>Guesses count:</label>
-        <input id="guessesCount" placeholder="4" value="4" type="number" min="2" max="10" style="width:30px"/>
+        <input id="guessesCount" placeholder="4" value="4" type="number" min="2" max="10" style="width:30px" disabled/>
         <label> (2-10)</label>
         <br/>
         <div class="dropdown">
@@ -54,9 +54,9 @@
       <nav><ul id="chat"></ul></nav>
     </div>
 
-    <div class="settings">
-      <img src="/static/music-note.svg" class="settingsIcon"/>
-      <img src="/static/movie.svg" class="settingsIcon" style="float:right"/>
+    <div class="clientSettings">
+      <img src="/static/music-note.svg" class="clientSettingsIcon"/>
+      <img src="/static/movie.svg" class="clientSettingsIcon" style="float:right"/>
       <label class="switch" style="transform: translateX(-4px)">
         <input type="checkbox" checked="1" id="playerTypeSwitch">
         <span class="slider"></span>

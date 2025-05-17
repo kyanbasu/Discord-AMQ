@@ -318,6 +318,16 @@ function optionsReload(options) {
   document.getElementById("queueSize").value = options.queueSize;
   document.getElementById("guessTime").value = options.guessTime;
   document.getElementById("guessesCount").value = options.guessesCount;
+
+  if (options.novideo){
+    document.getElementById("playerTypeSwitch").checked = 0;
+    document.getElementById("playerTypeSwitch").dispatchEvent(new Event("change"));
+    document.getElementById("playerTypeSwitch").setAttribute("disabled", "true");
+    displayAnnoucement(
+      "Video is disabled on the server, using audio only mode",
+      1
+    );
+  }
 }
 
 let pendingALUpdate = null;
@@ -469,3 +479,5 @@ function appExit() {
 function toMMSS(seconds) {
   return new Date(seconds * 1000).toISOString().substring(14, 19) || 0;
 }
+
+export { auth };

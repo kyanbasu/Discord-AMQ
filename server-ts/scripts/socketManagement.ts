@@ -79,6 +79,7 @@ export const connection = (socket: Socket) => {
           guessTime: 10,
           queueSize: 10,
           guessesCount: 4,
+          novideo: Bun.argv.includes("--no-video") ? true : false,
         },
       };
 

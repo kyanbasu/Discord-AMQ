@@ -174,7 +174,7 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-.settings {
+.clientSettings {
   display: inline;
   position: absolute;
   right:20px;
@@ -182,7 +182,7 @@ input:checked + .slider:before {
   width:50px;
 }
 
-.settingsIcon {
+.clientSettingsIcon {
   width: 34%;
   height: auto;
   display: inline;
@@ -258,7 +258,7 @@ div.margin {
   left: 0px;
 }
 
-.options {
+.gameSettings {
   width: 100%;
   height: 100%;
   margin: 10px;
@@ -453,7 +453,7 @@ button:focus-visible {
     max-height: 240px;
   }
 
-  .settings {
+  .clientSettings {
     top: 50px
   }
 

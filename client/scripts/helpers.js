@@ -1,5 +1,7 @@
 import crownSrc from "/static/crown.svg";
 
+import { auth } from "./main";
+
 const isMobile = () => {
   return navigator.userAgentData && navigator.userAgentData.mobile;
 };
@@ -7,6 +9,9 @@ const isMobile = () => {
 export async function updatePlayerList(playerList, hostID) {
   const playerListElement = document.getElementById("playerList");
   playerListElement.innerHTML = ""; // Clear existing list
+
+  if (auth.user.id === hostID) gameSettingsRefresh(true);
+  else gameSettingsRefresh(false);
 
   playerList.forEach((player) => {
     let avatarSrc = "";
@@ -115,6 +120,22 @@ export function displayAnnoucement(message, importanceLevel) {
       container.removeChild(notification); // Remove from DOM
     }, 500); // Wait for the fade-out animation to complete
   }, 5000);
+}
+
+export function gameSettingsRefresh(isHost) {
+  const queueSize = document.getElementById("queueSize");
+  const guessTime = document.getElementById("guessTime");
+  const guessesCount = document.getElementById("guessesCount");
+
+  if (isHost) {
+    queueSize.removeAttribute("disabled");
+    guessTime.removeAttribute("disabled");
+    guessesCount.removeAttribute("disabled");
+  } else {
+    queueSize.setAttribute("disabled", "true");
+    guessTime.setAttribute("disabled", "true");
+    guessesCount.setAttribute("disabled", "true");
+  }
 }
 
 export function preloadMedia(baseName, selectedPlayerType) {

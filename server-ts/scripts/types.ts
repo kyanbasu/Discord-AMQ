@@ -34,6 +34,7 @@ interface RoomOptions {
   guessTime: number;
   queueSize: number;
   guessesCount: number;
+  novideo: boolean; // if video is disabled on the server
 }
 
 enum GameState {
