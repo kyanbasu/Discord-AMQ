@@ -80,6 +80,9 @@ function sendMessage() {
   document.getElementById("chatin").value = "";
 }
 
+let videoPlayer = document.getElementById("videoPlayer");
+let player = document.getElementById("player");
+
 const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
 
 //removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
@@ -100,15 +103,22 @@ setupDiscordSdk(discordSdk).then(async (_auth) => {
   socket.emit("discord-auth", auth.user);
 
   appendVoiceChannelName(discordSdk, socket, auth.user);
-});
 
-let videoPlayer = document.getElementById("videoPlayer");
-let player = document.getElementById("player");
+  const handleLayoutModeUpdate = (update) => {
+    if (update.layout_mode <= 0){ // UNHANDLED or FOCUSED
+      player.classList.remove("playerPIP");
+    } else { // PIP, GRID
+      player.classList.add("playerPIP");
+    }
+  }
+
+  discordSdk.subscribe('ACTIVITY_LAYOUT_MODE_UPDATE', handleLayoutModeUpdate);
+});
 
 player.hidden = true;
 
-if (window.innerHeight < window.innerWidth) player.style.top = "100px";
-else player.style.left = "20px";
+// if (window.innerHeight < window.innerWidth) player.style.top = "100px";
+// else player.style.left = "20px";
 
 videoPlayer.volume = 0.1;
 document.getElementById("volume-slider").value = videoPlayer.volume;

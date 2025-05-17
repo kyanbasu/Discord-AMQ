@@ -236,25 +236,44 @@ div.margin {
 }
 
 .focusZone{
-  height: 60%;
+  height: 60vh;
   width: 60vw;
 }
 
+.playerPIP {
+  top: 0px !important;
+  left: 0px !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
 #player {
-  width: auto;
-  height: 100%;
+  position: absolute;
+  width: 60vw;
+  height: 80%;
+  top: 60px;
+  left: 20px;
+}
+
+#videoPlayer {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: auto;
 }
 
 #Skip{
   position:absolute;
-  top: 50px;
+  top: 10px;
   left: 10px;
 }
 
 #videoPlayerImg {
   position: absolute;
-  top: 50px;
+  top: 0px;
   left: 0px;
+  height: 100%;
 }
 
 .gameSettings {
@@ -433,22 +452,12 @@ button:focus-visible {
 /* mobile version */
 @media only screen and (max-width: 768px) {
 
-  .navbar {
-    height: 50px;
-    padding-top: 40px;
-  }
-
   .focusZone{
     height: 30%;
     width: 100vw;
   }
-  
-  #Skip{
-    top: 100px;
-  }
 
   #videoPlayerImg {
-    top: 90px;
     max-height: 240px;
   }
 
