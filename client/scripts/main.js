@@ -12,23 +12,15 @@ import.meta.hot.on("vite:beforeFullReload", async () => {
 });
 
 import { setupDiscordSdk } from "./discordSetup";
-import {
-  updatePlayerList,
-  appendVoiceChannelName,
-  removeFadeOut,
-  displayMessage,
-  displayAnnoucement,
-  preloadMedia,
-} from "./helpers";
+import { appendVoiceChannelName, removeFadeOut, displayAnnoucement } from "./helpers";
+
+import { setupSocket, socket, options } from "./sockets";
 
 //import rocketLogo from '/rocket.png';
 import "../css/style.css";
-import { io } from "socket.io-client";
 
 // Will eventually store the authenticated user's access_token
 let auth;
-
-let options;
 
 let dscstatus = {
   activity: {
@@ -45,141 +37,27 @@ let dscstatus = {
   },
 };
 
-const socket = io(
-  window.location.href.split("/").slice(0, 3).join("/").replace("https", "wss"),
-  {
-    reconnectionDelayMax: 10000,
-  }
-);
-
 document.getElementById("Skip").hidden = true;
 document.getElementById("guessingZone").hidden = true;
 
 let selectedPlayerType = "ogg";
-let songCounter = 0;
 
 document.getElementById("playerTypeSwitch").addEventListener("change", () => {
+  if (options.novideo && document.getElementById("playerTypeSwitch").checked) {
+    document.getElementById("playerTypeSwitch").checked = 0;
+    displayAnnoucement(
+      "Video is disabled on the server, using audio only mode",
+      1
+    );
+    selectedPlayerType = "ogg";
+    return;
+  }
   if (document.getElementById("playerTypeSwitch").checked)
     selectedPlayerType = "webm";
   else selectedPlayerType = "ogg";
 });
 
 document.getElementById("playerTypeSwitch").dispatchEvent(new Event("change"));
-
-socket.on("audio", async (url, guesses) => {
-  console.log(guesses);
-  for (let i = 0; i < guesses.length; i++) {
-    document.getElementById(`guess${i}`).innerHTML = guesses[i];
-    document.getElementById(`guess${i}`).classList.remove("guessButton");
-  }
-  document.getElementById("guessingZone").hidden = false;
-  document.getElementById("options").hidden = true;
-  songCounter += 1;
-
-  dscstatus.activity.details = `In game ${songCounter} of ${options.queueSize}`;
-  await discordSdk.commands.setActivity(dscstatus);
-
-  player.hidden = true;
-  videoPlayer.src = `res/${url}.${selectedPlayerType}`;
-  videoPlayer.triggeredSkip = false;
-
-  if (selectedPlayerType == "ogg")
-    document.getElementById("videoPlayerImg").src = `res/${url}.jpg`;
-  else document.getElementById("videoPlayerImg").src = "";
-  document.getElementById("Skip").hidden = true;
-  videoPlayer.play();
-});
-
-socket.on("guess", (name) => {
-  player.hidden = false;
-  document.getElementById("guessingZone").hidden = true;
-  displayMessage(`That was ${name}`);
-  setTimeout(() => {
-    document.getElementById("Skip").hidden = false;
-  }, 3000);
-});
-
-socket.on("correctlyGuessed", (e) => {
-  displayMessage(
-    `<span style="color: var(--maincontrast)"> Correctly guessed: ${e}</span>`
-  );
-});
-
-socket.on("optionsReload", (_options) => {
-  options = _options;
-  setupOptionsGUI();
-  optionsReload(options);
-});
-
-socket.on("updatePlayerList", (playerList, host) => {
-  updatePlayerList(playerList, host);
-});
-
-socket.on("message", async (text, additionalInfo = null) => {
-  displayMessage(text);
-  switch (additionalInfo) {
-    case "pause":
-      document.getElementById("PlayPause").innerHTML = "Play";
-      break;
-
-    case "play":
-      document.getElementById("PlayPause").innerHTML = "Pause";
-      break;
-
-    case "end":
-      document.getElementById("PlayPause").innerHTML = "Play";
-      videoPlayer.src = "";
-      player.hidden = true;
-      document.getElementById("guessingZone").hidden = true;
-      document.getElementById("options").hidden = false;
-      dscstatus.activity.details = "In the lobby";
-      songCounter = 0;
-      await discordSdk.commands.setActivity(dscstatus);
-      break;
-
-    case "playing": //when lobby is in game and playing
-      document.getElementById("options").hidden = true;
-      document.getElementById("player").hidden = false;
-      document.getElementById("Skip").hidden = false;
-      break;
-
-    default:
-      break;
-  }
-});
-
-socket.on("data", (type, data) => {
-  switch (type) {
-    case "list":
-      document.getElementById("animelistname").value = data;
-      break;
-    default:
-      break;
-  }
-});
-
-socket.on("cacheURL", (url) => {
-  console.log(url);
-  preloadMedia(url, selectedPlayerType);
-});
-
-socket.on("announce", (message, importanceLevel = 0) => {
-  displayAnnoucement(message, importanceLevel);
-});
-
-socket.on("disconnect", () => {
-  displayMessage("disconnected... please restart app");
-});
-
-socket.on("reconnect_attempt", (attempt) => {
-  displayMessage("reconnecting... " + attempt);
-});
-
-socket.on("reconnect", (attempt) => {
-  displayMessage("reconnected " + attempt);
-});
-
-socket.on("connected");
 
 document.getElementById("chatbtn").onclick = () => {
   sendMessage();
@@ -210,6 +88,8 @@ setupDiscordSdk(discordSdk).then(async (_auth) => {
   console.log("Discord SDK is authenticated");
   removeFadeOut(document.getElementById("loading"), 500);
 
+  setupSocket();
+
   //discordSdk configs
   await discordSdk.commands.setActivity(dscstatus);
   /*
@@ -222,7 +102,7 @@ setupDiscordSdk(discordSdk).then(async (_auth) => {
   appendVoiceChannelName(discordSdk, socket, auth.user);
 });
 
-let videoPlayer = document.getElementById("video-player");
+let videoPlayer = document.getElementById("videoPlayer");
 let player = document.getElementById("player");
 
 player.hidden = true;
@@ -273,149 +153,6 @@ videoPlayer.onended = () => {
   player.hidden = true;
 };
 
-/*
-Options are:
- .guessesCount
-   amount of guess buttons, min 1, only applied when guessType is 0
- .guessType
-   0 - picker, gives some answers to pick from
-   1 - input, need to write entire name (with help of autocomplete)
-*/
-function optionsReload(options) {
-  document.getElementById("guessingZone").innerHTML = ""; // clears guessing zone
-
-  //TODO: guessTypes idk
-  options.guessType = 0;
-
-  //currently only works with picker
-  switch (options.guessType) {
-    case 0: //picker
-      for (let i = 0; i < options.guessesCount; i++) {
-        const el = document.createElement("button");
-        el.id = `guess${i}`;
-        el.addEventListener("click", Guess);
-        el.index = i;
-        document.getElementById("guessingZone").append(el);
-      }
-      break;
-
-    default:
-      break;
-  }
-
-  document.getElementById("themeTypebtn").innerHTML = (() => {
-    switch (options.themeType) {
-      case 0:
-        return "OP";
-      case 1:
-        return "ED";
-      case 2:
-        return "ALL";
-      default:
-        return "OP";
-    }
-  })();
-  document.getElementById("queueSize").value = options.queueSize;
-  document.getElementById("guessTime").value = options.guessTime;
-  document.getElementById("guessesCount").value = options.guessesCount;
-
-  if (options.novideo){
-    document.getElementById("playerTypeSwitch").checked = 0;
-    document.getElementById("playerTypeSwitch").dispatchEvent(new Event("change"));
-    document.getElementById("playerTypeSwitch").setAttribute("disabled", "true");
-    displayAnnoucement(
-      "Video is disabled on the server, using audio only mode",
-      1
-    );
-  }
-}
-
-let pendingALUpdate = null;
-
-document.getElementById("animelistname").addEventListener("change", () => {
-  clearTimeout(pendingALUpdate);
-  pendingALUpdate = setTimeout(() => {
-    socket.emit(
-      "updateAL",
-      `${discordSdk.guildId}/${discordSdk.channelId}`,
-      auth.user,
-      document.getElementById("animelistname").value
-    );
-  }, 3000);
-});
-
-let pendingOptionsUpdate = null;
-
-function updateOptions(options) {
-  clearTimeout(pendingOptionsUpdate);
-  pendingOptionsUpdate = setTimeout(() => {
-    socket.emit(
-      "updateOptions",
-      `${discordSdk.guildId}/${discordSdk.channelId}`,
-      auth.user,
-      options
-    );
-  }, 1000);
-}
-
-var didOptionsSetup = false;
-function setupOptionsGUI() {
-  if (didOptionsSetup) return;
-  document.getElementById("themeType").innerHTML = "";
-
-  let btnOP = document.createElement("button");
-  btnOP.innerHTML = "OP";
-  btnOP.addEventListener("click", () => setThemeType(0));
-  document.getElementById("themeType").append(btnOP);
-
-  let btnED = document.createElement("button");
-  btnED.innerHTML = "ED";
-  btnED.addEventListener("click", () => setThemeType(1));
-  document.getElementById("themeType").append(btnED);
-
-  let btnALL = document.createElement("button");
-  btnALL.innerHTML = "ALL";
-  btnALL.addEventListener("click", () => setThemeType(2));
-  document.getElementById("themeType").append(btnALL);
-
-  let queueSizeInput = document.getElementById("queueSize");
-  queueSizeInput.addEventListener("change", () => {
-    queueSizeInput.value = Math.min(
-      queueSizeInput.max,
-      Math.max(queueSizeInput.min, queueSizeInput.value)
-    );
-    options.queueSize = queueSizeInput.value;
-    updateOptions(options);
-  });
-
-  let guessTimeInput = document.getElementById("guessTime");
-  guessTimeInput.addEventListener("change", () => {
-    guessTimeInput.value = Math.min(
-      guessTimeInput.max,
-      Math.max(guessTimeInput.min, guessTimeInput.value)
-    );
-    options.guessTime = guessTimeInput.value;
-    updateOptions(options);
-  });
-
-  let guessesCount = document.getElementById("guessesCount");
-  guessesCount.addEventListener("change", () => {
-    guessesCount.value = Math.min(
-      guessesCount.max,
-      Math.max(guessesCount.min, guessesCount.value)
-    );
-    options.guessesCount = guessesCount.value;
-    updateOptions(options);
-  });
-
-  didOptionsSetup = true;
-}
-
-function setThemeType(type) {
-  options.themeType = type;
-  updateOptions(options);
-}
-
 //can remove
 async function appendGuildAvatar() {
   const app = document.querySelector("#app");
@@ -447,24 +184,33 @@ async function appendGuildAvatar() {
   }
 }
 
-let animes = [];
+// let animes = [];
 
 export function PlayPause() {
   socket.emit("playPause", `${discordSdk.guildId}/${discordSdk.channelId}`);
 }
 
-function Guess(evt) {
-  socket.emit("guess", auth.user, evt.currentTarget.index + 1);
-  for (let i = 0; i < options.guessesCount; i++) {
-    document.getElementById(`guess${i}`).classList.remove("guessButton");
-  }
-  document
-    .getElementById(`guess${evt.currentTarget.index}`)
-    .classList.add("guessButton");
-}
-
 export function Skip() {
   socket.emit("skip", `${discordSdk.guildId}/${discordSdk.channelId}`);
+}
+
+let canUpdateAL = true;
+
+export function UpdateAnimeList() {
+  if (!canUpdateAL){
+    displayAnnoucement("You can only update your anime list every 30 seconds", 1);
+    return;
+  }
+  socket.emit(
+    "updateAL",
+    `${discordSdk.guildId}/${discordSdk.channelId}`,
+    auth.user,
+    document.getElementById("animelistname").value
+  );
+  canUpdateAL = false;
+  setTimeout(() => {
+    canUpdateAL = true;
+  }, 30_000);
 }
 
 document.onvisibilitychange = (event) => {
@@ -476,8 +222,4 @@ function appExit() {
   socket.disconnect();
 }
 
-function toMMSS(seconds) {
-  return new Date(seconds * 1000).toISOString().substring(14, 19) || 0;
-}
-
-export { auth };
+export { auth, dscstatus, videoPlayer, player, discordSdk, selectedPlayerType };

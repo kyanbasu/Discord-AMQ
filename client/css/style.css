@@ -178,7 +178,7 @@ input:checked + .slider:before {
   display: inline;
   position: absolute;
   right:20px;
-  top:140px;
+  top:60px;
   width:50px;
 }
 
@@ -186,7 +186,6 @@ input:checked + .slider:before {
   width: 34%;
   height: auto;
   display: inline;
-  float: left;
   margin: 4px;
 }
 

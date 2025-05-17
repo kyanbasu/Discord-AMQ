@@ -16,13 +16,17 @@
 
     <div class="focusZone">
       <div id="player">
-        <video id="video-player"></video>
+        <video id="videoPlayer"></video>
         <img id="videoPlayerImg" src=""></img>
         <button id="Skip">skip</button>
       </div>
 
       <div class="gameSettings" id="options">
-
+        <h3>Client settings</h3>
+        <label>Your MAL username:</label>
+        <input type="text" id="animelistname" name="name" placeholder="mal username">
+        <button id="UpdateAnimeList">Refresh list</button><br/>
+        <h3>Host settings</h3>
         <label>Queue size:</label>
         <input id="queueSize" placeholder="10" value="10" type="number" min="3" max="100" style="width:40px" disabled/>
         <label> (3-100)</label>
@@ -48,7 +52,7 @@
     </div>
 
     <div class="margin" id="chatContainer">
-      <button id="PlayPause">Play</button><input type="text" id="animelistname" name="name" placeholder="mal username"><br/>
+      <button id="PlayPause">Play</button><br/>
       <input id="chatin" placeholder="message"/>
       <button id="chatbtn">Send</button>   
       <nav><ul id="chat"></ul></nav>
@@ -62,19 +66,17 @@
         <span class="slider"></span>
       </label><br/>
       <input type="range" id="volume-slider" orient="vertical" style="height:200px" min="0" max="1" step="0.01" />
-      <p style="font-size:30px;margin-top:0;text-align: center;">♫</p>
+      <img src="/static/music-note.svg" class="clientSettingsIcon" style="margin-left:26%" />
     </div>
     
     <script type="module" src="/scripts/main.js"></script>
     <!--<script src="/socket.io/socket.io.js"></script>-->
     <script type="module">
-      import { PlayPause, Skip } from "/scripts/main.js";
-      //var socket = io("/socket.io");
+      import { PlayPause, Skip, UpdateAnimeList } from "/scripts/main.js";
 
-      //GetAnimeList();
       document.getElementById("PlayPause").addEventListener("click", PlayPause)
       document.getElementById("Skip").addEventListener("click", Skip)
-      
+      document.getElementById("UpdateAnimeList").addEventListener("click", UpdateAnimeList)
     </script>
   </body>
 </html>
