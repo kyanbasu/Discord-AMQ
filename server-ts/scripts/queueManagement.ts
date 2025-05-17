@@ -67,37 +67,13 @@ export const playNextQueue = async (roomID: string) => {
       rooms[roomID].options.themeType
     ).catch((error) => console.error(error));
     if (!audio) {
-      io.to(roomID).emit(
-        "message",
-        `LOG> nie znaleziono ${rooms[roomID].queue[0]}`
-      );
-      rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
+      io.to(roomID).emit("message", `LOG> not found ${rooms[roomID].queue[0]}`);
       rooms[roomID].playerPlaying = false;
+      rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
       console.log(`history ${rooms[roomID].queueHistory.toString()}`);
 
-      let tempList = users[randomFromArray(rooms[roomID].users)].list;
-
-      if (!tempList) return;
-
-      let picker = tempList.filter(
-        (e: string) =>
-          !rooms[roomID].queue.includes(e) &&
-          !rooms[roomID].queueHistory.includes(e)
-      );
-      if (picker.length == 0) {
-        console.log(`anime list is empty`);
-        await playNextQueue(roomID);
-        return;
-      }
-
-      let aniid = randomFromArray(picker);
-      const newPick: AnimeSchema | null = await AnimeSchema.findOne({
-        _id: aniid,
-      });
-      if (!newPick) throw new Error(`No anime in database, id: ${aniid}`);
-
-      console.log(`instead added ${newPick._id} ${newPick.title} to queue`);
-      rooms[roomID].queue.push(newPick._id);
+      let success = await getOtherTheme(roomID);
+      if (!success) return;
 
       await playNextQueue(roomID);
       return;
@@ -106,16 +82,7 @@ export const playNextQueue = async (roomID: string) => {
     // convert it to worker-buffer system
     // anime queue object to contain promise to download and buffer
     if (rooms[roomID].queue.length > 1) {
-      getAudioUrl(rooms[roomID].queue[1], rooms[roomID].options.themeType)
-        .then((cacheAudio) => {
-          if (cacheAudio) {
-            console.log("cached: " + cacheAudio.link);
-            io.emit("cacheURL", cacheAudio.link);
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+      tryCache(roomID);
     }
 
     //if(!audio) return io.to(roomID).emit('message', `Failed to find audio`)
@@ -214,4 +181,47 @@ function summary(roomID: string) {
     `<span style="color: var(--maincontrast)">> The end.<br/>> Results:<br/>${o}</span>`,
     "end"
   );
+}
+
+function tryCache(roomID: string, tries: number = 1) {
+  if (tries > 3) {
+    console.log("Failed to cache theme after 3 tries");
+    return;
+  }
+  getAudioUrl(rooms[roomID].queue[1], rooms[roomID].options.themeType).catch(
+    (error) => {
+      console.error(error);
+      // Remove failed, add other theme to queue and try to cache next
+      rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
+      setTimeout(() => {
+        tryCache(roomID, tries + 1);
+      }, 2000);
+    }
+  );
+}
+
+async function getOtherTheme(roomID: string) {
+  let tempList = users[randomFromArray(rooms[roomID].users)].list;
+
+  if (!tempList) return false;
+
+  let picker = tempList.filter(
+    (e: string) =>
+      !rooms[roomID].queue.includes(e) &&
+      !rooms[roomID].queueHistory.includes(e)
+  );
+  if (picker.length == 0) {
+    await playNextQueue(roomID); //List is empty, play next (will show end screen)
+    return false;
+  }
+
+  let aniid = randomFromArray(picker);
+  const newPick: AnimeSchema | null = await AnimeSchema.findOne({
+    _id: aniid,
+  });
+  if (!newPick) throw new Error(`No anime in database, id: ${aniid}`);
+
+  console.log(`instead added ${newPick._id} ${newPick.title} to queue`);
+  rooms[roomID].queue.push(newPick._id);
+  return true;
 }
