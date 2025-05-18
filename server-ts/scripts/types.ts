@@ -45,8 +45,9 @@ enum GameState {
 
 interface Room {
   users: string[];
-  queue: string[];
-  queueHistory: string[];
+  //lobbyAniList: string[]; // list of animes of all selected users in lobby
+  queue: string[]; // list of animes in queue
+  queueHistory: string[]; // list of animes that have been played or are to be played
   playerPaused: boolean; // if player is (to be) paused
   playerPlaying: boolean; // if player is currently playing
   canPlayNext: boolean; // if you can skip song

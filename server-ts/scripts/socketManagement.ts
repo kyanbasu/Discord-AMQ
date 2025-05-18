@@ -64,6 +64,7 @@ export const connection = (socket: Socket) => {
 
     if (!rooms[roomID]) {
       rooms[roomID] = {
+        //lobbyAniList: [],
         queue: [],
         queueHistory: [],
         playerPaused: true,
@@ -90,7 +91,7 @@ export const connection = (socket: Socket) => {
 
       updatePlayerList(roomID);
     } else {
-      if (!rooms[roomID].users.includes(user.id)){
+      if (!rooms[roomID].users.includes(user.id)) {
         rooms[roomID].users.push(user.id);
         rooms[roomID].options.playerListIncluded[user.id] = true;
       }
@@ -160,9 +161,23 @@ export const connection = (socket: Socket) => {
   socket.on("playPause", async (roomID: string) => {
     if (!rooms[roomID]) return socket.emit("exit");
     if (rooms[roomID].playerPaused) {
-      // pressed play
+      // pressed play - just started game
       if (rooms[roomID].gameState == GameState.LOBBY) {
         rooms[roomID].gameState = GameState.PLAYING;
+
+        ////// Other theme selection logic
+        // rooms[roomID].lobbyAniList = []; // reset lobby list
+
+        // rooms[roomID].users.forEach((userID) => {
+        //   if (rooms[roomID].options.playerListIncluded[userID]) {
+        //     rooms[roomID].lobbyAniList = [
+        //       ...new Set([
+        //         ...(rooms[roomID].lobbyAniList || []),
+        //         ...(users[userID].list || []),
+        //       ]),
+        //     ]; // remove duplicates
+        //   }
+        // });
 
         let userIndex = 0;
         for (let i = 0; i < rooms[roomID].options.queueSize; i++) {
@@ -197,7 +212,7 @@ export const connection = (socket: Socket) => {
 
   socket.on("guess", async (user: User, guess: number) => {
     if (!users[user.id]) return;
-    if (guess) users[user.id].guess = guess-1;
+    if (guess) users[user.id].guess = guess - 1;
   });
 
   socket.on("skip", async (roomID: string) => {
