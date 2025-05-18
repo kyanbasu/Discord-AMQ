@@ -63,16 +63,36 @@ export async function updatePlayerList(playerList, hostID) {
       playerLabel.textContent = player.name;
       playerLabel.id = `player-${player.id}`;
 
-      const playerCheckbox = 
-      `<label class="switch" style="transform: translateX(4px);">
-        <input type="checkbox" checked="1" id="checkbox-${player.id}" player-id="${player.id}"/>
-        <span class="slider" />
-      </label><br />`;
+      // Create the switch label
+      const switchLabel = document.createElement("label");
+      switchLabel.className = "switch";
+      switchLabel.setAttribute("style", "transform: translate(4px, -4px);");
 
+      // Create the checkbox input
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = true;
+      checkbox.id = `checkbox-${player.id}`;
+      checkbox.setAttribute("player-id", player.id);
+
+      // Create the slider span
+      const slider = document.createElement("span");
+      slider.className = "slider";
+
+      // Append checkbox and slider to the switch label
+      switchLabel.appendChild(checkbox);
+      switchLabel.appendChild(slider);
+
+      // Append player label and switch to the list
       playerLabelList.appendChild(playerLabel);
-      playerLabelList.innerHTML += playerCheckbox;
+      playerLabelList.appendChild(switchLabel);
+      playerLabelList.appendChild(document.createElement("br"));
 
-      document.getElementById(`checkbox-${player.id}`).addEventListener("change", setPlayerIncluded);
+      if (auth.user.id === hostID) {
+        checkbox.addEventListener("change", setPlayerIncluded);
+      } else {
+        checkbox.setAttribute("disabled", true);
+      }
     })();
   });
 
@@ -80,9 +100,11 @@ export async function updatePlayerList(playerList, hostID) {
   else gameSettingsRefresh(false);
 }
 
-export function setPlayerIncluded(a) {
-  // a.target.checked
-  // a.target.getAttribute("player-id")
+export function setPlayerIncluded(evt) {
+  const playerId = evt.target.getAttribute("player-id");
+  if (!options.playerListIncluded.hasOwnProperty(playerId)) return;
+  options.playerListIncluded[playerId] = evt.target.checked;
+  updateOptions(options);
 }
 
 export async function appendVoiceChannelName(discordSdk, socket, user) {

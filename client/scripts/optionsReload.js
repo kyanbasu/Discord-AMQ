@@ -53,6 +53,15 @@ export function optionsReload() {
       .getElementById("playerTypeSwitch")
       .dispatchEvent(new Event("change"));
   }
+
+  Object.entries(options.playerListIncluded).forEach(
+    ([playerId, isIncluded]) => {
+      const checkbox = document.getElementById(`checkbox-${playerId}`);
+      if (checkbox) {
+        checkbox.checked = isIncluded;
+      }
+    }
+  );
 }
 
 export function setThemeType(type) {
