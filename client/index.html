@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello, World</title>
+    <title>Anime Music Quiz by bnm @kyanbasu</title>
   </head>
   <body>
     <div id="notification-container"></div>
@@ -24,7 +24,9 @@
       <div class="gameSettings" id="options">
         <h3>Client settings</h3>
         <label>Your MAL username:</label>
-        <input type="text" id="animelistname" name="name" placeholder="mal username">
+        <input type="text" id="animelistname" name="name" placeholder="mal username"><br/>
+        <label>Last refreshed: </label>
+        <label id="lastAnimeListUpdate">today idk</label>
         <button id="UpdateAnimeList">Refresh list</button><br/>
         <h3>Host settings</h3>
         <label>Queue size:</label>
@@ -43,8 +45,10 @@
           <button class="dropbtn" id="themeTypebtn" disabled>OP</button>
           <div class="dropdown-content" id="themeType">
           </div>
-        </div> 
-        <br/>        
+        </div>
+        <br/>
+        <h4>Included anime lists:</h4>
+        <div id="includedPlayerLists"></div>
 
       </div>
 

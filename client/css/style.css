@@ -237,7 +237,7 @@ div.margin {
 }
 
 .focusZone{
-  height: 60vh;
+  height: calc(100vh - 60px);
   width: 60vw;
 }
 
@@ -281,6 +281,7 @@ div.margin {
   width: 100%;
   height: 100%;
   margin: 10px;
+  overflow-y: scroll;
   background-color: rgba(0,0,0,0.2);
 }
 

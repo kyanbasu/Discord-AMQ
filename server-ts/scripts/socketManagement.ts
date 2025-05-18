@@ -79,6 +79,9 @@ export const connection = (socket: Socket) => {
           guessTime: 10,
           queueSize: 10,
           guessesCount: 4,
+          playerListIncluded: {
+            [user.id]: true,
+          },
           novideo: Bun.argv.includes("--no-video") ? true : false,
         },
       };
@@ -87,8 +90,10 @@ export const connection = (socket: Socket) => {
 
       updatePlayerList(roomID);
     } else {
-      if (!rooms[roomID].users.includes(user.id))
+      if (!rooms[roomID].users.includes(user.id)){
         rooms[roomID].users.push(user.id);
+        rooms[roomID].options.playerListIncluded[user.id] = true;
+      }
 
       updatePlayerList(roomID);
 
@@ -239,6 +244,7 @@ export const connection = (socket: Socket) => {
 function updatePlayerList(roomID: string) {
   if (!rooms[roomID]) return;
   const playerList = rooms[roomID].users.map((userID) => ({
+    name: discordUsers[userID]?.global_name,
     id: userID,
     avatar: discordUsers[userID]?.avatar,
   }));
