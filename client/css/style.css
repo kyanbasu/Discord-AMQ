@@ -78,7 +78,8 @@ ul {
 input[type=range][orient=vertical] {
   writing-mode: vertical-lr;
   direction: rtl;
-  appearance: slider-vertical;
+  writing-mode: vertical-lr;
+  direction: rtl;
   width: 16px;
   display: block;
   margin: auto;
