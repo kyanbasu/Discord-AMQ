@@ -6,6 +6,7 @@ import {
   displayAnnoucement,
   preloadMedia,
   setupOptionsGUI,
+  setService,
 } from "./helpers";
 
 import { dscstatus, videoPlayer, player, discordSdk, selectedPlayerType } from "./main";
@@ -109,14 +110,10 @@ export function setupSocket() {
     }
   });
 
-  socket.on("data", (type, data) => {
-    switch (type) {
-      case "list":
-        document.getElementById("animelistname").value = data;
-        break;
-      default:
-        break;
-    }
+  socket.on("data-list", (username, updated, service) => {
+    document.getElementById("animelistname").value = username;
+    document.getElementById("lastAnimeListUpdate").innerText = new Date(updated).toLocaleString();
+    setService(service, true);
   });
 
   socket.on("cacheURL", (url) => {

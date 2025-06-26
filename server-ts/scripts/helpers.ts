@@ -185,7 +185,7 @@ interface AniList {
               english: string;
             };
             coverImage: {
-              large: string;
+              extraLarge: string;
             };
           };
         }[];
@@ -249,7 +249,7 @@ export const getAnimeList: (
                           english
                         }
                         coverImage {
-                          large
+                          extraLarge
                         }
                       }
                     }
@@ -274,7 +274,7 @@ export const getAnimeList: (
           list.entries.map((entry) => ({
             _id: entry.media.idMal.toString(),
             title: entry.media.title.english,
-            splash: entry.media.coverImage.large,
+            splash: entry.media.coverImage.extraLarge,
           }))
         );
 

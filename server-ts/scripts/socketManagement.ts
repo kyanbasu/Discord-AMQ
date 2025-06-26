@@ -46,7 +46,7 @@ export const connection = (socket: Socket) => {
     let userDoc = await UserSchema.findOne({ _id: discordUser.id });
 
     if (userDoc) {
-      socket.emit("data", "list", userDoc.username, userDoc.updated, userDoc.service);
+      socket.emit("data-list", userDoc.username, userDoc.updated, userDoc.service);
     }
 
     let user: User = {
@@ -120,7 +120,7 @@ export const connection = (socket: Socket) => {
 
           // Update in cache
           users[discordUser.id].list = list.map((e) => e._id);
-          socket.emit("data", "list", username); // idk just to make sure user has correct name in input field
+          socket.emit("data-list", username, Date.now(), service); // sync client with server
 
           // Update user in database, including not exisitng animes and user-anime relations
           updateUser(

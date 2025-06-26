@@ -12,7 +12,7 @@ import.meta.hot.on("vite:beforeFullReload", async () => {
 });
 
 import { setupDiscordSdk } from "./discordSetup";
-import { appendVoiceChannelName, removeFadeOut, displayAnnoucement } from "./helpers";
+import { appendVoiceChannelName, removeFadeOut, displayAnnoucement, getService } from "./helpers";
 
 import { setupSocket, socket, options } from "./sockets";
 
@@ -215,7 +215,8 @@ export function UpdateAnimeList() {
     "updateAL",
     `${discordSdk.guildId}/${discordSdk.channelId}`,
     auth.user,
-    document.getElementById("animelistname").value
+    document.getElementById("animelistname").value,
+    getService()
   );
   canUpdateAL = false;
   setTimeout(() => {

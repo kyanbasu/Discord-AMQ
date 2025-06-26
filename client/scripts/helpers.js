@@ -9,6 +9,8 @@ const isMobile = () => {
 };
 
 let players = {};
+let ALservice = 0; // Default to MyAnimeList = 0, 1 = AniList
+const ALservices = ["MyAnimeList", "AniList"];
 
 export async function updatePlayerList(playerList, hostID) {
   const playerListElement = document.getElementById("playerList");
@@ -107,6 +109,20 @@ export function setPlayerIncluded(evt) {
   updateOptions(options);
 }
 
+export function setService(_service, fromServer = false) {
+  ALservice = _service;
+
+  document.getElementById("animeServicebtn").innerHTML = ALservices[ALservice];
+
+  if (fromServer) {
+    document.getElementById("currentService").innerText = ALservices[ALservice];
+  }
+}
+
+export function getService() {
+  return ALservice;
+}
+
 export async function appendVoiceChannelName(discordSdk, socket, user) {
   const roomName = document.getElementById("roomName");
 
@@ -198,6 +214,7 @@ export function gameSettingsRefresh(isHost) {
 let didOptionsSetup = false;
 export function setupOptionsGUI() {
   if (didOptionsSetup) return;
+  // Theme selector
   document.getElementById("themeType").innerHTML = "";
 
   let btnOP = document.createElement("button");
@@ -215,6 +232,18 @@ export function setupOptionsGUI() {
   btnALL.addEventListener("click", () => setThemeType(2));
   document.getElementById("themeType").append(btnALL);
 
+  // Anime list service selector
+  let btnMal = document.createElement("button");
+  btnMal.innerHTML = ALservices[0];
+  btnMal.addEventListener("click", () => setService(0));
+  document.getElementById("animeService").append(btnMal);
+
+  let btnAl = document.createElement("button");
+  btnAl.innerHTML = ALservices[1];
+  btnAl.addEventListener("click", () => setService(1));
+  document.getElementById("animeService").append(btnAl);
+
+  // Guess options
   let queueSizeInput = document.getElementById("queueSize");
   queueSizeInput.addEventListener("change", () => {
     queueSizeInput.value = Math.min(

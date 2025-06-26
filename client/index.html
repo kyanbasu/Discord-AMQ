@@ -25,8 +25,17 @@
 
       <div class="gameSettings" id="options">
         <h3>Client settings</h3>
-        <label>Your MAL username:</label>
-        <input type="text" id="animelistname" name="name" placeholder="mal username"><br/>
+        <label>Your username:</label>
+        <input type="text" id="animelistname" name="name" placeholder="mal username">
+        <label>Service:</label>
+        <div class="dropdown">
+          <button class="dropbtn" id="animeServicebtn" disabled>MyAnimeList</button>
+          <div class="dropdown-content" id="animeService">
+          </div>
+        </div>
+        <br/>
+        <label>Current list from service:</label>
+        <label id="currentService">none</label><br/>
         <label>Last refreshed: </label>
         <label id="lastAnimeListUpdate">today idk</label>
         <button id="UpdateAnimeList">Refresh list</button><br/>
