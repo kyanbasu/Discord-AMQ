@@ -5,8 +5,8 @@ const userSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true },
     name: { type: String, required: true },
-    malname: { type: String, required: false }, //myanimelist
-    aniname: { type: String, required: false }, //anilist
+    username: { type: String, required: false }, //myanimelist & anilist
+    service: { type: Number, required: false }, // 0 - MyAnimeList, 1 - AniList
     updated: { type: Number, required: true },
     list: { type: [String], required: true },
   },

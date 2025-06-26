@@ -13,16 +13,16 @@ export const updateUser = async (
   userId: string,
   name: string,
   animes: AnimeSchema[],
-  malname?: string,
-  aniname?: string
+  username?: string,
+  service?: number
 ) => {
   let userData: UserSchema = {
     _id: userId,
     name: name,
     updated: Date.now(),
     list: animes.map((a) => a._id),
-    malname: malname,
-    aniname: aniname,
+    username: username,
+    service: service,
   };
   try {
     await UserSchema.findOneAndUpdate(

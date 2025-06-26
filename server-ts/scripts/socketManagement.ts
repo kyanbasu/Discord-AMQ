@@ -46,7 +46,7 @@ export const connection = (socket: Socket) => {
     let userDoc = await UserSchema.findOne({ _id: discordUser.id });
 
     if (userDoc) {
-      socket.emit("data", "list", userDoc.malname);
+      socket.emit("data", "list", userDoc.username, userDoc.updated, userDoc.service);
     }
 
     let user: User = {
@@ -111,23 +111,24 @@ export const connection = (socket: Socket) => {
   // Update anime list, currently supporting only MyAnimeList, maybe add support for anilist or sth
   socket.on(
     "updateAL",
-    async (roomID: string, discordUser: DiscordUser, malname: string) => {
+    async (roomID: string, discordUser: DiscordUser, username: string, service: number = 0) => {
       if (rooms[roomID].gameState === GameState.LOBBY) {
         try {
-          const list = await getAnimeList(malname);
+          const list = await getAnimeList(username, service);
 
           if (!list) throw new Error("failed to fetch anime list");
 
           // Update in cache
           users[discordUser.id].list = list.map((e) => e._id);
-          socket.emit("data", "list", malname); // idk just to make sure user has correct name in input field
+          socket.emit("data", "list", username); // idk just to make sure user has correct name in input field
 
           // Update user in database, including not exisitng animes and user-anime relations
           updateUser(
             discordUser.id,
             discordUser.global_name,
             list,
-            (malname = malname)
+            username,
+            service
           );
 
           messaging.userAnnouncement(socket, `Updated list. (${list.length})`);

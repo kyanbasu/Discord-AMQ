@@ -23,7 +23,7 @@ export async function downloadFile(
   url: string,
   outputName: string
 ): Promise<string> {
-  if(Bun.argv.includes("--no-video") && url.endsWith(".webm")) {
+  if (Bun.argv.includes("--no-video") && url.endsWith(".webm")) {
     return "../client/undefined.jpg";
   }
   // Fetch the file
@@ -160,7 +160,7 @@ function requestDeletion(baseName: string) {
   }, 120_000);
 }
 
-interface MAL { 
+interface MAL {
   data: [
     {
       node: {
@@ -172,30 +172,120 @@ interface MAL {
   ];
 }
 
-//only works for MAL for now
-export const getAnimeList: (ID: string) => Promise<AnimeSchema[]> = async (
-  ID: string
+interface AniList {
+  data: {
+    MediaListCollection: {
+      lists: {
+        name: string;
+        entries: {
+          media: {
+            id: number;
+            idMal: number;
+            title: {
+              english: string;
+            };
+            coverImage: {
+              large: string;
+            };
+          };
+        }[];
+      }[];
+    };
+  };
+}
+
+export const getAnimeList: (
+  ID: string,
+  service: number
+) => Promise<AnimeSchema[]> = async (
+  ID: string,
+  service: number // 0 for MAL, 1 for AniList
 ) => {
-  try {
-    const res = await fetch(
-      `https://api.myanimelist.net/v2/users/${ID}/animelist?limit=1000&status=watching&status=completed`,
-      { headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID! } }
-    );
+  switch (service) {
+    case 0:
+      try {
+        const res = await fetch(
+          `https://api.myanimelist.net/v2/users/${ID}/animelist?limit=1000&status=watching&status=completed`,
+          { headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID! } }
+        );
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch anime list. Status: ${res.status}`);
-    }
+        if (!res.ok) {
+          throw new Error(
+            `Failed to fetch MAL anime list. Status: ${res.status}`
+          );
+        }
 
-    const json = (await res.json()) as MAL;
-    const list: AnimeSchema[] = json.data.map(({ node }) => ({
-      _id: node.id,
-      title: node.title,
-      splash: node.main_picture.large,
-    }));
+        const json = (await res.json()) as MAL;
+        const list: AnimeSchema[] = json.data.map(({ node }) => ({
+          _id: node.id,
+          title: node.title,
+          splash: node.main_picture.large,
+        }));
 
-    return list;
-  } catch (error) {
-    if (error instanceof Error) console.error(error.message);
-    throw new Error("Unable to fetch anime list");
+        return list;
+      } catch (error) {
+        if (error instanceof Error) console.error(error.message);
+        throw new Error("Unable to fetch MAL anime list");
+      }
+    case 1:
+      try {
+        const res = await fetch(`https://graphql.anilist.co`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            query: `
+                query ($userName: String!, $statusIn: [MediaListStatus]) {
+                MediaListCollection(type: ANIME, userName: $userName, status_in: $statusIn) {
+                  lists {
+                    name
+                    entries {
+                      media {
+                        id
+                        idMal
+                        title {
+                          english
+                        }
+                        coverImage {
+                          large
+                        }
+                      }
+                    }
+                  }
+                }
+              }`,
+            variables: {
+              userName: ID,
+              statusIn: ["CURRENT", "COMPLETED"]
+            },
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(
+            `Failed to fetch AniList anime list. Status: ${res.status}`
+          );
+        }
+
+        const json = await res.json() as AniList;
+        const list: AnimeSchema[] = json.data.MediaListCollection.lists.flatMap((list) =>
+          list.entries.map((entry) => ({
+            _id: entry.media.idMal.toString(),
+            title: entry.media.title.english,
+            splash: entry.media.coverImage.large,
+          }))
+        );
+
+        return list;
+      } catch (error) {
+        if (error instanceof Error) console.error(error.message);
+        throw new Error("Unable to fetch AniList anime list");
+      }
+
+    default:
+      break;
   }
+  throw new Error("Invalid service type.");
 };
