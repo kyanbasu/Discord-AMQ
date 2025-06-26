@@ -8,7 +8,7 @@ const isMobile = () => {
   return navigator.userAgentData && navigator.userAgentData.mobile;
 };
 
-var players = {};
+let players = {};
 
 export async function updatePlayerList(playerList, hostID) {
   const playerListElement = document.getElementById("playerList");
@@ -135,7 +135,7 @@ export async function appendVoiceChannelName(discordSdk, socket, user) {
 
 export function removeFadeOut(el, speed) {
   if (!el) return;
-  var seconds = speed / 1000;
+  let seconds = speed / 1000;
   el.style.transition = "opacity " + seconds + "s ease";
 
   el.style.opacity = 0;
@@ -195,7 +195,7 @@ export function gameSettingsRefresh(isHost) {
   }
 }
 
-var didOptionsSetup = false;
+let didOptionsSetup = false;
 export function setupOptionsGUI() {
   if (didOptionsSetup) return;
   document.getElementById("themeType").innerHTML = "";

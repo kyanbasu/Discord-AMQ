@@ -21,7 +21,7 @@ const socket = io(
   }
 );
 
-var options = {};
+let options = {};
 
 export function setupSocket() {
   socket.on("audio", async (url, guesses) => {
@@ -41,9 +41,12 @@ export function setupSocket() {
     videoPlayer.src = `res/${url}.${selectedPlayerType}`;
     videoPlayer.triggeredSkip = false;
 
+    let _src = ""
     if (selectedPlayerType == "ogg")
-      document.getElementById("videoPlayerImg").src = `res/${url}.jpg`;
-    else document.getElementById("videoPlayerImg").src = "";
+      _src = `res/${url}.jpg`;
+
+    document.getElementById("videoPlayerImg").src = _src
+    document.getElementById("videoPlayerImgBg").src = _src;
     document.getElementById("Skip").hidden = true;
     videoPlayer.play();
   });

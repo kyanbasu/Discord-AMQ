@@ -130,7 +130,7 @@ document.getElementById("volume-slider").style.background =
   "%, #363232)";
 
 document.getElementById("volume-slider").oninput = () => {
-  var value = document.getElementById("volume-slider").value;
+  let value = document.getElementById("volume-slider").value;
   videoPlayer.volume = value;
   document.getElementById("volume-slider").style.background =
     "linear-gradient(0deg, rgb(80,0,20), rgb(80,0,20) " +
