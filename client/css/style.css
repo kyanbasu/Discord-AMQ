@@ -492,13 +492,13 @@ button:focus-visible {
   }
 
   @keyframes float {
-    0%   { transform: translateY(0); }
-    50%  { transform: translateY(-30vw); }
-    100% { transform: translateY(0); }
+    0%   { transform: translateY(40vw); }
+    50%  { transform: translateY(0); }
+    100% { transform: translateY(40vw); }
   }
 
   #videoPlayerImgBg {
-    top: 0;
+    bottom: 0;
   }
 
   /* #videoPlayerImg {

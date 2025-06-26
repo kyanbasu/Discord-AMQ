@@ -34,7 +34,7 @@ export async function downloadFile(
   const originalName = basename(urlObj.pathname);
   let extension = extname(originalName);
 
-  if (extension === ".webp") {
+  if (extension === ".webp" || extension === ".png") {
     extension = ".jpg";
   }
   // catch errors

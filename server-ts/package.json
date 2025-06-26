@@ -21,7 +21,7 @@
     "@types/express": "^5.0.0",
     "@types/fluent-ffmpeg": "^2.1.27",
     "@types/socket.io": "^3.0.1",
-    "bun-types": "^1.1.43"
+    "bun-types": "^1.2.17"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
