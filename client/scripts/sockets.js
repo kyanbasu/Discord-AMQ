@@ -48,11 +48,13 @@ export function setupSocket() {
     videoPlayer.src = `res/${url}.${selectedPlayerType}`;
     videoPlayer.triggeredSkip = false;
 
+    document.getElementById("videoPlayerImgBg").src = `res/${url}.jpg`;
+
     let _src = "";
     if (selectedPlayerType == "ogg") _src = `res/${url}.jpg`;
 
     document.getElementById("videoPlayerImg").src = _src;
-    document.getElementById("videoPlayerImgBg").src = _src;
+    
     document.getElementById("Skip").hidden = true;
     videoPlayer.play();
   });
