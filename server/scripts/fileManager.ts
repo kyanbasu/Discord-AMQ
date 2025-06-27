@@ -6,7 +6,7 @@ class FileManager {
   ttl: number;
   map: Map<
     string,
-    { promise: Promise<string>; timer: ReturnType<typeof setTimeout> }
+    { promise: Promise<Buffer[]>; timer: ReturnType<typeof setTimeout> }
   >;
 
   constructor(
@@ -20,12 +20,25 @@ class FileManager {
     this.map = new Map(); // baseName -> { promise, timer }
   }
 
-  cache(urls: string[], outputBaseName: string) : Promise<string> {
+  getPromise(baseName: string): Promise<Buffer[]> | undefined {
+    const entry = this.map.get(baseName);
+    if (entry) {
+      // stupid typescript checking for second time
+      // reset TTL
+      clearTimeout(entry.timer); // refresh timer
+      entry.timer = this._makeExpiryTimer(baseName);
+      return entry.promise;
+    }
+    return undefined;
+  }
+
+  cache(urls: string[], outputBaseName: string): Promise<Buffer[]> {
     // If already downloading or cached, return existing promise
     if (this.map.has(outputBaseName)) {
       console.log(`Waiting for exisitng promise ${outputBaseName}`);
       const entry = this.map.get(outputBaseName);
-      if (entry) { // stupid typescript checking for second time
+      if (entry) {
+        // stupid typescript checking for second time
         // reset TTL
         clearTimeout(entry.timer); // refresh timer
         entry.timer = this._makeExpiryTimer(outputBaseName);
@@ -62,9 +75,10 @@ class FileManager {
     }, this.ttl);
   }
 
-  async downloadFile(url: string, outputName: string): Promise<string> {
+  async downloadFile(url: string, outputName: string): Promise<Buffer> {
     if (Bun.argv.includes("--no-video") && url.endsWith(".webm")) {
-      return this.undefinedImage;
+      const res = Bun.file(this.undefinedImage);
+      return await res.arrayBuffer().then((buf) => Buffer.from(buf));
     }
     // Fetch the file
     const response = await fetch(url);
@@ -79,38 +93,32 @@ class FileManager {
     }
     // catch errors
     if (!response.ok) {
-      if (extension === ".jpg") return this.undefinedImage; // return undefined image
+      if (extension === ".jpg") {
+        const res = Bun.file(this.undefinedImage);
+        return await res.arrayBuffer().then((buf) => Buffer.from(buf)); // return undefined image
+      }
       throw new Error(
         `Failed to download ${url}: ${response.status} ${response.statusText}`
       );
     }
 
-    // ...and filename
-    const filename = `${outputName}${extension}`;
-    const destPath = join(this.cacheDir, filename);
-
-    // Read as ArrayBuffer and write to disk
-    const arrayBuffer = await response.arrayBuffer();
-    await Bun.write(destPath, new Uint8Array(arrayBuffer));
-
-    return destPath;
+    // Return the file as a Buffer
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return buffer;
   }
 
   async downloadMediaBatch(
     urls: string[],
     outputBaseName: string
-  ): Promise<string> {
+  ): Promise<Buffer[]> {
     // Kick off all three downloads concurrently, using the same base name
     const downloads = urls.map((url) => this.downloadFile(url, outputBaseName));
 
     console.log("Downloading files:");
     console.log(urls);
 
-    // Wait for all to complete
-    await Promise.all(downloads);
-
-    // Return the shared base filename
-    return outputBaseName;
+    // Return promise
+    return await Promise.all(downloads);
   }
 }
 

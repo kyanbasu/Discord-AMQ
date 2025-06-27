@@ -8,6 +8,7 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { connection } from "./scripts/socketManagement.ts";
 import { DiscordUser, Room, User } from "./scripts/types.ts";
 import { initdb } from "./scripts/databaseManagement.ts";
+import { fileManager } from "./scripts/helpers.ts";
 
 initdb();
 
@@ -83,6 +84,50 @@ app.post("/api/token", async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).send("Error fetching token.");
   }
+});
+
+app.get("/media/:baseName/:type", (req: Request, res: Response) => {
+  const { baseName, type } = req.params;
+
+  const promise = fileManager.getPromise(baseName);
+
+  if (!promise) {
+    res.status(404).send("Media not found");
+    return;
+  }
+
+  promise
+    .then((result) => {
+      const [webm, ogg, jpg] = result;
+
+      let buffer: Buffer;
+      let contentType: string;
+
+      switch (type) {
+        case "webm":
+          buffer = webm;
+          contentType = "video/webm";
+          break;
+        case "ogg":
+          buffer = ogg;
+          contentType = "audio/ogg";
+          break;
+        case "jpg":
+          buffer = jpg;
+          contentType = "image/jpg";
+          break;
+        default:
+          res.status(400).send("Invalid media type");
+          return;
+      }
+
+      res.setHeader("Content-Type", contentType);
+      res.send(buffer);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
 });
 
 app.get("/", (_req, res) => {

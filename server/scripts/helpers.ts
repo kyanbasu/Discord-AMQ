@@ -210,7 +210,12 @@ export const getAnimeList: (
         const list: AnimeSchema[] = json.data.MediaListCollection.lists.flatMap(
           (list) =>
             list.entries
-              .filter((entry) => entry.media.idMal != null && entry.media.title.english != null && entry.media.coverImage.extraLarge != null)
+              .filter(
+                (entry) =>
+                  entry.media.idMal != null &&
+                  entry.media.title.english != null &&
+                  entry.media.coverImage.extraLarge != null
+              )
               .map((entry) => ({
                 _id: entry.media.idMal.toString(),
                 title: entry.media.title.english,
@@ -229,3 +234,5 @@ export const getAnimeList: (
   }
   throw new Error("Invalid service type.");
 };
+
+export { fileManager };

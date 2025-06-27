@@ -45,13 +45,13 @@ export function setupSocket() {
     await discordSdk.commands.setActivity(dscstatus);
 
     player.hidden = true;
-    videoPlayer.src = `res/${url}.${selectedPlayerType}`;
+    videoPlayer.src = `media/${url}/${selectedPlayerType}`;
     videoPlayer.triggeredSkip = false;
 
-    document.getElementById("videoPlayerImgBg").src = `res/${url}.jpg`;
+    document.getElementById("videoPlayerImgBg").src = `media/${url}/jpg`;
 
     let _src = "";
-    if (selectedPlayerType == "ogg") _src = `res/${url}.jpg`;
+    if (selectedPlayerType == "ogg") _src = `media/${url}/jpg`;
 
     document.getElementById("videoPlayerImg").src = _src;
     

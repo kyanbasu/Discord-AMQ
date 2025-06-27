@@ -10,19 +10,13 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: true,
-      },/*
-      '/anime': {
+      },
+      '/media': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
         ws: true,
       },
-      '/audio': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-      },*/
       '/socket.io': {
         target: 'http://localhost:3001',
         changeOrigin: true,
