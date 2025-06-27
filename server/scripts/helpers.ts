@@ -1,9 +1,8 @@
-//import fs from "node:fs";
-import { join, basename, extname } from "path";
-
 import { AnimeSchema } from "./schema";
 import { ThemeType } from "./types";
-import { privateEncrypt } from "crypto";
+import FileManager from "./fileManager";
+
+const fileManager = new FileManager();
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export const shuffleArray = (array: any[]) => {
@@ -18,60 +17,6 @@ export const shuffleArray = (array: any[]) => {
 export const randomFromArray = (array: any[]) => {
   return array[Math.floor(Math.random() * array.length)];
 };
-
-export async function downloadFile(
-  url: string,
-  outputName: string
-): Promise<string> {
-  if (Bun.argv.includes("--no-video") && url.endsWith(".webm")) {
-    return "../client/undefined.jpg";
-  }
-  // Fetch the file
-  const response = await fetch(url);
-
-  // Determine extension...
-  const urlObj = new URL(url);
-  const originalName = basename(urlObj.pathname);
-  let extension = extname(originalName);
-
-  if (extension === ".webp" || extension === ".png") {
-    extension = ".jpg";
-  }
-  // catch errors
-  if (!response.ok) {
-    if (extension === ".jpg") return "../client/undefined.jpg"; // return undefined image
-    throw new Error(
-      `Failed to download ${url}: ${response.status} ${response.statusText}`
-    );
-  }
-
-  // ...and filename
-  const filename = `${outputName}${extension}`;
-  const destPath = join("../client/res", filename);
-
-  // Read as ArrayBuffer and write to disk
-  const arrayBuffer = await response.arrayBuffer();
-  await Bun.write(destPath, new Uint8Array(arrayBuffer));
-
-  return destPath;
-}
-
-export async function downloadMediaBatch(
-  urls: string[],
-  outputBaseName: string
-): Promise<string> {
-  // Kick off all three downloads concurrently, using the same base name
-  const downloads = urls.map((url) => downloadFile(url, outputBaseName));
-
-  console.log("Downloading files:");
-  console.log(urls);
-
-  // Wait for all to complete
-  await Promise.all(downloads);
-
-  // Return the shared base filename
-  return outputBaseName;
-}
 
 interface AnimeResponse {
   anime: [{ animethemes: any; name: string }];
@@ -126,14 +71,18 @@ export const getAudioUrl: (
 
         //console.log(`> Downloading ${vidUrl} (${baseName})`);
         try {
-          var start = Date.now();
-          const result = await downloadMediaBatch(
+          const result = await fileManager.cache(
             [vidUrl, audioUrl, imgUrl],
             baseName
           );
-          console.log(`Downloaded files with base name: ${result}`);
-          console.log(`Time taken batch: ${Date.now() - start}ms`);
-          requestDeletion(baseName);
+          // var start = Date.now();
+          // const result = await downloadMediaBatch(
+          //   [vidUrl, audioUrl, imgUrl],
+          //   baseName
+          // );
+          // console.log(`Downloaded files with base name: ${result}`);
+          // console.log(`Time taken batch: ${Date.now() - start}ms`);
+          // requestDeletion(baseName);
           return resolve(o);
         } catch (error) {
           console.error(`Error downloading files (${baseName}): ${error}`);
@@ -147,18 +96,6 @@ export const getAudioUrl: (
       });
   });
 };
-
-function requestDeletion(baseName: string) {
-  setTimeout(async () => {
-    console.log(`Deleting ${baseName} files`);
-    ["webm", "ogg", "jpg"].forEach(async (ext) => {
-      const res = Bun.file(`../client/res/${baseName}.${ext}`);
-      if (await res.exists()) {
-        await res.delete();
-      }
-    });
-  }, 120_000);
-}
 
 interface MAL {
   data: [
@@ -258,7 +195,7 @@ export const getAnimeList: (
               }`,
             variables: {
               userName: ID,
-              statusIn: ["CURRENT", "COMPLETED"]
+              statusIn: ["CURRENT", "COMPLETED"],
             },
           }),
         });
@@ -269,15 +206,16 @@ export const getAnimeList: (
           );
         }
 
-        const json = await res.json() as AniList;
-        const list: AnimeSchema[] = json.data.MediaListCollection.lists.flatMap((list) =>
-          list.entries
-            .filter((entry) => entry.media.idMal != null)
-            .map((entry) => ({
-              _id: entry.media.idMal.toString(),
-              title: entry.media.title.english,
-              splash: entry.media.coverImage.extraLarge,
-            }))
+        const json = (await res.json()) as AniList;
+        const list: AnimeSchema[] = json.data.MediaListCollection.lists.flatMap(
+          (list) =>
+            list.entries
+              .filter((entry) => entry.media.idMal != null && entry.media.title.english != null && entry.media.coverImage.extraLarge != null)
+              .map((entry) => ({
+                _id: entry.media.idMal.toString(),
+                title: entry.media.title.english,
+                splash: entry.media.coverImage.extraLarge,
+              }))
         );
 
         return list;

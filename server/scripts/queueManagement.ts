@@ -3,7 +3,6 @@ import { rooms, io, users, discordUsers } from "../server.ts";
 import {
   shuffleArray,
   getAudioUrl,
-  downloadFile,
   randomFromArray,
 } from "./helpers.ts";
 import { systemMessage, userAnnouncement } from "./messaging.ts";
