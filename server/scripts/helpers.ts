@@ -271,11 +271,13 @@ export const getAnimeList: (
 
         const json = await res.json() as AniList;
         const list: AnimeSchema[] = json.data.MediaListCollection.lists.flatMap((list) =>
-          list.entries.map((entry) => ({
-            _id: entry.media.idMal.toString(),
-            title: entry.media.title.english,
-            splash: entry.media.coverImage.extraLarge,
-          }))
+          list.entries
+            .filter((entry) => entry.media.idMal != null)
+            .map((entry) => ({
+              _id: entry.media.idMal.toString(),
+              title: entry.media.title.english,
+              splash: entry.media.coverImage.extraLarge,
+            }))
         );
 
         return list;
