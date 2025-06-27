@@ -9,7 +9,13 @@ import {
   setService,
 } from "./helpers";
 
-import { dscstatus, videoPlayer, player, discordSdk, selectedPlayerType } from "./main";
+import {
+  dscstatus,
+  videoPlayer,
+  player,
+  discordSdk,
+  selectedPlayerType,
+} from "./main";
 
 import { optionsReload } from "./optionsReload";
 
@@ -42,11 +48,10 @@ export function setupSocket() {
     videoPlayer.src = `res/${url}.${selectedPlayerType}`;
     videoPlayer.triggeredSkip = false;
 
-    let _src = ""
-    if (selectedPlayerType == "ogg")
-      _src = `res/${url}.jpg`;
+    let _src = "";
+    if (selectedPlayerType == "ogg") _src = `res/${url}.jpg`;
 
-    document.getElementById("videoPlayerImg").src = _src
+    document.getElementById("videoPlayerImg").src = _src;
     document.getElementById("videoPlayerImgBg").src = _src;
     document.getElementById("Skip").hidden = true;
     videoPlayer.play();
@@ -110,10 +115,12 @@ export function setupSocket() {
     }
   });
 
-  socket.on("data-list", (username, updated, service) => {
+  socket.on("data-list", (username, updated, service, count) => {
     document.getElementById("animelistname").value = username;
-    document.getElementById("lastAnimeListUpdate").innerText = new Date(updated).toLocaleString();
-    setService(service, true);
+    document.getElementById("lastAnimeListUpdate").innerText = new Date(
+      updated
+    ).toLocaleString();
+    setService(service, true, ` (${count} entries)`);
   });
 
   socket.on("cacheURL", (url) => {

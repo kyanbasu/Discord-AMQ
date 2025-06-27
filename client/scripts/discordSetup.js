@@ -27,20 +27,23 @@ export async function setupDiscordSdk(discordSdk) {
     }),
   }).catch((e) => {
     console.log(JSON.stringify(e));
-  })
+  });
   const { access_token } = await response.json();
 
-  if(!access_token) {
-    document.getElementById("loading").innerHTML += "<p>Failed to get access token, try to restart app or even discord</p>";
+  if (!access_token) {
+    document.getElementById("loading").innerHTML +=
+      "<p>Failed to get access token, please try to restart app in a moment, most likely being ratelimited</p>";
     throw new Error("Access token not found");
   }
 
   // Authenticate with Discord client (using the access_token)
-  const auth = await discordSdk.commands.authenticate({
-    access_token,
-  }).catch((e) => {
-    console.log(JSON.stringify(e));
-  });
+  const auth = await discordSdk.commands
+    .authenticate({
+      access_token,
+    })
+    .catch((e) => {
+      console.log(JSON.stringify(e));
+    });
 
   if (auth == null) {
     throw new Error("Authenticate command failed");

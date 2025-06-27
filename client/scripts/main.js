@@ -12,7 +12,12 @@ import.meta.hot.on("vite:beforeFullReload", async () => {
 });
 
 import { setupDiscordSdk } from "./discordSetup";
-import { appendVoiceChannelName, removeFadeOut, displayAnnoucement, getService } from "./helpers";
+import {
+  appendVoiceChannelName,
+  removeFadeOut,
+  displayAnnoucement,
+  getService,
+} from "./helpers";
 
 import { setupSocket, socket, options } from "./sockets";
 
@@ -89,7 +94,9 @@ const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
 setupDiscordSdk(discordSdk).then(async (_auth) => {
   auth = _auth;
   console.log("Discord SDK is authenticated");
-  removeFadeOut(document.getElementById("loading"), 500);
+  setTimeout(() => {
+    removeFadeOut(document.getElementById("loading"), 500);
+  }, 1000);
 
   setupSocket();
 
@@ -105,14 +112,16 @@ setupDiscordSdk(discordSdk).then(async (_auth) => {
   appendVoiceChannelName(discordSdk, socket, auth.user);
 
   const handleLayoutModeUpdate = (update) => {
-    if (update.layout_mode <= 0){ // UNHANDLED or FOCUSED
+    if (update.layout_mode <= 0) {
+      // UNHANDLED or FOCUSED
       player.classList.remove("playerPIP");
-    } else { // PIP, GRID
+    } else {
+      // PIP, GRID
       player.classList.add("playerPIP");
     }
-  }
+  };
 
-  discordSdk.subscribe('ACTIVITY_LAYOUT_MODE_UPDATE', handleLayoutModeUpdate);
+  discordSdk.subscribe("ACTIVITY_LAYOUT_MODE_UPDATE", handleLayoutModeUpdate);
 });
 
 player.hidden = true;
@@ -207,8 +216,11 @@ export function Skip() {
 let canUpdateAL = true;
 
 export function UpdateAnimeList() {
-  if (!canUpdateAL){
-    displayAnnoucement("You can only update your anime list every 30 seconds", 1);
+  if (!canUpdateAL) {
+    displayAnnoucement(
+      "You can only update your anime list every 30 seconds",
+      1
+    );
     return;
   }
   socket.emit(

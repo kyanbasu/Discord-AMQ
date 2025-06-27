@@ -109,13 +109,14 @@ export function setPlayerIncluded(evt) {
   updateOptions(options);
 }
 
-export function setService(_service, fromServer = false) {
+export function setService(_service, fromServer = false, astr = "") {
   ALservice = _service;
 
   document.getElementById("animeServicebtn").innerHTML = ALservices[ALservice];
 
   if (fromServer) {
-    document.getElementById("currentService").innerText = ALservices[ALservice];
+    document.getElementById("currentService").innerText =
+      ALservices[ALservice] + astr;
   }
 }
 

@@ -46,7 +46,7 @@ export const connection = (socket: Socket) => {
     let userDoc = await UserSchema.findOne({ _id: discordUser.id });
 
     if (userDoc) {
-      socket.emit("data-list", userDoc.username, userDoc.updated, userDoc.service);
+      socket.emit("data-list", userDoc.username, userDoc.updated, userDoc.service, userDoc.list?.length || 0);
     }
 
     let user: User = {
@@ -120,7 +120,7 @@ export const connection = (socket: Socket) => {
 
           // Update in cache
           users[discordUser.id].list = list.map((e) => e._id);
-          socket.emit("data-list", username, Date.now(), service); // sync client with server
+          socket.emit("data-list", username, Date.now(), service, list.length); // sync client with server
 
           // Update user in database, including not exisitng animes and user-anime relations
           updateUser(
@@ -135,7 +135,18 @@ export const connection = (socket: Socket) => {
         } catch (e) {
           if (e instanceof Error)
             console.log("Couldn't find MAL profile " + e.message);
-          messaging.userAnnouncement(socket, "MAL profile not found");
+          messaging.userAnnouncement(socket, `${
+            (() => {
+              switch (service) {
+                case 0:
+                  return "MAL";
+                case 1:
+                  return "AniList";
+                default:
+                  return "Unknown service";
+              }
+            })()
+          } profile not found or other error.`);
         }
       } else {
         socket.emit("message", "You cannot update anime list during game!");
