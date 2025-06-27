@@ -124,7 +124,7 @@ export const getAudioUrl: (
           return undefined;
         });
 
-        console.log(`> Downloading ${vidUrl} (${baseName})`);
+        //console.log(`> Downloading ${vidUrl} (${baseName})`);
         try {
           var start = Date.now();
           const result = await downloadMediaBatch(
