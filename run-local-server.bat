@@ -1,3 +1,3 @@
 @echo off
-cd .\server-ts\
+cd .\server\
 bun run server.ts --no-video
