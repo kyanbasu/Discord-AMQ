@@ -20,3 +20,9 @@ You can use `--no-video` flag to disable video caching and providing on the serv
 $ cd client
 $ npm run dev
 ```
+
+## Tunnel
+It tunnels to clients app
+```
+cloudflared tunnel --url http://localhost:5173
+```
