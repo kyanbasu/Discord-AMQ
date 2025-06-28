@@ -1,4 +1,6 @@
 import express, { Request, Response } from "express";
+import axios from 'axios';
+import bodyParser from 'body-parser';
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 import fs from "node:fs";
@@ -44,6 +46,7 @@ fs.readdir("../client/res/", (err, files) => {
 
 // Allow express to parse JSON bodies
 app.use(express.json());
+app.use(bodyParser.text({ type: ['text/*', '*/json'], limit: '50mb' }));
 
 export { users, discordUsers, rooms, io };
 
@@ -128,6 +131,27 @@ app.get("/media/:baseName/:type", (req: Request, res: Response) => {
       console.error(err);
       res.sendStatus(500);
     });
+});
+
+app.post('/sentry-tunnel', async (req, res) => {
+  console.log("trying to connect to sentry tunnel");
+  try {
+    const envelope = req.body;
+    const [headerLine] = envelope.split('\n');
+    const header = JSON.parse(headerLine);
+    const { host, pathname, username } = new URL(header.dsn);
+    const projectId = pathname.slice(1);
+    const url = `https://${host}/api/${projectId}/envelope/?sentry_key=${username}`;
+
+    await axios.post(url, envelope, {
+      headers: { 'Content-Type': 'application/x-sentry-envelope' }
+    });
+
+    res.status(200).end(); // or 201
+  } catch (err: Error | any) {
+    console.error('Sentry Tunnel error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/", (_req, res) => {

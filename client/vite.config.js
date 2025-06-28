@@ -23,6 +23,11 @@ export default defineConfig({
         secure: false,
         ws: true,
       },
+      '/sentry-tunnel': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
     },
     hmr: {
       clientPort: 443,

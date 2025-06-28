@@ -11,6 +11,33 @@ import.meta.hot.on("vite:beforeFullReload", async () => {
   await discordSdk.close(RPCCloseCodes.CLOSE_NORMAL, "You exited from app");
 });
 
+import * as Sentry from "@sentry/browser";
+
+Sentry.init({
+  dsn: "https://173cb840a7c57f1d3d8054ae4f74fe02@o4509576208252928.ingest.de.sentry.io/4509576221818960",
+  tunnel: "/.proxy/sentry-tunnel",
+  environment: import.meta.env.VITE_SENTRY_ENVIRONMENT || "unknown",
+  sendDefaultPii: true,
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration(),
+  ],
+  // Tracing
+  tracesSampleRate: 1.0, //  Capture 100% of the transactions
+  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
+  tracePropagationTargets: [
+    "localhost",
+    "discordsays.com",
+    /^\//,
+    /^https:\/\/discord.com\//,
+    /^https:\/\/cdn.discordapp.com\//,
+  ],
+  _experiments: { enableLogs: true },
+  // Session Replay
+  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
+  replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
+});
+
 import { setupDiscordSdk } from "./discordSetup";
 import {
   appendVoiceChannelName,
@@ -108,6 +135,13 @@ setupDiscordSdk(discordSdk).then(async (_auth) => {
   })*/
 
   socket.emit("discord-auth", auth.user);
+
+  Sentry.setUser({
+    id: auth.user.id,
+    username: auth.user.global_name || auth.user.username,
+  });
+  Sentry.setTag("guildId", discordSdk.guildId);
+  Sentry.setTag("channelId", discordSdk.channelId);
 
   appendVoiceChannelName(discordSdk, socket, auth.user);
 
