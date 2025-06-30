@@ -134,7 +134,6 @@ app.get("/media/:baseName/:type", (req: Request, res: Response) => {
 });
 
 app.post('/sentry-tunnel', async (req, res) => {
-  console.log("trying to connect to sentry tunnel");
   try {
     const envelope = req.body;
     const [headerLine] = envelope.split('\n');

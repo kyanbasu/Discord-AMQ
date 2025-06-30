@@ -17,6 +17,8 @@ import {
   selectedPlayerType,
 } from "./main";
 
+import * as Sentry from "@sentry/browser";
+
 import { optionsReload } from "./optionsReload";
 
 import { io } from "socket.io-client";
@@ -32,31 +34,38 @@ let options = {};
 
 export function setupSocket() {
   socket.on("audio", async (url, guesses) => {
-    console.log(guesses);
-    for (let i = 0; i < guesses.length; i++) {
-      document.getElementById(`guess${i}`).innerHTML = guesses[i];
-      document.getElementById(`guess${i}`).classList.remove("guessButton");
+    try {
+      console.log(guesses);
+      for (let i = 0; i < guesses.length; i++) {
+        document.getElementById(`guess${i}`).innerHTML = guesses[i];
+        document.getElementById(`guess${i}`).classList.remove("guessButton");
+      }
+      document.getElementById("guessingZone").hidden = false;
+      document.getElementById("options").hidden = true;
+      songCounter += 1;
+
+      dscstatus.activity.details = `In game ${songCounter} of ${options.queueSize}`;
+      await discordSdk.commands.setActivity(dscstatus);
+
+      player.hidden = true;
+      videoPlayer.src = `media/${url}/${selectedPlayerType}`;
+      videoPlayer.triggeredSkip = false;
+
+      document.getElementById("videoPlayerImgBg").src = `media/${url}/jpg`;
+
+      let _src = "";
+      if (selectedPlayerType == "ogg") _src = `media/${url}/jpg`;
+
+      document.getElementById("videoPlayerImg").src = _src;
+
+      document.getElementById("Skip").hidden = true;
+      videoPlayer.play();
+    } catch (e) {
+      Sentry.withScope((scope) => {
+        scope.setTag("socket.on", "audio");
+      });
+      Sentry.captureException(e);
     }
-    document.getElementById("guessingZone").hidden = false;
-    document.getElementById("options").hidden = true;
-    songCounter += 1;
-
-    dscstatus.activity.details = `In game ${songCounter} of ${options.queueSize}`;
-    await discordSdk.commands.setActivity(dscstatus);
-
-    player.hidden = true;
-    videoPlayer.src = `media/${url}/${selectedPlayerType}`;
-    videoPlayer.triggeredSkip = false;
-
-    document.getElementById("videoPlayerImgBg").src = `media/${url}/jpg`;
-
-    let _src = "";
-    if (selectedPlayerType == "ogg") _src = `media/${url}/jpg`;
-
-    document.getElementById("videoPlayerImg").src = _src;
-    
-    document.getElementById("Skip").hidden = true;
-    videoPlayer.play();
   });
 
   socket.on("guess", (name) => {

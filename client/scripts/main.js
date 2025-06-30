@@ -14,7 +14,7 @@ import.meta.hot.on("vite:beforeFullReload", async () => {
 import * as Sentry from "@sentry/browser";
 
 Sentry.init({
-  dsn: "https://173cb840a7c57f1d3d8054ae4f74fe02@o4509576208252928.ingest.de.sentry.io/4509576221818960",
+  dsn: import.meta.env.VITE_SENTRY_DSN,
   tunnel: "/.proxy/sentry-tunnel",
   environment: import.meta.env.VITE_SENTRY_ENVIRONMENT || "unknown",
   sendDefaultPii: true,
@@ -135,6 +135,13 @@ setupDiscordSdk(discordSdk).then(async (_auth) => {
   })*/
 
   socket.emit("discord-auth", auth.user);
+
+  Sentry.setUser({
+    id: auth.user.id,
+    username: auth.user.global_name || auth.user.username,
+  });
+  Sentry.setTag("guildId", discordSdk.guildId);
+  Sentry.setTag("channelId", discordSdk.channelId);
 
   Sentry.setUser({
     id: auth.user.id,

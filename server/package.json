@@ -5,7 +5,7 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
-    "start": "deno run --allow-net --allow-read --allow-write --allow-env server.ts"
+    "start": "bun run server.ts"
   },
   "keywords": [],
   "author": "",
