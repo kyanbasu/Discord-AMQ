@@ -46,7 +46,13 @@ export const connection = (socket: Socket) => {
     let userDoc = await UserSchema.findOne({ _id: discordUser.id });
 
     if (userDoc) {
-      socket.emit("data-list", userDoc.username, userDoc.updated, userDoc.service, userDoc.list?.length || 0);
+      socket.emit(
+        "data-list",
+        userDoc.username,
+        userDoc.updated,
+        userDoc.service,
+        userDoc.list?.length || 0
+      );
     }
 
     let user: User = {
@@ -108,10 +114,15 @@ export const connection = (socket: Socket) => {
     socket.emit("optionsReload", rooms[roomID].options);
   });
 
-  // Update anime list, currently supporting only MyAnimeList, maybe add support for anilist or sth
   socket.on(
     "updateAL",
-    async (roomID: string, discordUser: DiscordUser, username: string, service: number = 0) => {
+    async (
+      roomID: string,
+      discordUser: DiscordUser,
+      username: string,
+      service: number = 0
+    ) => {
+      if (!rooms[roomID]) return socket.emit("exit");
       if (rooms[roomID].gameState === GameState.LOBBY) {
         try {
           const list = await getAnimeList(username, service);
@@ -135,8 +146,9 @@ export const connection = (socket: Socket) => {
         } catch (e) {
           if (e instanceof Error)
             console.log("Couldn't find MAL profile " + e.message);
-          messaging.userAnnouncement(socket, `${
-            (() => {
+          messaging.userAnnouncement(
+            socket,
+            `${(() => {
               switch (service) {
                 case 0:
                   return "MAL";
@@ -145,8 +157,8 @@ export const connection = (socket: Socket) => {
                 default:
                   return "Unknown service";
               }
-            })()
-          } profile not found or other error.`);
+            })()} profile not found or other error.`
+          );
         }
       } else {
         socket.emit("message", "You cannot update anime list during game!");
