@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sentry/bun": "^9.33.0",
     "axios": "^1.10.0",
     "body-parser": "^2.2.0",
     "dotenv": "^16.4.1",

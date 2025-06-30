@@ -1,7 +1,17 @@
-import express, { Request, Response } from "express";
-import axios from 'axios';
-import bodyParser from 'body-parser';
 import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
+import * as Sentry from "@sentry/bun";
+
+Sentry.init({
+  dsn: process.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.VITE_SENTRY_ENVIRONMENT || "unknown",
+  sendDefaultPii: true,
+  _experiments: { enableLogs: true },
+});
+
+import express, { Request, Response } from "express";
+import axios from "axios";
+import bodyParser from "body-parser";
 import fetch from "node-fetch";
 import fs from "node:fs";
 import path from "node:path";
@@ -13,8 +23,6 @@ import { initdb } from "./scripts/databaseManagement.ts";
 import { fileManager } from "./scripts/helpers.ts";
 
 initdb();
-
-dotenv.config({ path: "../.env" });
 
 const app = express();
 const port = 3001;
@@ -46,7 +54,7 @@ fs.readdir("../client/res/", (err, files) => {
 
 // Allow express to parse JSON bodies
 app.use(express.json());
-app.use(bodyParser.text({ type: ['text/*', '*/json'], limit: '50mb' }));
+app.use(bodyParser.text({ type: ["text/*", "*/json"], limit: "50mb" }));
 
 export { users, discordUsers, rooms, io };
 
@@ -133,25 +141,50 @@ app.get("/media/:baseName/:type", (req: Request, res: Response) => {
     });
 });
 
-app.post('/sentry-tunnel', async (req, res) => {
-  try {
-    const envelope = req.body;
-    const [headerLine] = envelope.split('\n');
-    const header = JSON.parse(headerLine);
-    const { host, pathname, username } = new URL(header.dsn);
-    const projectId = pathname.slice(1);
-    const url = `https://${host}/api/${projectId}/envelope/?sentry_key=${username}`;
+app.post(
+  "/sentry-tunnel",
 
-    await axios.post(url, envelope, {
-      headers: { 'Content-Type': 'application/x-sentry-envelope' }
-    });
+  async (req, res) => {
+    try {
+      let envelope = req.body;
+      if (typeof envelope === "object") {
+        envelope = JSON.stringify(envelope);
+      }
 
-    res.status(200).end(); // or 201
-  } catch (err: Error | any) {
-    console.error('Sentry Tunnel error:', err);
-    res.status(500).json({ error: err.message });
+      if (envelope === null || envelope == "{}") return;
+
+      try {
+        envelope.split("\n");
+      } catch (e) {
+        console.error(
+          "Failed to split envelope: ",
+          envelope,
+          typeof envelope,
+          e
+        );
+        Sentry.captureException(e);
+        return;
+      }
+
+      const [headerLine] = envelope.split("\n");
+      let header: any =
+        typeof headerLine === "object" ? headerLine : JSON.parse(headerLine);
+      const { host, pathname, username } = new URL(header.dsn);
+      const projectId = pathname.slice(1);
+      const url = `https://${host}/api/${projectId}/envelope/?sentry_key=${username}`;
+
+      await axios.post(url, envelope, {
+        headers: { "Content-Type": "application/x-sentry-envelope" },
+      });
+
+      res.status(200).end(); // or 201
+    } catch (err: Error | any) {
+      console.error("Sentry Tunnel error:", err);
+      res.status(500).json({ error: err.message });
+      Sentry.captureException(err);
+    }
   }
-});
+);
 
 app.get("/", (_req, res) => {
   res.send("working.");

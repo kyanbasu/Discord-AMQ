@@ -80,6 +80,7 @@ export const playNextQueue = async (roomID: string) => {
 
     // convert it to worker-buffer system
     // anime queue object to contain promise to download and buffer
+    if (!rooms[roomID]) return;
     if (rooms[roomID].queue.length > 1) {
       tryCache(roomID);
     }

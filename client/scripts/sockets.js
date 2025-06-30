@@ -63,8 +63,8 @@ export function setupSocket() {
     } catch (e) {
       Sentry.withScope((scope) => {
         scope.setTag("socket.on", "audio");
+        Sentry.captureException(e);
       });
-      Sentry.captureException(e);
     }
   });
 
@@ -143,7 +143,13 @@ export function setupSocket() {
     displayAnnoucement(message, importanceLevel);
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", (reason, details) => {
+    Sentry.withScope((scope) => {
+      console.log(details)
+      scope.setExtra("details", details)
+      Sentry.captureException(Error(`User disconnected, reason: ${reason}`));
+    });
+
     displayMessage("disconnected... please restart app");
   });
 
