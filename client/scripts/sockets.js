@@ -51,7 +51,9 @@ export function setupSocket() {
       videoPlayer.src = `media/${url}/${selectedPlayerType}`;
       videoPlayer.triggeredSkip = false;
 
-      document.getElementById("videoPlayerImgBg").src = `media/${url}/jpg`;
+      document.getElementById(
+        "videoPlayerImgBg"
+      ).style.backgroundImage = `url('media/${url}/jpg')`;
 
       let _src = "";
       if (selectedPlayerType == "ogg") _src = `media/${url}/jpg`;
@@ -69,6 +71,7 @@ export function setupSocket() {
   });
 
   socket.on("guess", (name) => {
+    document.getElementById("themeTitle").innerText = name;
     player.hidden = false;
     document.getElementById("guessingZone").hidden = true;
     displayMessage(`That was ${name}`);
@@ -102,6 +105,7 @@ export function setupSocket() {
 
       case "play":
         document.getElementById("PlayPause").innerHTML = "Pause";
+        document.getElementById("options").hidden = true;
         break;
 
       case "end":
@@ -145,8 +149,8 @@ export function setupSocket() {
 
   socket.on("disconnect", (reason, details) => {
     Sentry.withScope((scope) => {
-      console.log(details)
-      scope.setExtra("details", details)
+      console.log(details);
+      scope.setExtra("details", details);
       Sentry.captureException(Error(`User disconnected, reason: ${reason}`));
     });
 

@@ -1,0 +1,10 @@
+/*
+colors: 
+darker red #500014
+lighter red   #960032
+*/
+:root {
+  --maindark: #500014;
+  --mainlight: #960032;
+  --maincontrast: #5865F2;
+}

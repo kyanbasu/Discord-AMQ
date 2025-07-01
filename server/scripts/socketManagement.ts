@@ -169,8 +169,8 @@ export const connection = (socket: Socket) => {
   socket.on(
     "updateOptions",
     async (roomID: string, user: DiscordUser, options: RoomOptions) => {
-      if (rooms[roomID] && user.id == rooms[roomID].hostID) {
-        console.log(options);
+      if (rooms[roomID] && user.id == rooms[roomID].hostID && rooms[roomID].gameState == GameState.LOBBY) {
+        //console.log(options);
         rooms[roomID].options = options;
         io.to(roomID).emit("optionsReload", rooms[roomID].options);
         messaging.systemAnnouncement(roomID, "Options updated.");
