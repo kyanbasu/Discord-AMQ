@@ -1,96 +1,171 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anime Music Quiz by bnm @kyanbasu</title>
   </head>
   <body>
     <div id="notification-container"></div>
-    <div id="loading" style="position: absolute; width: 100%; height: 100%; background-color: black;align-items: center;z-index: 10000;"><h1>loading...</h1></div>
-    <div class="navbar" id="navbar"><div style="display:flex;align-items: center;"><h2 id="roomName"></h2></div>
-    <div class="navbar" id="playerList" style="width:auto"></div>
+    <div
+      id="loading"
+      style="
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        align-items: center;
+        z-index: 10000;
+      "
+    >
+      <h1>loading...</h1>
+    </div>
+    <div class="navbar" id="navbar">
+      <div style="display: flex; align-items: center">
+        <h2 id="roomName"></h2>
+      </div>
+      <div class="navbar" id="playerList" style="width: auto"></div>
     </div>
     <div id="progress"></div>
 
     <div class="focusZone">
       <div id="player">
-        <img id="videoPlayerImgBg" src="" />
-        <video id="videoPlayer"></video>
-        <img id="videoPlayerImg" src="" />
-        <button id="Skip">skip</button>
+        <div class="mediaContainerOut">
+          <div id="videoPlayerImgBg"></div>
+          <div class="mediaContainer">
+            <video id="videoPlayer" src=""></video>
+            <img id="videoPlayerImg" src="" />
+            <button id="Skip">skip</button>
+          </div>
+        </div>
+        <div class="themeTitle">
+          <h3 id="themeTitle">title</h3>
+        </div>
       </div>
 
       <div class="gameSettings" id="options">
         <h3>Client settings</h3>
         <label>Your username:</label>
-        <input type="text" id="animelistname" name="name" placeholder="mal username">
+        <input
+          type="text"
+          id="animelistname"
+          name="name"
+          placeholder="mal username"
+        />
         <label>Service:</label>
         <div class="dropdown">
-          <button class="dropbtn" id="animeServicebtn" disabled>MyAnimeList</button>
-          <div class="dropdown-content" id="animeService">
-          </div>
+          <button class="dropbtn" id="animeServicebtn" disabled>
+            MyAnimeList
+          </button>
+          <div class="dropdown-content" id="animeService"></div>
         </div>
-        <br/>
+        <br />
         <label>Current list from service:</label>
-        <label id="currentService">none</label><br/>
+        <label id="currentService">none</label><br />
         <label>Last refreshed: </label>
         <label id="lastAnimeListUpdate">today idk</label>
-        <button id="UpdateAnimeList">Refresh list</button><br/>
+        <button id="UpdateAnimeList">Refresh list</button><br />
         <h3>Host settings</h3>
         <label>Queue size:</label>
-        <input id="queueSize" placeholder="10" value="10" type="number" min="3" max="100" style="width:40px" disabled/>
+        <input
+          id="queueSize"
+          placeholder="10"
+          value="10"
+          type="number"
+          min="3"
+          max="100"
+          style="width: 40px"
+          disabled
+        />
         <label> (3-100)</label>
-        <br/>
+        <br />
         <label>Guess time:</label>
-        <input id="guessTime" placeholder="10" value="10" type="number" min="1" max="30" style="width:30px" disabled/>
+        <input
+          id="guessTime"
+          placeholder="10"
+          value="10"
+          type="number"
+          min="1"
+          max="30"
+          style="width: 30px"
+          disabled
+        />
         <label>seconds. (1-30)</label>
-        <br/>
+        <br />
         <label>Guesses count:</label>
-        <input id="guessesCount" placeholder="4" value="4" type="number" min="2" max="10" style="width:30px" disabled/>
+        <input
+          id="guessesCount"
+          placeholder="4"
+          value="4"
+          type="number"
+          min="2"
+          max="10"
+          style="width: 30px"
+          disabled
+        />
         <label> (2-10)</label>
-        <br/>
+        <br />
         <div class="dropdown">
           <button class="dropbtn" id="themeTypebtn" disabled>OP</button>
-          <div class="dropdown-content" id="themeType">
-          </div>
+          <div class="dropdown-content" id="themeType"></div>
         </div>
-        <br/>
+        <br />
         <h4>Included anime lists:</h4>
         <div id="includedPlayerLists"></div>
-
       </div>
 
-      <div id="guessingZone" class="margin"></div>
+      <div id="guessingZone"></div>
     </div>
 
-    <div class="margin" id="chatContainer">
-      <button id="PlayPause">Play</button><br/>
-      <input id="chatin" placeholder="message"/>
-      <button id="chatbtn">Send</button>   
-      <nav><ul id="chat"></ul></nav>
+    <div class="secondZone">
+      <div class="secondZoneIn">
+        <button id="PlayPause">Play</button>
+        <div id="chatContainer">
+          <nav>
+            <ul id="chat"></ul>
+          </nav>
+          <div class="chatInput">
+            <input id="chatin" placeholder="message" />
+            <button id="chatbtn">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="clientSettings">
+        <div style="display: flex">
+          <img src="/static/music-note.svg" class="clientSettingsIcon" />
+          <img src="/static/movie.svg" class="clientSettingsIcon" />
+        </div>
+        <label class="switch" style="transform: translateX(-4px)">
+          <input type="checkbox" checked="1" id="playerTypeSwitch" />
+          <span class="slider"></span> </label
+        ><br />
+        <input
+          type="range"
+          id="volume-slider"
+          orient="vertical"
+          style="height: 40vh; max-height: 200px"
+          min="0"
+          max="1"
+          step="0.01"
+        />
+        <img
+          src="/static/music-note.svg"
+          class="clientSettingsIcon"
+          style="margin-left: 26%"
+        />
+      </div>
     </div>
 
-    <div class="clientSettings">
-      <img src="/static/music-note.svg" class="clientSettingsIcon"/>
-      <img src="/static/movie.svg" class="clientSettingsIcon" style="float:right"/>
-      <label class="switch" style="transform: translateX(-4px)">
-        <input type="checkbox" checked="1" id="playerTypeSwitch">
-        <span class="slider"></span>
-      </label><br/>
-      <input type="range" id="volume-slider" orient="vertical" style="height: 40vh; max-height:200px;" min="0" max="1" step="0.01" />
-      <img src="/static/music-note.svg" class="clientSettingsIcon" style="margin-left:26%" />
-    </div>
-    
     <script type="module" src="/scripts/main.js"></script>
-    <!--<script src="/socket.io/socket.io.js"></script>-->
     <script type="module">
       import { PlayPause, Skip, UpdateAnimeList } from "/scripts/main.js";
 
-      document.getElementById("PlayPause").addEventListener("click", PlayPause)
-      document.getElementById("Skip").addEventListener("click", Skip)
-      document.getElementById("UpdateAnimeList").addEventListener("click", UpdateAnimeList)
+      document.getElementById("PlayPause").addEventListener("click", PlayPause);
+      document.getElementById("Skip").addEventListener("click", Skip);
+      document
+        .getElementById("UpdateAnimeList")
+        .addEventListener("click", UpdateAnimeList);
     </script>
   </body>
 </html>

@@ -1,0 +1,87 @@
+.secondZone {
+  position: absolute;
+  height: calc(100vh - 40px);
+  width: 40vw;
+  top: 40px;
+  right: 0;
+}
+
+.secondZoneIn {
+  position: absolute;
+  display: flex;
+  right: 80px;
+  top: 2vh;
+  width: calc(100% - 80px);
+  height: 40vh;
+  justify-content: center;
+}
+
+#chatContainer {
+  position: absolute;
+  background-color: #111;
+  top: 60px;
+  margin: auto;
+  width: 30vw;
+  height: 80vh;
+}
+
+#chatContainer > nav {
+  height: calc(100% - 90px);
+  width: 100%;
+  margin: 0;
+}
+
+#chatContainer > nav > ul {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overflow-y: scroll;
+  list-style-type:none;
+  color: white;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+#chatContainer > nav > ul > li {
+  margin: 10px;
+}
+
+.chatInput {
+  display: flex;
+  margin: 0;
+  height: 80px;
+  align-items: center;
+}
+
+#PlayPause {
+  height: 56px;
+  width: 80%;
+}
+
+#chatin {
+  width: 70%;
+  height: 60%;
+  margin-left: 10px;
+}
+
+#chatbtn {
+  height: 90%;
+  width: 20%;
+}
+
+.clientSettings {
+  display: inline;
+  position: absolute;
+  right: 20px;
+  top: 60px;
+  width: 50px;
+}
+
+.clientSettingsIcon {
+  width: 34%;
+  height: auto;
+  display: inline;
+  margin: 4px;
+}
