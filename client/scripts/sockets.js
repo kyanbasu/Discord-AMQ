@@ -70,11 +70,11 @@ export function setupSocket() {
     }
   });
 
-  socket.on("guess", (name) => {
+  socket.on("guess", (name, usr) => {
     document.getElementById("themeTitle").innerText = name;
     player.hidden = false;
     document.getElementById("guessingZone").hidden = true;
-    displayMessage(`That was ${name}`);
+    displayMessage(`That was ${name} from ${usr}'s list`);
     setTimeout(() => {
       document.getElementById("Skip").hidden = false;
     }, 3000);

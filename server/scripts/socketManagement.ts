@@ -11,6 +11,7 @@ import {
   GameState,
   ThemeType,
   DiscordUser,
+  QueueEntry,
 } from "./types.ts";
 import { updateUser } from "./databaseManagement.ts";
 import { UserSchema } from "./schema.ts";
@@ -70,7 +71,6 @@ export const connection = (socket: Socket) => {
 
     if (!rooms[roomID]) {
       rooms[roomID] = {
-        //lobbyAniList: [],
         queue: [],
         queueHistory: [],
         playerPaused: true,
@@ -169,7 +169,11 @@ export const connection = (socket: Socket) => {
   socket.on(
     "updateOptions",
     async (roomID: string, user: DiscordUser, options: RoomOptions) => {
-      if (rooms[roomID] && user.id == rooms[roomID].hostID && rooms[roomID].gameState == GameState.LOBBY) {
+      if (
+        rooms[roomID] &&
+        user.id == rooms[roomID].hostID &&
+        rooms[roomID].gameState == GameState.LOBBY
+      ) {
         //console.log(options);
         rooms[roomID].options = options;
         io.to(roomID).emit("optionsReload", rooms[roomID].options);
@@ -218,8 +222,22 @@ export const connection = (socket: Socket) => {
               ];
           }
 
-          let randomPick = randomFromArray(selectedUser.list);
-          rooms[roomID].queue.push(randomPick);
+          let randomPick = randomFromArray(
+            selectedUser.list.filter(
+              (e: string) =>
+                !rooms[roomID].queue.some(
+                  (item: QueueEntry) => item.themeId === e
+                ) &&
+                !rooms[roomID].queueHistory.some(
+                  (item: QueueEntry) => item.themeId === e
+                )
+            )
+          );
+          rooms[roomID].queue.push({
+            themeId: randomPick,
+            userId: selectedUser.id,
+          });
+          userIndex++;
         }
         messaging.systemMessage(roomID, "Game has started!", "play");
       }
