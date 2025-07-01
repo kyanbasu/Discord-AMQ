@@ -48,7 +48,6 @@ import {
 
 import { setupSocket, socket, options } from "./sockets";
 
-//import rocketLogo from '/rocket.png';
 import "../css/style.css";
 
 // Will eventually store the authenticated user's access_token

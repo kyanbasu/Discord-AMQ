@@ -1,0 +1,51 @@
+@media only screen and (max-width: 768px) {
+
+  .focusZone{
+    height: 70vh;
+    width: 100vw;
+  }
+
+  #player {
+    position: absolute;
+    width: 80vw;
+    height: 60vh;
+    top: 60px;
+    left: 20px;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  @keyframes float {
+    0%   { transform: translateY(40vw); }
+    50%  { transform: translateY(0); }
+    100% { transform: translateY(40vw); }
+  }
+
+  #videoPlayerImgBg {
+    bottom: 0;
+  }
+
+  /* #videoPlayerImg {
+    max-height: 240px;
+  } */
+
+  .clientSettings {
+    top: 50px
+  }
+
+  #chatContainer{
+    top: 66%;
+    left: 0;
+    width: 100%;
+    height: 30vh;
+  }
+
+  nav {
+    height: 100%;
+  }
+
+  #chat{
+    height: 100%;
+  }
+}

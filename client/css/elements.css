@@ -1,0 +1,208 @@
+.navbar {
+  width: 100%;
+  height: 40px;
+  background-color: var(--maindark);
+  display: flex;
+  align-items: stretch;
+}
+
+.navbar h2,
+.navbar img {
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+#progress {
+  position: absolute;
+  left: 0;
+  top: 40px;
+  height: 4px;
+  width: 0;
+  background-color: var(--maincontrast);
+  transition: 100ms ease-out;
+}
+
+nav ul {
+  height: 60vh;
+  width: 100%;
+}
+nav ul {
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+ul {
+  list-style-type: none;
+  color: white;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+a {
+  font-weight: 500;
+  color: var(--mainlight);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--mainlight);
+}
+
+body {
+  margin: 0;
+  display: block;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  text-align: center;
+  color: white;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--mainlight);
+  cursor: pointer;
+  position: relative;
+  z-index: 0;
+  transition: border-color 0.25s;
+  transition: background-color 0.25s;
+}
+button::after {
+  content: "";
+  background: linear-gradient(
+    to right,
+    var(--maincontrast),
+    var(--maincontrast)
+  );
+  border-radius: 8px;
+  height: 100%;
+  width: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  transition: 200ms ease-in-out;
+}
+
+button:hover::after {
+  width: 100%;
+}
+
+button:hover {
+  border-color: var(--maindark);
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto var(--maindark);
+}
+
+input[type="range"][orient="vertical"] {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 16px;
+  display: block;
+  margin: auto;
+  min-height: 50px;
+  -webkit-appearance: none; /* Override default CSS styles */
+  appearance: none;
+  border-radius: 20px;
+}
+
+@-moz-document url-prefix() {
+  input::-moz-range-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: var(--mainlight);
+    cursor: pointer; /* Cursor on hover */
+    border-radius: 20px;
+    border-width: 0;
+  }
+}
+
+input[type="range"][orient="vertical"]::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: var(--mainlight);
+  cursor: pointer; /* Cursor on hover */
+  border-radius: 20px;
+  border-width: 0;
+}
+
+input {
+  height: 20px;
+  border-radius: 10px;
+  margin: 2px 2px 2px 2px;
+  transform: translateY(-4px);
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-bottom: 20px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--maindark);
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: var(--mainlight);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--mainlight);
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
