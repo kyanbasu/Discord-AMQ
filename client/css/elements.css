@@ -12,6 +12,13 @@
   margin-left: 10px;
 }
 
+.crown {
+  position: absolute;
+  height: 16px;
+  top: 0;
+  margin-left: 4px;
+}
+
 #progress {
   position: absolute;
   left: 0;

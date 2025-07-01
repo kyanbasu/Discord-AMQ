@@ -47,12 +47,7 @@ export async function updatePlayerList(playerList, hostID) {
       if (player.id === hostID) {
         const crownImg = document.createElement("img");
         crownImg.setAttribute("src", crownSrc);
-        crownImg.setAttribute(
-          "style",
-          `position:absolute;height:16px;top:${
-            isMobile ? "0" : "40px"
-          };margin-left:4px;`
-        );
+        crownImg.className = "crown"
         container.appendChild(crownImg);
       }
 
