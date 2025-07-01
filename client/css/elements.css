@@ -90,9 +90,27 @@ button:hover::after {
 button:hover {
   border-color: var(--maindark);
 }
+
+button:active::after {
+  width: 100%;
+}
+
+button:active {
+  border-color: var(--maindark);
+}
+
 button:focus,
 button:focus-visible {
   outline: 4px auto var(--maindark);
+}
+
+/* Disable hover effect on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  button:hover::after,
+  button:hover {
+    width: initial;
+    border-color: initial;
+  }
 }
 
 input[type="range"][orient="vertical"] {
