@@ -55,11 +55,6 @@ export function setupSocket() {
         "videoPlayerImgBg"
       ).style.backgroundImage = `url('media/${url}/jpg')`;
 
-      console.log("background image")
-      console.log(document.getElementById(
-        "videoPlayerImgBg"
-      ).backgroundImage)
-
       let _src = "";
       if (selectedPlayerType == "ogg") _src = `media/${url}/jpg`;
 
@@ -110,6 +105,7 @@ export function setupSocket() {
 
       case "play":
         document.getElementById("PlayPause").innerHTML = "Pause";
+        document.getElementById("options").hidden = true;
         break;
 
       case "end":
