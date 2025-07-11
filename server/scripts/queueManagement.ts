@@ -134,7 +134,7 @@ export const playNextQueue = async (roomID: string) => {
 
     if (rooms[roomID].currentTimeout == null) {
       rooms[roomID].currentTimeout = setTimeout(async () => {
-        if (!rooms[roomID]) return;
+        if (!rooms[roomID] || !pickedTheme) return;
 
         const pickedThemeUsername = pickedTheme.userId
           ? users[pickedTheme.userId].name
