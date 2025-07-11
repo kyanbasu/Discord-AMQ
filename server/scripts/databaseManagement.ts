@@ -1,12 +1,15 @@
 import { AnimeSchema, UserSchema } from "./schema";
-import config from "../config.json";
 import * as mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
 
 export const initdb = async () => {
   // Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7.
   mongoose.set("strictQuery", false);
 
-  await mongoose.connect(config.mongoPath);
+  if (!process.env.MONGODB_PATH) return;
+
+  await mongoose.connect(process.env.MONGODB_PATH);
 };
 
 export const updateUser = async (
