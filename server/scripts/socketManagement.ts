@@ -70,42 +70,19 @@ export const connection = (socket: Socket) => {
     discordUsers[discordUser.id] = discordUser;
 
     if (!rooms[roomID]) {
-      rooms[roomID] = {
-        queue: [],
-        queueHistory: [],
-        playerPaused: true,
-        playerPlaying: false,
-        canPlayNext: true,
-        gameState: GameState.LOBBY,
-        hostID: user.id,
-        users: [],
-        currentTimeout: null,
-        chathistory: "",
-        options: {
-          themeType: ThemeType.OP,
-          guessTime: 10,
-          queueSize: 10,
-          guessesCount: 4,
-          playerListIncluded: {
-            [user.id]: true,
-          },
-          novideo: Bun.argv.includes("--no-video") ? true : false,
-        },
-      };
+      rooms[roomID] = createRoom(user);
 
       rooms[roomID].users.push(user.id);
-
-      updatePlayerList(roomID);
     } else {
       if (!rooms[roomID].users.includes(user.id)) {
         rooms[roomID].users.push(user.id);
         rooms[roomID].options.playerListIncluded[user.id] = true;
       }
 
-      updatePlayerList(roomID);
-
       socket.emit("message", rooms[roomID].chathistory);
     }
+
+    updatePlayerList(roomID);
 
     if (rooms[roomID].gameState === GameState.PLAYING) {
       socket.emit("message", "Joining to game...", "playing");
@@ -113,6 +90,54 @@ export const connection = (socket: Socket) => {
 
     socket.emit("optionsReload", rooms[roomID].options);
   });
+
+  socket.on(
+    "client-resync",
+    async (roomID: string, discordUser: DiscordUser) => {
+      socket.join(roomID);
+
+      if (!rooms[roomID]) {
+        let userDoc = await UserSchema.findOne({ _id: discordUser.id });
+
+        if (userDoc) {
+          socket.emit(
+            "data-list",
+            userDoc.username,
+            userDoc.updated,
+            userDoc.service,
+            userDoc.list?.length || 0
+          );
+        }
+
+        let user: User = {
+          id: discordUser.id,
+          name: userDoc?.name,
+          list: userDoc?.list ? userDoc.list.map(String) : [],
+          score: 0,
+          socket: socket,
+          roomID: roomID,
+        };
+
+        users[user.id] = user;
+
+        discordUsers[discordUser.id] = discordUser;
+
+        rooms[roomID] = createRoom(user);
+
+        rooms[roomID].users.push(user.id);
+      }
+
+      updatePlayerList(roomID);
+
+      socket.emit("message", "Reconnected to server");
+
+      if (rooms[roomID].gameState === GameState.PLAYING) {
+        socket.emit("message", "Joining to game...", "playing");
+      }
+
+      socket.emit("optionsReload", rooms[roomID].options);
+    }
+  );
 
   socket.on(
     "updateAL",
@@ -306,4 +331,29 @@ function updatePlayerList(roomID: string) {
     avatar: discordUsers[userID]?.avatar,
   }));
   io.to(roomID).emit("updatePlayerList", playerList, rooms[roomID].hostID);
+}
+
+function createRoom(user: User) {
+  return {
+    queue: [],
+    queueHistory: [],
+    playerPaused: true,
+    playerPlaying: false,
+    canPlayNext: true,
+    gameState: GameState.LOBBY,
+    hostID: user.id,
+    users: [],
+    currentTimeout: null,
+    chathistory: "",
+    options: {
+      themeType: ThemeType.OP,
+      guessTime: 10,
+      queueSize: 10,
+      guessesCount: 4,
+      playerListIncluded: {
+        [user.id]: true,
+      },
+      novideo: Bun.argv.includes("--no-video") ? true : false,
+    },
+  };
 }

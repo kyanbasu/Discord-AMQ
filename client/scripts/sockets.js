@@ -15,6 +15,7 @@ import {
   player,
   discordSdk,
   selectedPlayerType,
+  auth,
 } from "./main";
 
 import * as Sentry from "@sentry/browser";
@@ -35,6 +36,7 @@ const socketOptions = {
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionAttempts: Infinity,
+  forceNew: true,
 };
 
 let socket = io(socketURL, socketOptions);
@@ -167,38 +169,38 @@ export function setupSocket() {
     console.log("reason: ", reason);
   });
 
-  socket.on("connect_error", (err) => {
-    console.log("socket.on.connect_error");
+  socket.io.on("connect_error", (err) => {
     console.error("Connection error:", err);
-    Sentry.captureException(Error(`User connection error`));
+    Sentry.withScope((scope) => {
+      console.log(err);
+      scope.setExtra("error", err);
+      Sentry.captureException(Error(`User connect_error: ${err}`));
+    });
     setTimeout(() => socket.open(), 2000);
   });
 
-  socket.on("reconnect_attempt", (num) => {
-    console.log("socket.on.reconnect_attempt");
-    Sentry.captureException(Error(`User reconnect attempt`));
+  socket.io.on("reconnect_attempt", (num) => {
     console.log(`Reconnection attempt #${num}`);
+    displayMessage(`Reconnecting...`);
   });
 
-  socket.on("reconnect", () => {
-    console.log("socket.on.reconnect");
-    Sentry.captureException(Error(`User reconnected`));
-    socket.emit("client-resync", {
-      /* auth + last-known-state */
-    });
+  socket.io.on("reconnect", () => {
+    displayMessage("Connected");
+    socket.emit(
+      "client-resync",
+      `${discordSdk.guildId}/${discordSdk.channelId}`,
+      auth.user
+    );
   });
 
   // Optional retry limit or fallback logic in reconnect_failed
-  socket.on("reconnect_failed", () => {
-    console.log("socket.on.reconnect_failed");
-    Sentry.captureException(Error(`User reconnect failed`));
+  socket.io.on("reconnect_failed", () => {
     console.error("Reconnect unsuccessful, prompt for manual reload");
+    displayMessage("Reconnect failed");
   });
 
-  socket.on("connected", () => {
-    console.log("socket.on.connected");
-    Sentry.captureException(Error(`User connected`));
-    displayMessage("connected");
+  socket.io.on("connect", () => {
+    displayMessage("Connected");
   });
 }
 
