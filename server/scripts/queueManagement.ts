@@ -88,10 +88,7 @@ export const playNextQueue = async (roomID: string) => {
 
     // convert it to worker-buffer system
     // anime queue object to contain promise to download and buffer
-    if (!rooms[roomID]) return;
-    if (rooms[roomID].queue.length > 1) {
-      tryCache(roomID);
-    }
+    tryCache(roomID);
 
     //if(!audio) return io.to(roomID).emit('message', `Failed to find audio`)
 
@@ -204,7 +201,7 @@ function tryCache(roomID: string, tries: number = 1) {
     console.log("Failed to cache theme after 3 tries");
     return;
   }
-  if (rooms[roomID].queue.length < 2) return;
+  if (!rooms[roomID] || rooms[roomID].queue.length < 2) return;
   getAudioUrl(
     rooms[roomID].queue[1].themeId,
     rooms[roomID].options.themeType
