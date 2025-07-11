@@ -23,12 +23,21 @@ import { optionsReload } from "./optionsReload";
 
 import { io } from "socket.io-client";
 
-const socket = io(
-  window.location.href.split("/").slice(0, 3).join("/").replace("https", "wss"),
-  {
-    reconnectionDelayMax: 10000,
-  }
-);
+const socketURL = window.location.href
+  .split("/")
+  .slice(0, 3)
+  .join("/")
+  .replace("https", "wss");
+
+const socketOptions = {
+  path: "/.proxy/socket.io/",
+  transports: ["websocket"],
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionAttempts: Infinity,
+};
+
+let socket = io(socketURL, socketOptions);
 
 let options = {};
 
@@ -154,18 +163,43 @@ export function setupSocket() {
       Sentry.captureException(Error(`User disconnected, reason: ${reason}`));
     });
 
-    displayMessage("disconnected... please restart app");
+    displayMessage(`disconnected... reason: ${reason}`);
+    console.log("reason: ", reason);
   });
 
-  socket.on("reconnect_attempt", (attempt) => {
-    displayMessage("reconnecting... " + attempt);
+  socket.on("connect_error", (err) => {
+    console.log("socket.on.connect_error");
+    console.error("Connection error:", err);
+    Sentry.captureException(Error(`User connection error`));
+    setTimeout(() => socket.open(), 2000);
   });
 
-  socket.on("reconnect", (attempt) => {
-    displayMessage("reconnected " + attempt);
+  socket.on("reconnect_attempt", (num) => {
+    console.log("socket.on.reconnect_attempt");
+    Sentry.captureException(Error(`User reconnect attempt`));
+    console.log(`Reconnection attempt #${num}`);
   });
 
-  socket.on("connected");
+  socket.on("reconnect", () => {
+    console.log("socket.on.reconnect");
+    Sentry.captureException(Error(`User reconnected`));
+    socket.emit("client-resync", {
+      /* auth + last-known-state */
+    });
+  });
+
+  // Optional retry limit or fallback logic in reconnect_failed
+  socket.on("reconnect_failed", () => {
+    console.log("socket.on.reconnect_failed");
+    Sentry.captureException(Error(`User reconnect failed`));
+    console.error("Reconnect unsuccessful, prompt for manual reload");
+  });
+
+  socket.on("connected", () => {
+    console.log("socket.on.connected");
+    Sentry.captureException(Error(`User connected`));
+    displayMessage("connected");
+  });
 }
 
 export { socket, options };

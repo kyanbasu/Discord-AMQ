@@ -33,9 +33,14 @@ export default defineConfig((mode) => {
           secure: false,
         },
       },
-      hmr: {
-        clientPort: 443,
-      },
+      hmr: false,
+      // hmr: {
+      //   path: "/.proxy/hmr",
+      //   clientPort: 443,
+      //   retry: true,
+      //   maxRetries: Infinity,
+      //   retryDelay: 1000,
+      // },
       allowedHosts: [env.VITE_TUNNEL_HOST, "localhost"],
     },
   };
