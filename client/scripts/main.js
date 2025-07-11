@@ -41,9 +41,9 @@ Sentry.init({
 import { setupDiscordSdk } from "./discordSetup";
 import {
   appendVoiceChannelName,
-  removeFadeOut,
   displayAnnoucement,
   getService,
+  incrementLoading,
 } from "./helpers";
 
 import { setupSocket, socket, options } from "./sockets";
@@ -116,13 +116,13 @@ let player = document.getElementById("player");
 
 const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
 
+incrementLoading("Connecting to Discord");
+
 //removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
 setupDiscordSdk(discordSdk).then(async (_auth) => {
   auth = _auth;
   console.log("Discord SDK is authenticated");
-  setTimeout(() => {
-    removeFadeOut(document.getElementById("loading"), 500);
-  }, 1000);
+  incrementLoading("Connecting to server");
 
   setupSocket();
 

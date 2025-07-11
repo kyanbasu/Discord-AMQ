@@ -7,9 +7,15 @@
   </head>
   <body>
     <div id="notification-container"></div>
+
     <div id="loading">
-      <h1>loading...</h1>
+      <div class="loadingInside">
+        <h1>loading...</h1>
+        <progress id="loading-progress" value="52" max="100"></progress>
+        <h2 id="loading-state">Doing stuff</h2>
+      </div>
     </div>
+
     <div class="navbar" id="navbar">
       <div style="display: flex; align-items: center">
         <h2 id="roomName"></h2>
@@ -41,7 +47,7 @@
           id="animelistname"
           name="name"
           placeholder="mal username"
-        /><br/>
+        /><br />
         <label>Service:</label>
         <div class="dropdown">
           <button class="dropbtn" id="animeServicebtn" disabled>

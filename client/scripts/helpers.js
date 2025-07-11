@@ -47,7 +47,7 @@ export async function updatePlayerList(playerList, hostID) {
       if (player.id === hostID) {
         const crownImg = document.createElement("img");
         crownImg.setAttribute("src", crownSrc);
-        crownImg.className = "crown"
+        crownImg.className = "crown";
         container.appendChild(crownImg);
       }
 
@@ -271,6 +271,22 @@ export function setupOptionsGUI() {
   });
 
   didOptionsSetup = true;
+}
+
+let loadingProgress = 0;
+const maxLoadingItems = 3;
+export function incrementLoading(state = "") {
+  loadingProgress++;
+  document.getElementById("loading-progress").value =
+    (loadingProgress / maxLoadingItems) * 100;
+
+  document.getElementById("loading-state").innerText = state;
+
+  if (loadingProgress === maxLoadingItems) {
+    setTimeout(() => {
+      removeFadeOut(document.getElementById("loading"), 500);
+    }, 1000);
+  }
 }
 
 export function toMMSS(seconds) {

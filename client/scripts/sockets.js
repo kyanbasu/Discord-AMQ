@@ -7,6 +7,7 @@ import {
   preloadMedia,
   setupOptionsGUI,
   setService,
+  incrementLoading,
 } from "./helpers";
 
 import {
@@ -95,6 +96,10 @@ export function setupSocket() {
     displayMessage(
       `<span style="color: var(--maincontrast)"> Correctly guessed: ${e}</span>`
     );
+  });
+
+  socket.on("loadingUpdate", () => {
+    incrementLoading("Done.");
   });
 
   socket.on("optionsReload", (_options) => {

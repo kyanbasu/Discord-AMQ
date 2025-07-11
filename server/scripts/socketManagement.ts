@@ -89,6 +89,7 @@ export const connection = (socket: Socket) => {
     }
 
     socket.emit("optionsReload", rooms[roomID].options);
+    socket.emit("loadingUpdate");
   });
 
   socket.on(
