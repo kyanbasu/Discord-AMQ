@@ -1,10 +1,6 @@
 import { Socket } from "socket.io";
 import { rooms, io, users, discordUsers } from "../server.ts";
-import {
-  shuffleArray,
-  getAudioUrl,
-  randomFromArray,
-} from "./helpers.ts";
+import { shuffleArray, getAudioUrl, randomFromArray } from "./helpers.ts";
 import { systemMessage, userAnnouncement } from "./messaging.ts";
 import { GameState, QueueEntry } from "./types.ts";
 import { AnimeSchema } from "./schema.ts";
@@ -21,13 +17,20 @@ export const addQueue = async (
   }
   if (
     rooms[roomID].queue.some((item: QueueEntry) => item.themeId === malID) ||
-    rooms[roomID].queueHistory.some((item: QueueEntry) => item.themeId === malID)
+    rooms[roomID].queueHistory.some(
+      (item: QueueEntry) => item.themeId === malID
+    )
   ) {
     userAnnouncement(socket, `${malID} is already in queue`);
     return;
   }
-  const userEntry = Object.values(users).find((user: User) => user.socket?.id === socket.id);
-  rooms[roomID].queue.push({ themeId: malID, userId: userEntry ? userEntry.id : undefined });
+  const userEntry = Object.values(users).find(
+    (user: User) => user.socket?.id === socket.id
+  );
+  rooms[roomID].queue.push({
+    themeId: malID,
+    userId: userEntry ? userEntry.id : undefined,
+  });
   userAnnouncement(socket, `Added ${malID} to queue`);
 
   if (!rooms[roomID].playerPaused && !rooms[roomID].playerPlaying) {
@@ -68,7 +71,10 @@ export const playNextQueue = async (roomID: string) => {
       rooms[roomID].options.themeType
     ).catch((error) => console.error(error));
     if (!audio) {
-      io.to(roomID).emit("message", `LOG> not found ${rooms[roomID].queue[0].themeId}`);
+      io.to(roomID).emit(
+        "message",
+        `LOG> not found ${rooms[roomID].queue[0].themeId}`
+      );
       rooms[roomID].playerPlaying = false;
       rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
       console.log(`history ${rooms[roomID].queueHistory.toString()}`);
@@ -125,16 +131,22 @@ export const playNextQueue = async (roomID: string) => {
     console.log(guesses);
     io.to(roomID).emit("audio", audio.link, guesses);
     systemMessage(roomID, "Playing...");
-    
-    const pickedTheme = rooms[roomID].queue[0]
+
+    const pickedTheme = rooms[roomID].queue[0];
     rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
 
     if (rooms[roomID].currentTimeout == null) {
       rooms[roomID].currentTimeout = setTimeout(async () => {
         if (!rooms[roomID]) return;
 
-        const pickedThemeUsername = pickedTheme.userId ? users[pickedTheme.userId].name : undefined;
-        io.to(roomID).emit("guess", `${audio.name} ${audio.themeType}`, pickedThemeUsername);
+        const pickedThemeUsername = pickedTheme.userId
+          ? users[pickedTheme.userId].name
+          : undefined;
+        io.to(roomID).emit(
+          "guess",
+          `${audio.name} ${audio.themeType}`,
+          pickedThemeUsername
+        );
         rooms[roomID].canPlayNext = true;
 
         let guessed: string[] = [];
@@ -192,16 +204,18 @@ function tryCache(roomID: string, tries: number = 1) {
     console.log("Failed to cache theme after 3 tries");
     return;
   }
-  getAudioUrl(rooms[roomID].queue[1].themeId, rooms[roomID].options.themeType).catch(
-    (error) => {
-      console.error(error);
-      // Remove failed, add other theme to queue and try to cache next
-      rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
-      setTimeout(() => {
-        tryCache(roomID, tries + 1);
-      }, 2000);
-    }
-  );
+  if (rooms[roomID].queue.length < 2) return;
+  getAudioUrl(
+    rooms[roomID].queue[1].themeId,
+    rooms[roomID].options.themeType
+  ).catch((error) => {
+    console.error(error);
+    // Remove failed, add other theme to queue and try to cache next
+    rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
+    setTimeout(() => {
+      tryCache(roomID, tries + 1);
+    }, 2000);
+  });
 }
 
 async function getOtherTheme(roomID: string) {
@@ -227,6 +241,6 @@ async function getOtherTheme(roomID: string) {
   if (!newPick) throw new Error(`No anime in database, id: ${aniid}`);
 
   console.log(`instead added ${newPick._id} ${newPick.title} to queue`);
-  rooms[roomID].queue.push({themeId: newPick._id, userId: pickedUser.id});
+  rooms[roomID].queue.push({ themeId: newPick._id, userId: pickedUser.id });
   return true;
 }
