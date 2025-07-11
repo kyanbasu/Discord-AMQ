@@ -31,7 +31,7 @@ export async function setupDiscordSdk(discordSdk) {
   const { access_token } = await response.json();
 
   if (!access_token) {
-    document.getElementById("loading").innerHTML +=
+    document.getElementById("loadingInside").innerHTML +=
       "<p>Failed to get access token, please try to restart app in a moment, most likely being ratelimited</p>";
     throw new Error("Access token not found");
   }
