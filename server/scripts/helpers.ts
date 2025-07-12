@@ -4,6 +4,8 @@ import FileManager from "./fileManager";
 
 const fileManager = new FileManager();
 
+const anilistApiUrl = "https://graphql.anilist.co";
+
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export const shuffleArray = (array: any[]) => {
   for (var i = array.length - 1; i >= 0; i--) {
@@ -64,10 +66,12 @@ export const getAudioUrl: (
 
         const vidUrl = entry.animethemeentries[0].videos[0].link;
         const audioUrl = entry.animethemeentries[0].videos[0].audio.link;
-        const imgUrl = await AnimeSchema.findOne({ _id: themeId }).then((res) => {
-          if (res) return res.splash;
-          return undefined;
-        });
+        const imgUrl = await AnimeSchema.findOne({ _id: themeId }).then(
+          (res) => {
+            if (res) return res.splash;
+            return undefined;
+          }
+        );
 
         //console.log(`> Downloading ${vidUrl} (${baseName})`);
         try {
@@ -114,24 +118,26 @@ interface MAL {
   ];
 }
 
+interface AniListMedia {
+  id: number;
+  idMal: number;
+  title: {
+    english: string;
+    romaji: string;
+    native: string;
+  };
+  coverImage: {
+    extraLarge: string;
+  };
+}
+
 interface AniList {
   data: {
     MediaListCollection: {
       lists: {
         name: string;
         entries: {
-          media: {
-            id: number;
-            idMal: number;
-            title: {
-              english: string;
-              romaji: string;
-              native: string;
-            };
-            coverImage: {
-              extraLarge: string;
-            };
-          };
+          media: AniListMedia;
         }[];
       }[];
     };
@@ -148,26 +154,32 @@ export const getAnimeList: (
   switch (service) {
     case 0:
       try {
-        const res = await fetch(
-          `https://api.myanimelist.net/v2/users/${ID}/animelist?fields=alternative_titles&limit=1000&status=watching&status=completed`,
+        const resMAL = await fetch(
+          `https://api.myanimelist.net/v2/users/${ID}/animelist?&limit=1000&status=watching&status=completed`,
           { headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID! } }
         );
 
-        if (!res.ok) {
+        if (!resMAL.ok) {
           throw new Error(
-            `Failed to fetch MAL anime list. Status: ${res.status}`
+            `Failed to fetch MAL anime list. Status: ${resMAL.status}`
           );
         }
 
-        const json = (await res.json()) as MAL;
-        const list: AnimeSchema[] = json.data.map(({ node }) => ({
-          _id: node.id,
+        const jsonMAL = (await resMAL.json()) as MAL;
+
+        const ids: number[] = jsonMAL.data.map(({ node }) => Number(node.id));
+
+        //const json = (await res.json()) as AniList;
+        const anilist = await AniListPaginate(ids);
+
+        const list: AnimeSchema[] = anilist.map((entry) => ({
+          _id: entry.idMal.toString(),
           title: {
-            ro: node.title,
-            en: node.alternative_titles.en,
-            ja: node.alternative_titles.ja
+            en: entry.title.english,
+            ro: entry.title.romaji,
+            ja: entry.title.native,
           },
-          splash: node.main_picture.large,
+          splash: entry.coverImage.extraLarge,
         }));
 
         return list;
@@ -177,7 +189,7 @@ export const getAnimeList: (
       }
     case 1:
       try {
-        const res = await fetch(`https://graphql.anilist.co`, {
+        const res = await fetch(anilistApiUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -234,7 +246,7 @@ export const getAnimeList: (
                 title: {
                   en: entry.media.title.english,
                   ro: entry.media.title.romaji,
-                  ja: entry.media.title.native
+                  ja: entry.media.title.native,
                 },
                 splash: entry.media.coverImage.extraLarge,
               }))
@@ -250,6 +262,74 @@ export const getAnimeList: (
       break;
   }
   throw new Error("Invalid service type.");
+};
+
+const AniListPaginate: (ids: number[]) => Promise<AniListMedia[]> = async (
+  ids
+) => {
+  const perPage = 50; // max per AniList docs
+  let page = 1;
+  const allThemes: AniListMedia[] = [];
+
+  while (true) {
+    const res = await fetch(anilistApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        query: `
+                query ($ids: [Int!]!, $page: Int!, $perPage: Int!) {
+                  Page(page: $page, perPage: $perPage) {
+                    pageInfo {
+                      total
+                      perPage
+                      currentPage
+                      lastPage
+                      hasNextPage
+                    }
+                    media(type: ANIME, idMal_in: $ids) {
+                      id
+                      idMal
+                      title {
+                        english
+                        romaji
+                        native
+                      }
+                      coverImage {
+                        extraLarge
+                      }
+                    }
+                  }
+                }`,
+        variables: { ids, page, perPage },
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`AniList query failed: ${res.status} ${res.statusText}`);
+    }
+
+    const { data } = (await res.json()) as {
+      data: {
+        Page: {
+          pageInfo: {
+            hasNextPage: boolean;
+          };
+          media: AniListMedia[];
+        };
+      };
+    };
+
+    allThemes.push(...data.Page.media);
+
+    if (!data.Page.pageInfo.hasNextPage) break;
+
+    page++;
+  }
+
+  return allThemes;
 };
 
 export { fileManager };
