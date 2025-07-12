@@ -1,7 +1,7 @@
 import { Socket } from "socket.io";
 
 // Interfaces/Types
-export { User, DiscordUser, RoomOptions, Room, QueueEntry };
+export { User, DiscordUser, RoomOptions, Room, QueueEntry, TitlePair, Guess };
 
 // Enums
 export { GameState, ThemeType };
@@ -48,9 +48,18 @@ interface QueueEntry {
   userId: string | undefined;
 }
 
+interface TitlePair {
+  en: string; // English
+  ro: string; // Romaji
+  ja: string; // Japanese (or native)
+}
+
+interface Guess extends TitlePair {
+  themeId: string;
+}
+
 interface Room {
   users: string[];
-  //lobbyAniList: string[]; // list of animes of all selected users in lobby
   queue: QueueEntry[]; // list of animes in queue
   queueHistory: QueueEntry[]; // list of animes that have been played or are to be played
   playerPaused: boolean; // if player is (to be) paused

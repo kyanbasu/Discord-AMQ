@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import { rooms, io, users, discordUsers } from "../server.ts";
 import { shuffleArray, getAudioUrl, randomFromArray } from "./helpers.ts";
 import { systemMessage, userAnnouncement } from "./messaging.ts";
-import { GameState, QueueEntry } from "./types.ts";
+import { GameState, Guess, QueueEntry } from "./types.ts";
 import { AnimeSchema } from "./schema.ts";
 import { User } from "./types.ts";
 
@@ -70,6 +70,7 @@ export const playNextQueue = async (roomID: string) => {
       rooms[roomID].queue[0].themeId,
       rooms[roomID].options.themeType
     ).catch((error) => console.error(error));
+    if(!rooms[roomID]) return;
     if (!audio) {
       io.to(roomID).emit(
         "message",
@@ -100,7 +101,7 @@ export const playNextQueue = async (roomID: string) => {
 
     //console.log(`removed from list ${rooms[roomID].animeList.filter(e => e.id == Number(audio.link.split('-')[0]))[0].title}`)
 
-    let ids: string[] = [];
+    let ids: string[] = [audio.themeId];
     for (
       let i = 0;
       i < Math.min(rooms[roomID].options.guessesCount, concatLists.length) - 1;
@@ -112,14 +113,14 @@ export const playNextQueue = async (roomID: string) => {
       concatLists.splice(rng, 1);
     }
 
-    let guesses: string[] = (await AnimeSchema.find({ _id: { $in: ids } })).map(
-      (ani) => ani.title
-    );
+    const guesses: Guess[] = (
+      await AnimeSchema.find({ _id: { $in: ids } })
+    ).map((ani) => ({ en: ani.title.en, ro: ani.title.ro, ja: ani.title.ja, themeId: ani._id }));
 
-    guesses.push(audio.name);
     shuffleArray(guesses);
 
-    let correctGuess = guesses.findIndex((e) => e == audio.name);
+    const correctGuessIndex = guesses.findIndex((e) => e.themeId === audio.themeId);
+    const correctGuess = guesses[correctGuessIndex]
 
     Object.values(rooms[roomID].users).forEach((u) => {
       users[u].guess = undefined;
@@ -141,14 +142,15 @@ export const playNextQueue = async (roomID: string) => {
           : undefined;
         io.to(roomID).emit(
           "guess",
-          `${audio.name} ${audio.themeType}`,
+          correctGuess,
+          audio.themeType,
           pickedThemeUsername
         );
         rooms[roomID].canPlayNext = true;
 
         let guessed: string[] = [];
         Object.values(rooms[roomID].users).forEach((usr) => {
-          if (correctGuess === users[usr].guess) {
+          if (correctGuessIndex === users[usr].guess) {
             users[usr].score += 1;
             guessed.push(discordUsers[usr].global_name);
           }

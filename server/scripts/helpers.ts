@@ -24,17 +24,17 @@ interface AnimeResponse {
 
 interface AudioUrl {
   link: string;
-  name: string;
+  themeId: string;
   themeType: string;
 }
 
 export const getAudioUrl: (
-  malID: string,
+  themeId: string,
   themeType: ThemeType
-) => Promise<AudioUrl> = (malID, themeType = ThemeType.ALL) => {
+) => Promise<AudioUrl> = (themeId, themeType = ThemeType.ALL) => {
   return new Promise((resolve, reject) => {
     fetch(
-      `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=MyAnimeList&filter[external_id]=${malID}&include=animethemes.animethemeentries.videos.audio`
+      `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=MyAnimeList&filter[external_id]=${themeId}&include=animethemes.animethemeentries.videos.audio`
     )
       .then((response) => response.json() as Promise<AnimeResponse>)
       .then(async (obj: AnimeResponse) => {
@@ -50,11 +50,11 @@ export const getAudioUrl: (
 
         if (_themes.length == 0) return reject(new Error("No themes found"));
         const entry = _themes[Math.floor(_themes.length * Math.random())];
-        const baseName = `${malID}-${entry.slug}`;
+        const baseName = `${themeId}-${entry.slug}`;
 
         const o: AudioUrl = {
           link: `${baseName}`,
-          name: obj.anime[0].name,
+          themeId: themeId,
           themeType: entry.slug,
         };
 
@@ -64,7 +64,7 @@ export const getAudioUrl: (
 
         const vidUrl = entry.animethemeentries[0].videos[0].link;
         const audioUrl = entry.animethemeentries[0].videos[0].audio.link;
-        const imgUrl = await AnimeSchema.findOne({ _id: malID }).then((res) => {
+        const imgUrl = await AnimeSchema.findOne({ _id: themeId }).then((res) => {
           if (res) return res.splash;
           return undefined;
         });
@@ -104,6 +104,11 @@ interface MAL {
         id: string;
         title: string;
         main_picture: { medium: string; large: string };
+        alternative_titles: {
+          synonyms: string[];
+          en: string;
+          ja: string;
+        };
       };
     }
   ];
@@ -120,6 +125,8 @@ interface AniList {
             idMal: number;
             title: {
               english: string;
+              romaji: string;
+              native: string;
             };
             coverImage: {
               extraLarge: string;
@@ -142,7 +149,7 @@ export const getAnimeList: (
     case 0:
       try {
         const res = await fetch(
-          `https://api.myanimelist.net/v2/users/${ID}/animelist?limit=1000&status=watching&status=completed`,
+          `https://api.myanimelist.net/v2/users/${ID}/animelist?fields=alternative_titles&limit=1000&status=watching&status=completed`,
           { headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID! } }
         );
 
@@ -155,7 +162,11 @@ export const getAnimeList: (
         const json = (await res.json()) as MAL;
         const list: AnimeSchema[] = json.data.map(({ node }) => ({
           _id: node.id,
-          title: node.title,
+          title: {
+            ro: node.title,
+            en: node.alternative_titles.en,
+            ja: node.alternative_titles.ja
+          },
           splash: node.main_picture.large,
         }));
 
@@ -184,6 +195,8 @@ export const getAnimeList: (
                         idMal
                         title {
                           english
+                          romaji
+                          native
                         }
                         coverImage {
                           extraLarge
@@ -218,7 +231,11 @@ export const getAnimeList: (
               )
               .map((entry) => ({
                 _id: entry.media.idMal.toString(),
-                title: entry.media.title.english,
+                title: {
+                  en: entry.media.title.english,
+                  ro: entry.media.title.romaji,
+                  ja: entry.media.title.native
+                },
                 splash: entry.media.coverImage.extraLarge,
               }))
         );

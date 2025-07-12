@@ -49,7 +49,7 @@ export function setupSocket() {
     try {
       console.log(guesses);
       for (let i = 0; i < guesses.length; i++) {
-        document.getElementById(`guess${i}`).innerHTML = guesses[i];
+        document.getElementById(`guess${i}`).innerHTML = guesses[i].ro;
         document.getElementById(`guess${i}`).classList.remove("guessButton");
       }
       document.getElementById("guessingZone").hidden = false;
@@ -82,11 +82,13 @@ export function setupSocket() {
     }
   });
 
-  socket.on("guess", (name, usr) => {
-    document.getElementById("themeTitle").innerText = name;
+  socket.on("guess", (title, themeType, usr) => {
+    document.getElementById(
+      "themeTitle"
+    ).innerText = `${title.ro} ${themeType}`;
     player.hidden = false;
     document.getElementById("guessingZone").hidden = true;
-    displayMessage(`That was ${name} from ${usr}'s list`);
+    displayMessage(`That was ${title.ro} ${themeType} from ${usr}'s list`);
     setTimeout(() => {
       document.getElementById("Skip").hidden = false;
     }, 3000);

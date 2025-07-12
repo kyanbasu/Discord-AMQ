@@ -1,4 +1,5 @@
 import * as mongoose from "mongoose";
+import { TitlePair } from "./types";
 
 // User
 const userSchema = new mongoose.Schema(
@@ -19,10 +20,19 @@ export type UserSchema = mongoose.InferSchemaType<typeof userSchema>;
 export const UserSchema = mongoose.model("User", userSchema);
 
 // Anime
+const TitleSchema = new mongoose.Schema<TitlePair>(
+  {
+    en: { type: String, required: false }, // English
+    ja: { type: String, required: false }, // Japanese (or native)
+    ro: { type: String, required: true }, // Romaji (is fallback for others)
+  },
+  { _id: false }
+);
+
 const animeSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true },
-    title: { type: String, required: true },
+    title: { type: TitleSchema, required: true },
     splash: { type: String, required: true },
   },
   {
