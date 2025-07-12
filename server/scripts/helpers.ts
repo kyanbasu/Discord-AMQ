@@ -36,7 +36,7 @@ export const getAudioUrl: (
 ) => Promise<AudioUrl> = (themeId, themeType = ThemeType.ALL) => {
   return new Promise((resolve, reject) => {
     fetch(
-      `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=MyAnimeList&filter[external_id]=${themeId}&include=animethemes.animethemeentries.videos.audio`
+      `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=AniList&filter[external_id]=${themeId}&include=animethemes.animethemeentries.videos.audio`
     )
       .then((response) => response.json() as Promise<AnimeResponse>)
       .then(async (obj: AnimeResponse) => {
@@ -120,7 +120,6 @@ interface MAL {
 
 interface AniListMedia {
   id: number;
-  idMal: number;
   title: {
     english: string;
     romaji: string;
@@ -173,7 +172,7 @@ export const getAnimeList: (
         const anilist = await AniListPaginate(ids);
 
         const list: AnimeSchema[] = anilist.map((entry) => ({
-          _id: entry.idMal.toString(),
+          _id: entry.id.toString(),
           title: {
             en: entry.title.english,
             ro: entry.title.romaji,
@@ -204,7 +203,6 @@ export const getAnimeList: (
                     entries {
                       media {
                         id
-                        idMal
                         title {
                           english
                           romaji
@@ -237,12 +235,12 @@ export const getAnimeList: (
             list.entries
               .filter(
                 (entry) =>
-                  entry.media.idMal != null &&
+                  entry.media.id != null &&
                   entry.media.title.english != null &&
                   entry.media.coverImage.extraLarge != null
               )
               .map((entry) => ({
-                _id: entry.media.idMal.toString(),
+                _id: entry.media.id.toString(),
                 title: {
                   en: entry.media.title.english,
                   ro: entry.media.title.romaji,
@@ -264,8 +262,8 @@ export const getAnimeList: (
   throw new Error("Invalid service type.");
 };
 
-const AniListPaginate: (ids: number[]) => Promise<AniListMedia[]> = async (
-  ids
+const AniListPaginate: (idsMal: number[]) => Promise<AniListMedia[]> = async (
+  idsMal
 ) => {
   const perPage = 50; // max per AniList docs
   let page = 1;
@@ -280,7 +278,7 @@ const AniListPaginate: (ids: number[]) => Promise<AniListMedia[]> = async (
       },
       body: JSON.stringify({
         query: `
-                query ($ids: [Int!]!, $page: Int!, $perPage: Int!) {
+                query ($idsMal: [Int!]!, $page: Int!, $perPage: Int!) {
                   Page(page: $page, perPage: $perPage) {
                     pageInfo {
                       total
@@ -289,9 +287,8 @@ const AniListPaginate: (ids: number[]) => Promise<AniListMedia[]> = async (
                       lastPage
                       hasNextPage
                     }
-                    media(type: ANIME, idMal_in: $ids) {
+                    media(type: ANIME, idMal_in: $idsMal) {
                       id
-                      idMal
                       title {
                         english
                         romaji
@@ -303,7 +300,7 @@ const AniListPaginate: (ids: number[]) => Promise<AniListMedia[]> = async (
                     }
                   }
                 }`,
-        variables: { ids, page, perPage },
+        variables: { idsMal, page, perPage },
       }),
     });
 
