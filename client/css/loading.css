@@ -1,0 +1,73 @@
+:root,
+body {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-size: calc(0.8vw + 0.8vh);
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #000;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  display: block;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+h3 {
+  margin-bottom: 0;
+}
+
+#loading {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#loadingInside {
+  justify-items: center;
+}
+
+#loadingInside > progress {
+  border-radius: 7px; 
+  width: 30vw;
+  height: 3vh;
+  box-shadow: 1px 1px 4px rgba( 0, 0, 0, 0.2 );
+}
+#loadingInside > progress::-webkit-progress-bar {
+  background-color: #222;
+  border-radius: 7px;
+}
+#loadingInside > progress::-webkit-progress-value {
+  background-color: white;
+  border-radius: 7px;
+  box-shadow: 1px 1px 5px 3px rgba( 255, 255, 255, 0.5 );
+}
