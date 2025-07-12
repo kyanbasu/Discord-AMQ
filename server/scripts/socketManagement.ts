@@ -97,35 +97,39 @@ export const connection = (socket: Socket) => {
     async (roomID: string, discordUser: DiscordUser) => {
       socket.join(roomID);
 
+      let userDoc = await UserSchema.findOne({ _id: discordUser.id });
+
+      if (userDoc) {
+        socket.emit(
+          "data-list",
+          userDoc.username,
+          userDoc.updated,
+          userDoc.service,
+          userDoc.list?.length || 0
+        );
+      }
+
+      let user: User = {
+        id: discordUser.id,
+        name: userDoc?.name,
+        list: userDoc?.list ? userDoc.list.map(String) : [],
+        score: 0,
+        socket: socket,
+        roomID: roomID,
+      };
+
+      users[user.id] = user;
+
+      discordUsers[discordUser.id] = discordUser;
+
       if (!rooms[roomID]) {
-        let userDoc = await UserSchema.findOne({ _id: discordUser.id });
-
-        if (userDoc) {
-          socket.emit(
-            "data-list",
-            userDoc.username,
-            userDoc.updated,
-            userDoc.service,
-            userDoc.list?.length || 0
-          );
-        }
-
-        let user: User = {
-          id: discordUser.id,
-          name: userDoc?.name,
-          list: userDoc?.list ? userDoc.list.map(String) : [],
-          score: 0,
-          socket: socket,
-          roomID: roomID,
-        };
-
-        users[user.id] = user;
-
-        discordUsers[discordUser.id] = discordUser;
-
         rooms[roomID] = createRoom(user);
 
         rooms[roomID].users.push(user.id);
+      } else {
+        if (!rooms[roomID].users.includes(user.id)) {
+          rooms[roomID].users.push(user.id);
+        }
       }
 
       updatePlayerList(roomID);
