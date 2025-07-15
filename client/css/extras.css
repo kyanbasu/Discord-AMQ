@@ -93,3 +93,14 @@
   opacity: 0;
   transform: translateX(40px);
 }
+
+.settingsButton {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: -40px;
+  right: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
