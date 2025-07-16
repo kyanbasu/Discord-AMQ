@@ -309,10 +309,10 @@ export const connection = (socket: Socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("user disconnected " + socket.id);
     const user = Object.values(users).find(
       (u: User) => u.socket!.id == socket.id
     );
+    console.log(`user disconnected ${user ? user.name : "?"} ${socket.id}`);
     if (!user) return;
     if (rooms[user.roomID!]) {
       const roomID = user.roomID!;

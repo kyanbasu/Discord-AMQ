@@ -36,7 +36,7 @@ export const getAudioUrl: (
 ) => Promise<AudioUrl> = (themeId, themeType = ThemeType.ALL) => {
   return new Promise((resolve, reject) => {
     fetch(
-      `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=AniList&filter[external_id]=${themeId}&include=animethemes.animethemeentries.videos.audio`
+      `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=Anilist&filter[external_id]=${themeId}&include=animethemes.animethemeentries.videos.audio`
     )
       .then((response) => response.json() as Promise<AnimeResponse>)
       .then(async (obj: AnimeResponse) => {
