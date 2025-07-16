@@ -174,6 +174,13 @@ export function setupSocket() {
 
     displayMessage(`disconnected... reason: ${reason}`);
     console.log("reason: ", reason);
+
+    if (reason !== "ping timeout") {
+      setTimeout(() => {
+        socket.open();
+        resync();
+      }, 500);
+    }
   });
 
   socket.io.on("connect_error", (err) => {
@@ -183,7 +190,10 @@ export function setupSocket() {
       scope.setExtra("error", err);
       Sentry.captureException(Error(`User connect_error: ${err}`));
     });
-    setTimeout(() => socket.open(), 2000);
+    setTimeout(() => {
+      socket.open();
+      resync();
+    }, 500);
   });
 
   socket.io.on("reconnect_attempt", (num) => {
@@ -193,11 +203,7 @@ export function setupSocket() {
 
   socket.io.on("reconnect", () => {
     displayMessage("Connected");
-    socket.emit(
-      "client-resync",
-      `${discordSdk.guildId}/${discordSdk.channelId}`,
-      auth.user
-    );
+    resync();
   });
 
   // Optional retry limit or fallback logic in reconnect_failed
@@ -209,6 +215,14 @@ export function setupSocket() {
   socket.io.on("connect", () => {
     displayMessage("Connected");
   });
+}
+
+function resync() {
+  socket.emit(
+    "client-resync",
+    `${discordSdk.guildId}/${discordSdk.channelId}`,
+    auth.user
+  );
 }
 
 export { socket, options };

@@ -104,3 +104,11 @@
   justify-content: center;
   align-items: center;
 }
+
+@media (hover: none) and (pointer: coarse) {
+  .settingsButton:hover::after,
+  .settingsButton:hover {
+    width: 40px;
+    border-color: initial;
+  }
+}

@@ -17,6 +17,8 @@ import { updateUser } from "./databaseManagement.ts";
 import { UserSchema } from "./schema.ts";
 
 export const connection = (socket: Socket) => {
+  console.log(`user connected ${socket.id}`);
+
   socket.on("message", (roomID: string, message: string) => {
     if (!message) return;
 

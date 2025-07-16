@@ -1,24 +1,26 @@
 @media only screen and (max-width: 768px) {
-
-  #navbar, .focusZone, .secondZone, #loading > h1 {
+  #navbar,
+  .focusZone,
+  .secondZone,
+  #loading > h1 {
     margin-top: 44px;
   }
 
   .crown {
     top: 44px;
   }
-  
-  .focusZone{
+
+  .focusZone {
     height: 40vh;
     width: 90vw;
   }
 
-  .secondZone{
+  .secondZone {
     top: 50vh;
     width: 100vw;
   }
 
-  .secondZoneIn{
+  .secondZoneIn {
     top: 0;
   }
 
@@ -32,10 +34,10 @@
   }
 
   .clientSettings {
-    top: 0px
+    top: 0px;
   }
 
-  #chatContainer{
+  #chatContainer {
     bottom: 0;
     left: 0;
     width: 100%;
@@ -46,7 +48,12 @@
     height: 100%;
   }
 
-  #chat{
+  #chat {
     height: 100%;
+  }
+
+  .settingsButton {
+    top: -40px;
+    right: 10px;
   }
 }
