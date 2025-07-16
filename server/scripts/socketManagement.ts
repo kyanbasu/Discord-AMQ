@@ -13,9 +13,10 @@ import {
   DiscordUser,
   QueueEntry,
   ClientSettings,
+  GuessingMode,
 } from "./types.ts";
 import { updateUser, updateUserClientSettings } from "./databaseManagement.ts";
-import { UserSchema } from "./schema.ts";
+import { AnimeSchema, UserSchema } from "./schema.ts";
 
 export const connection = (socket: Socket) => {
   console.log(`user connected ${socket.id}`);
@@ -287,9 +288,15 @@ export const connection = (socket: Socket) => {
     }
   });
 
-  socket.on("guess", async (user: User, guess: number) => {
+  socket.on("guess", async (user: User, guess: number | string) => {
     if (!users[user.id]) return;
-    if (guess) users[user.id].guess = guess - 1;
+    if (guess) {
+      if (typeof guess === "string") {
+        users[user.id].guess = guess;
+      } else {
+        users[user.id].guess = Number(guess) - 1;
+      }
+    }
   });
 
   socket.on("skip", async (roomID: string) => {
@@ -319,6 +326,29 @@ export const connection = (socket: Socket) => {
       updateUserClientSettings(user.id, clientSettings);
     }
   );
+
+  socket.on("autocomplete", async (q) => {
+    if (q.length < 3) return;
+
+    const regex = new RegExp(`^${q}`, "i");
+    const docs = await AnimeSchema.find({
+      $or: [
+        { "title.ro": regex },
+        { "title.en": regex },
+        { "title.ja": regex },
+      ],
+    })
+      .limit(10)
+      .lean();
+
+    socket.emit(
+      "autocompleteResults",
+      docs.map((d) => ({
+        id: d._id,
+        title: d.title,
+      }))
+    );
+  });
 
   socket.on("disconnect", () => {
     const user = Object.values(users).find(
@@ -367,6 +397,7 @@ function createRoom(user: User) {
       guessTime: 10,
       queueSize: 10,
       guessesCount: 4,
+      guessingMode: GuessingMode.TYPING,
       playerListIncluded: {
         [user.id]: true,
       },

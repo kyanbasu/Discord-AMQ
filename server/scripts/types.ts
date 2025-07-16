@@ -10,6 +10,7 @@ export {
   TitlePair,
   ClientSettings,
   Guess,
+  GuessingMode,
 };
 
 // Enums
@@ -28,7 +29,7 @@ interface User {
   socket?: Socket;
   roomID?: string;
   list?: string[];
-  guess?: number;
+  guess?: number | string;
   score: number;
 }
 
@@ -38,11 +39,17 @@ enum ThemeType {
   ALL,
 }
 
+enum GuessingMode {
+  SELECTING,
+  TYPING,
+}
+
 interface RoomOptions {
   themeType: ThemeType;
   guessTime: number;
   queueSize: number;
   guessesCount: number;
+  guessingMode: GuessingMode;
   playerListIncluded: Record<string, boolean>;
   novideo: boolean; // if video is disabled on the server
 }

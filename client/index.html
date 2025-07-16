@@ -47,7 +47,7 @@
           type="text"
           id="animelistname"
           name="name"
-          placeholder="mal username"
+          placeholder="username"
         /><br />
         <label>Service:</label>
         <div class="dropdown">
@@ -107,6 +107,15 @@
           <div class="dropdown-content" id="themeType"></div>
         </div>
         <br />
+        <div class="autocomplete">
+          <input
+            type="text"
+            id="animeTextGuess"
+            name="animeTextGuess"
+            placeholder="enter guess..."
+          />
+          <div id="autocomplete-list" class="autocomplete-items"></div>
+        </div>
         <h4>Included anime lists:</h4>
         <div id="includedPlayerLists"></div>
       </div>

@@ -254,6 +254,24 @@ export function Skip() {
   socket.emit("skip", `${discordSdk.guildId}/${discordSdk.channelId}`);
 }
 
+let UpdateTextGuessAutocompleteTimeout = null;
+
+document
+  .getElementById("animeTextGuess")
+  .addEventListener("input", UpdateTextGuessAutocomplete);
+
+export function UpdateTextGuessAutocomplete() {
+  if (UpdateTextGuessAutocompleteTimeout) return;
+  UpdateTextGuessAutocompleteTimeout = setTimeout(() => {
+    console.log(document.getElementById("animeTextGuess").value);
+    socket.emit(
+      "autocomplete",
+      document.getElementById("animeTextGuess").value
+    );
+    UpdateTextGuessAutocompleteTimeout = null;
+  }, 300);
+}
+
 let canUpdateAL = true;
 
 export function UpdateAnimeList() {

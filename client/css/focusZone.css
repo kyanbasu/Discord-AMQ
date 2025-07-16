@@ -150,3 +150,31 @@ video {
   overflow-y: scroll;
   background-color: rgba(0, 0, 0, 0.2);
 }
+
+.autocomplete {
+  position: relative;
+  display: inline-block;
+  width: 300px;
+  left: 300px;
+}
+.autocomplete > input {
+  width: 400px;
+}
+.autocomplete-items {
+  position: absolute;
+  overflow-y: scroll;
+  height: 100px;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 1px solid var(--maindark);
+  z-index: 99;
+  background: #222222;
+}
+.autocomplete-items div {
+  padding: 10px;
+  cursor: pointer;
+}
+.autocomplete-items div:hover {
+  background: var(--maincontrast);
+}

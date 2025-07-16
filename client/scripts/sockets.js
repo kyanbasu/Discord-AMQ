@@ -67,6 +67,8 @@ export function updatedClientSettings() {
   }, 5_000);
 }
 
+const autocompleteList = document.getElementById("autocomplete-list");
+
 export function setupSocket() {
   socket.on("audio", async (url, guesses) => {
     try {
@@ -197,6 +199,24 @@ export function setupSocket() {
         break;
       }
     }
+  });
+
+  socket.on("autocompleteResults", (results) => {
+    if (results.length === 0) return;
+    console.log(results);
+
+    autocompleteList.innerHTML = "";
+    results.forEach((result) => {
+      console.log(result)
+      const div = document.createElement("div");
+      div.innerHTML = `<strong>${result.title[clientSettings.themeLang]}</strong>`;
+      div.addEventListener("click", () => {
+        document.getElementById("animeTextGuess").value = result.title[clientSettings.themeLang];
+        console.log(result.id)
+        autocompleteList.innerHTML = "";
+      });
+      autocompleteList.appendChild(div);
+    });
   });
 
   socket.on("cacheURL", (url) => {
