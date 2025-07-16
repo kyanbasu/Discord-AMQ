@@ -52,8 +52,12 @@
     height: 100%;
   }
 
-  .settingsButton {
+  #settingsButton {
     top: -40px;
     right: 10px;
+  }
+
+  .themeTitleLanguage {
+    width: 100%;
   }
 }

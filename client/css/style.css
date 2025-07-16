@@ -8,4 +8,7 @@
 
 @import "./extras.css";
 
+@import "./clientSettings.css";
+
+/* keep at the bottom */
 @import "./mobile.css";

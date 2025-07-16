@@ -44,12 +44,20 @@ let socket = io(socketURL, socketOptions);
 
 let options = {};
 
+let clientThemeLang = "ro"
+
+const acceptableTitleLang = ["ro", "en", "ja"];
+export function ThemeTitleLanguageChange(value) {
+  if (!acceptableTitleLang.includes(value)) return;
+  clientThemeLang = value;
+}
+
 export function setupSocket() {
   socket.on("audio", async (url, guesses) => {
     try {
       console.log(guesses);
       for (let i = 0; i < guesses.length; i++) {
-        document.getElementById(`guess${i}`).innerHTML = guesses[i].ro;
+        document.getElementById(`guess${i}`).innerHTML = guesses[i][clientThemeLang];
         document.getElementById(`guess${i}`).classList.remove("guessButton");
       }
       document.getElementById("guessingZone").hidden = false;
@@ -85,10 +93,10 @@ export function setupSocket() {
   socket.on("guess", (title, themeType, usr) => {
     document.getElementById(
       "themeTitle"
-    ).innerText = `${title.ro} ${themeType}`;
+    ).innerText = `${title[clientThemeLang]} ${themeType}`;
     player.hidden = false;
     document.getElementById("guessingZone").hidden = true;
-    displayMessage(`That was ${title.ro} ${themeType} from ${usr}'s list`);
+    displayMessage(`That was ${title[clientThemeLang]} ${themeType} from ${usr}'s list`);
     setTimeout(() => {
       document.getElementById("Skip").hidden = false;
     }, 3000);

@@ -93,22 +93,3 @@
   opacity: 0;
   transform: translateX(40px);
 }
-
-.settingsButton {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  top: -40px;
-  right: 0px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .settingsButton:hover::after,
-  .settingsButton:hover {
-    width: 40px;
-    border-color: initial;
-  }
-}
