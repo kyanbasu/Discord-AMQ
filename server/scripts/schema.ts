@@ -1,7 +1,15 @@
 import * as mongoose from "mongoose";
-import { TitlePair } from "./types";
+import { ClientSettings, TitlePair } from "./types";
 
 // User
+const ClientSettingsSchema = new mongoose.Schema<ClientSettings>(
+  {
+    volume: { type: Number, required: true },
+    themeLang: { type: String, required: true },
+  },
+  { methods: {}, _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true },
@@ -10,6 +18,7 @@ const userSchema = new mongoose.Schema(
     service: { type: Number, required: false }, // 0 - MyAnimeList, 1 - AniList
     updated: { type: Number, required: true },
     list: { type: [String], required: true },
+    clientSettings: { type: ClientSettingsSchema, required: false },
   },
   {
     methods: {},

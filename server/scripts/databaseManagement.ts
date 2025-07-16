@@ -1,6 +1,7 @@
 import { AnimeSchema, UserSchema } from "./schema";
 import * as mongoose from "mongoose";
 import dotenv from "dotenv";
+import { ClientSettings } from "./types";
 dotenv.config({ path: "../.env" });
 
 export const initdb = async () => {
@@ -10,6 +11,22 @@ export const initdb = async () => {
   if (!process.env.MONGODB_PATH) return;
 
   await mongoose.connect(process.env.MONGODB_PATH);
+};
+
+export const updateUserClientSettings = async (
+  userId: string,
+  clientSettings: ClientSettings
+) => {
+  try {
+    await UserSchema.findOneAndUpdate(
+      { _id: userId }, // Find by ID
+      { $set: { clientSettings } }, // Update fields
+      { new: true, runValidators: true } // Create if not exists, return updated document
+    );
+  } catch (error) {
+    console.error("Error updating or creating user:", error);
+    throw error;
+  }
 };
 
 export const updateUser = async (

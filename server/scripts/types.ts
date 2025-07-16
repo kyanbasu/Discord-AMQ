@@ -1,7 +1,16 @@
 import { Socket } from "socket.io";
 
 // Interfaces/Types
-export { User, DiscordUser, RoomOptions, Room, QueueEntry, TitlePair, Guess };
+export {
+  User,
+  DiscordUser,
+  RoomOptions,
+  Room,
+  QueueEntry,
+  TitlePair,
+  ClientSettings,
+  Guess,
+};
 
 // Enums
 export { GameState, ThemeType };
@@ -52,6 +61,11 @@ interface TitlePair {
   en: string; // English
   ro: string; // Romaji
   ja: string; // Japanese (or native)
+}
+
+interface ClientSettings {
+  volume: number;
+  themeLang: string;
 }
 
 interface Guess extends TitlePair {

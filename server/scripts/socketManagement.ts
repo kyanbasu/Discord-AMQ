@@ -12,8 +12,9 @@ import {
   ThemeType,
   DiscordUser,
   QueueEntry,
+  ClientSettings,
 } from "./types.ts";
-import { updateUser } from "./databaseManagement.ts";
+import { updateUser, updateUserClientSettings } from "./databaseManagement.ts";
 import { UserSchema } from "./schema.ts";
 
 export const connection = (socket: Socket) => {
@@ -56,6 +57,8 @@ export const connection = (socket: Socket) => {
         userDoc.service,
         userDoc.list?.length || 0
       );
+      if (userDoc.clientSettings)
+        socket.emit("clientSettingsReload", userDoc.clientSettings);
     }
 
     let user: User = {
@@ -306,9 +309,16 @@ export const connection = (socket: Socket) => {
     }
   });
 
-  socket.on("discord-auth", (user: any) => {
+  socket.on("discord-auth", (user: DiscordUser) => {
     console.log(user);
   });
+
+  socket.on(
+    "updateClientSettings",
+    (user: DiscordUser, clientSettings: ClientSettings) => {
+      updateUserClientSettings(user.id, clientSettings);
+    }
+  );
 
   socket.on("disconnect", () => {
     const user = Object.values(users).find(

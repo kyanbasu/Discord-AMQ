@@ -46,7 +46,7 @@ import {
   incrementLoading,
 } from "./helpers";
 
-import { setupSocket, socket, options } from "./sockets";
+import { setupSocket, socket, options, updatedClientSettings } from "./sockets";
 
 import "../css/style.css";
 
@@ -181,6 +181,7 @@ document.getElementById("volume-slider").style.background =
 document.getElementById("volume-slider").oninput = () => {
   let value = document.getElementById("volume-slider").value;
   videoPlayer.volume = value;
+  updatedClientSettings();
   document.getElementById("volume-slider").style.background =
     "linear-gradient(0deg, rgb(80,0,20), rgb(80,0,20) " +
     Math.floor(value * 100 - 1) +

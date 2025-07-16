@@ -44,12 +44,27 @@ let socket = io(socketURL, socketOptions);
 
 let options = {};
 
-let clientThemeLang = "ro"
+const clientSettings = {
+  themeLang: "ro",
+  volume: 0,
+};
 
 const acceptableTitleLang = ["ro", "en", "ja"];
 export function ThemeTitleLanguageChange(value) {
   if (!acceptableTitleLang.includes(value)) return;
-  clientThemeLang = value;
+  clientSettings.themeLang = value;
+  updatedClientSettings();
+}
+
+let updateClientSettingsTimeout = null;
+export function updatedClientSettings() {
+  clientSettings.volume = Number(
+    document.getElementById("volume-slider").value
+  );
+  if (updateClientSettingsTimeout) clearTimeout(updateClientSettingsTimeout);
+  updateClientSettingsTimeout = setTimeout(() => {
+    socket.emit("updateClientSettings", auth.user, clientSettings);
+  }, 5_000);
 }
 
 export function setupSocket() {
@@ -57,7 +72,8 @@ export function setupSocket() {
     try {
       console.log(guesses);
       for (let i = 0; i < guesses.length; i++) {
-        document.getElementById(`guess${i}`).innerHTML = guesses[i][clientThemeLang];
+        document.getElementById(`guess${i}`).innerHTML =
+          guesses[i][clientSettings.themeLang];
         document.getElementById(`guess${i}`).classList.remove("guessButton");
       }
       document.getElementById("guessingZone").hidden = false;
@@ -91,12 +107,16 @@ export function setupSocket() {
   });
 
   socket.on("guess", (title, themeType, usr) => {
-    document.getElementById(
-      "themeTitle"
-    ).innerText = `${title[clientThemeLang]} ${themeType}`;
+    document.getElementById("themeTitle").innerText = `${
+      title[clientSettings.themeLang]
+    } ${themeType}`;
     player.hidden = false;
     document.getElementById("guessingZone").hidden = true;
-    displayMessage(`That was ${title[clientThemeLang]} ${themeType} from ${usr}'s list`);
+    displayMessage(
+      `That was ${
+        title[clientSettings.themeLang]
+      } ${themeType} from ${usr}'s list`
+    );
     setTimeout(() => {
       document.getElementById("Skip").hidden = false;
     }, 3000);
@@ -162,6 +182,21 @@ export function setupSocket() {
       updated
     ).toLocaleString();
     setService(service, true, ` (${count} entries)`);
+  });
+
+  socket.on("clientSettingsReload", (_clientSettings) => {
+    document.getElementById("volume-slider").value = _clientSettings.volume;
+    document.getElementById("volume-slider").dispatchEvent(new Event("input"));
+    const radios = document.getElementsByName("themeTitleLanguage");
+    for (let radio of radios) {
+      if (radio.value === _clientSettings.themeLang) {
+        radio.checked = true;
+        // Optional: trigger change event if needed
+        const changeEvent = new Event("change", { bubbles: true });
+        radio.dispatchEvent(changeEvent);
+        break;
+      }
+    }
   });
 
   socket.on("cacheURL", (url) => {
