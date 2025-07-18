@@ -86,8 +86,8 @@ export function setupSocket() {
       await discordSdk.commands.setActivity(dscstatus);
 
       player.hidden = true;
-      videoPlayer.src = `media/${url}/${selectedPlayerType}`;
-      videoPlayer.triggeredSkip = false;
+      //videoPlayer.src = `media/${url}/${selectedPlayerType}`;
+      //videoPlayer.triggeredSkip = false;
 
       document.getElementById(
         "videoPlayerImgBg"
@@ -99,13 +99,50 @@ export function setupSocket() {
       document.getElementById("videoPlayerImg").src = _src;
 
       document.getElementById("Skip").hidden = true;
-      videoPlayer.play();
+      //videoPlayer.play();
     } catch (e) {
       Sentry.withScope((scope) => {
         scope.setTag("socket.on", "audio");
         Sentry.captureException(e);
       });
     }
+  });
+
+  let mediaSource, sourceBuffer;
+    let queue = [];
+
+  socket.on('webm-chunk', ({ chunk, index, total, size }) => {
+      const arrayBuffer = chunk; // ArrayBuffer or Uint8Array
+
+      if (!mediaSource) {
+        mediaSource = new MediaSource();
+        videoPlayer.src = URL.createObjectURL(mediaSource);
+        mediaSource.addEventListener('sourceopen', () => {
+          sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vorbis,vp8"');
+          sourceBuffer.mode = 'sequence';
+          sourceBuffer.addEventListener('updateend', () => {
+            if (queue.length > 0 && !sourceBuffer.updating) {
+              sourceBuffer.appendBuffer(queue.shift());
+            }
+            else if (index === total - 1) {
+              mediaSource.endOfStream();
+            }
+          });
+
+          // Append the first chunk
+          sourceBuffer.appendBuffer(arrayBuffer);
+        });
+      } else {
+        if (sourceBuffer.updating || queue.length > 0) {
+          queue.push(arrayBuffer);
+        } else {
+          sourceBuffer.appendBuffer(arrayBuffer);
+        }
+      }
+    });
+
+  socket.on("webm-complete", ({ totalChunks, size }) => {
+    console.log("Stream complete:", totalChunks, "chunks,", size, "bytes");
   });
 
   socket.on("guess", (title, themeType, usr) => {
@@ -207,12 +244,15 @@ export function setupSocket() {
 
     autocompleteList.innerHTML = "";
     results.forEach((result) => {
-      console.log(result)
+      console.log(result);
       const div = document.createElement("div");
-      div.innerHTML = `<strong>${result.title[clientSettings.themeLang]}</strong>`;
+      div.innerHTML = `<strong>${
+        result.title[clientSettings.themeLang]
+      }</strong>`;
       div.addEventListener("click", () => {
-        document.getElementById("animeTextGuess").value = result.title[clientSettings.themeLang];
-        console.log(result.id)
+        document.getElementById("animeTextGuess").value =
+          result.title[clientSettings.themeLang];
+        console.log(result.id);
         autocompleteList.innerHTML = "";
       });
       autocompleteList.appendChild(div);

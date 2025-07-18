@@ -1,6 +1,11 @@
 import { Socket } from "socket.io";
 import { rooms, io, users, discordUsers } from "../server.ts";
-import { shuffleArray, getAudioUrl, randomFromArray } from "./helpers.ts";
+import {
+  shuffleArray,
+  getAudioUrl,
+  randomFromArray,
+  fileManager,
+} from "./helpers.ts";
 import { systemMessage, userAnnouncement } from "./messaging.ts";
 import { GameState, Guess, QueueEntry } from "./types.ts";
 import { AnimeSchema } from "./schema.ts";
@@ -70,7 +75,7 @@ export const playNextQueue = async (roomID: string) => {
       rooms[roomID].queue[0].themeId,
       rooms[roomID].options.themeType
     ).catch((error) => console.error(error));
-    if(!rooms[roomID]) return;
+    if (!rooms[roomID]) return;
     if (!audio) {
       io.to(roomID).emit(
         "message",
@@ -115,12 +120,19 @@ export const playNextQueue = async (roomID: string) => {
 
     const guesses: Guess[] = (
       await AnimeSchema.find({ _id: { $in: ids } })
-    ).map((ani) => ({ en: ani.title.en, ro: ani.title.ro, ja: ani.title.ja, themeId: ani._id }));
+    ).map((ani) => ({
+      en: ani.title.en,
+      ro: ani.title.ro,
+      ja: ani.title.ja,
+      themeId: ani._id,
+    }));
 
     shuffleArray(guesses);
 
-    const correctGuessIndex = guesses.findIndex((e) => e.themeId === audio.themeId);
-    const correctGuess = guesses[correctGuessIndex]
+    const correctGuessIndex = guesses.findIndex(
+      (e) => e.themeId === audio.themeId
+    );
+    const correctGuess = guesses[correctGuessIndex];
 
     Object.values(rooms[roomID].users).forEach((u) => {
       users[u].guess = undefined;
@@ -129,6 +141,29 @@ export const playNextQueue = async (roomID: string) => {
     console.log(guesses);
     io.to(roomID).emit("audio", audio.link, guesses);
     systemMessage(roomID, "Playing...");
+
+    const promise = fileManager.getPromise(audio.link);
+    if (!promise) return console.error(`promise not found ${audio.link}`);
+
+    const [webm, ogg, jpg] = await promise;
+    const buffer = webm;
+    const totalSize = buffer.byteLength;
+    const chunkSize = 64 * 1024; // 64 KiB
+    const totalChunks = Math.ceil(totalSize / chunkSize);
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, totalSize);
+      const chunk = buffer.subarray(start, end);
+      io.to(roomID).emit("webm-chunk", {
+        chunk,
+        index: i,
+        total: totalChunks,
+        size: totalSize,
+      });
+      // optional delay or apply backpressure?
+    }
+    io.to(roomID).emit("webm-complete", { totalChunks, size: totalSize });
 
     const pickedTheme = rooms[roomID].queue[0];
     rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
