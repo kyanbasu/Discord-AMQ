@@ -13,8 +13,6 @@ import express, { Request, Response } from "express";
 import axios from "axios";
 import bodyParser from "body-parser";
 import fetch from "node-fetch";
-import fs from "node:fs";
-import path from "node:path";
 import http from "node:http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { connection } from "./scripts/socketManagement.ts";
@@ -35,22 +33,6 @@ const io: SocketIOServer = new SocketIOServer(server, {
 let rooms: Record<string, Room> = {};
 let users: Record<string, User> = {};
 let discordUsers: Record<string, DiscordUser> = {};
-
-fs.mkdir("../client/res/", { recursive: true }, (err) => {
-  if (err && err.code !== "EEXIST") throw err;
-});
-
-// Clean cache
-fs.readdir("../client/res/", (err, files) => {
-  if (err) throw err;
-
-  for (const file of files) {
-    console.log("removing cached " + path.join("../client/res/", file));
-    fs.unlink(path.join("../client/res/", file), (err) => {
-      if (err) throw err;
-    });
-  }
-});
 
 // Allow express to parse JSON bodies
 app.use(express.json());
