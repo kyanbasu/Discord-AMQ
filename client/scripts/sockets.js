@@ -19,6 +19,8 @@ import {
   auth,
 } from "./main";
 
+import { autocompleteList } from "./optionsReload";
+
 import * as Sentry from "@sentry/browser";
 
 import { optionsReload } from "./optionsReload";
@@ -67,19 +69,22 @@ export function updatedClientSettings() {
   }, 5_000);
 }
 
-const autocompleteList = document.getElementById("autocomplete-list");
-
 export function setupSocket() {
-  socket.on("audio", async (url, guesses) => {
+  socket.on("audio", async (url, guesses = null) => {
     try {
-      console.log(guesses);
-      for (let i = 0; i < guesses.length; i++) {
-        document.getElementById(`guess${i}`).innerHTML =
-          guesses[i][clientSettings.themeLang];
-        document.getElementById(`guess${i}`).classList.remove("guessButton");
+      if (guesses) {
+        console.log(guesses);
+        for (let i = 0; i < guesses.length; i++) {
+          document.getElementById(`guess${i}`).innerHTML =
+            guesses[i][clientSettings.themeLang];
+          document.getElementById(`guess${i}`).classList.remove("guessButton");
+        }
+      } else {
+        const animeTextGuess = document.getElementById("animeTextGuess");
+        if (animeTextGuess) animeTextGuess.value = "";
       }
       document.getElementById("guessingZone").hidden = false;
-      document.getElementById("options").hidden = true;
+      //document.getElementById("options").hidden = true;
       songCounter += 1;
 
       dscstatus.activity.details = `In game ${songCounter} of ${options.queueSize}`;
@@ -108,7 +113,7 @@ export function setupSocket() {
     }
   });
 
-  socket.on("guess", (title, themeType, usr) => {
+  socket.on("correctGuess", (title, themeType, usr) => {
     document.getElementById("themeTitle").innerText = `${
       title[clientSettings.themeLang]
     } ${themeType}`;
@@ -207,12 +212,16 @@ export function setupSocket() {
 
     autocompleteList.innerHTML = "";
     results.forEach((result) => {
-      console.log(result)
+      console.log(result);
       const div = document.createElement("div");
-      div.innerHTML = `<strong>${result.title[clientSettings.themeLang]}</strong>`;
+      div.innerHTML = `<strong>${
+        result.title[clientSettings.themeLang]
+      }</strong>`;
       div.addEventListener("click", () => {
-        document.getElementById("animeTextGuess").value = result.title[clientSettings.themeLang];
-        console.log(result.id)
+        document.getElementById("animeTextGuess").value =
+          result.title[clientSettings.themeLang];
+        console.log(result.id);
+        socket.emit("guess", auth.user, result.id);
         autocompleteList.innerHTML = "";
       });
       autocompleteList.appendChild(div);

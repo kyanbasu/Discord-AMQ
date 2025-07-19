@@ -154,18 +154,18 @@ video {
 .autocomplete {
   position: relative;
   display: inline-block;
-  width: 300px;
-  left: 300px;
+  width: 40vw;
 }
 .autocomplete > input {
-  width: 400px;
+  width: 40vw;
+  height: 3em;
 }
 .autocomplete-items {
   position: absolute;
   overflow-y: scroll;
-  height: 100px;
+  height: 40vh;
   top: 100%;
-  left: 0;
+  left: 10px;
   right: 0;
   border: 1px solid var(--maindark);
   z-index: 99;

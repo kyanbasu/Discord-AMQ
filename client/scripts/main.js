@@ -256,10 +256,6 @@ export function Skip() {
 
 let UpdateTextGuessAutocompleteTimeout = null;
 
-document
-  .getElementById("animeTextGuess")
-  .addEventListener("input", UpdateTextGuessAutocomplete);
-
 export function UpdateTextGuessAutocomplete() {
   if (UpdateTextGuessAutocompleteTimeout) return;
   UpdateTextGuessAutocompleteTimeout = setTimeout(() => {

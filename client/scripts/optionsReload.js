@@ -1,31 +1,48 @@
-import { auth, discordSdk } from "./main.js";
+import { auth, discordSdk, UpdateTextGuessAutocomplete } from "./main.js";
 import { socket, options } from "./sockets.js";
-import { displayAnnoucement } from "./helpers.js";
+
+let autocompleteList;
 
 /*
 Options are:
  .guessesCount
-   amount of guess buttons, min 1, only applied when guessType is 0
- .guessType
-   0 - picker, gives some answers to pick from
-   1 - input, need to write entire name (with help of autocomplete)
+   amount of guess buttons, min 1, only applied when guessingMode is SELECTING
+ .guessingMode
+   SELECTING - gives some answers to pick from
+   TYPING - need to write entire name (with help of autocomplete)
 */
 export function optionsReload() {
   document.getElementById("guessingZone").innerHTML = ""; // clears guessing zone
 
-  //TODO: guessTypes idk
-  options.guessType = 0;
-
   //currently only works with picker
-  switch (options.guessType) {
-    case 0: //picker
+  switch (options.guessingMode) {
+    case "SELECTING":
       for (let i = 0; i < options.guessesCount; i++) {
         const el = document.createElement("button");
         el.id = `guess${i}`;
-        el.addEventListener("click", Guess);
+        el.addEventListener("click", GuessSelection);
         el.index = i;
         document.getElementById("guessingZone").append(el);
       }
+      break;
+
+    case "TYPING":
+      document.getElementById("guessingZone").innerHTML = `
+        <div class="autocomplete">
+          <input
+            type="text"
+            id="animeTextGuess"
+            name="animeTextGuess"
+            placeholder="enter guess..."
+          />
+          <div id="autocomplete-list" class="autocomplete-items"></div>
+        </div>`;
+
+      document
+        .getElementById("animeTextGuess")
+        .addEventListener("input", UpdateTextGuessAutocomplete);
+
+      autocompleteList = document.getElementById("autocomplete-list");
       break;
 
     default:
@@ -83,7 +100,7 @@ export function updateOptions(options) {
   }, 1000);
 }
 
-function Guess(evt) {
+function GuessSelection(evt) {
   socket.emit("guess", auth.user, evt.currentTarget.index + 1);
   for (let i = 0; i < options.guessesCount; i++) {
     document.getElementById(`guess${i}`).classList.remove("guessButton");
@@ -92,3 +109,5 @@ function Guess(evt) {
     .getElementById(`guess${evt.currentTarget.index}`)
     .classList.add("guessButton");
 }
+
+export { autocompleteList };
