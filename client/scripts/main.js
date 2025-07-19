@@ -263,12 +263,13 @@ document
 export function UpdateTextGuessAutocomplete() {
   if (UpdateTextGuessAutocompleteTimeout) return;
   UpdateTextGuessAutocompleteTimeout = setTimeout(() => {
-    console.log(document.getElementById("animeTextGuess").value);
+    UpdateTextGuessAutocompleteTimeout = null;
+    if (document.getElementById("animeTextGuess").value.length < 2)
+      return (document.getElementById("autocomplete-list").innerHTML = "");
     socket.emit(
       "autocomplete",
       document.getElementById("animeTextGuess").value
     );
-    UpdateTextGuessAutocompleteTimeout = null;
   }, 300);
 }
 

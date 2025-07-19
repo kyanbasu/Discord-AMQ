@@ -328,7 +328,7 @@ export const connection = (socket: Socket) => {
   );
 
   socket.on("autocomplete", async (q) => {
-    if (q.length < 3) return;
+    if (q.length < 2) return;
 
     const regex = new RegExp(`^${q}`, "i");
     const docs = await AnimeSchema.find({
