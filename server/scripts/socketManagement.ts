@@ -94,7 +94,7 @@ export const connection = (socket: Socket) => {
       socket.emit("message", "Joining to game...", "playing");
     }
 
-    socket.emit("optionsReload", rooms[roomID].options);
+    socket.emit("optionsReload", rooms[roomID].options, rooms[roomID].hostID);
     socket.emit("loadingUpdate");
   });
 
@@ -146,7 +146,7 @@ export const connection = (socket: Socket) => {
         socket.emit("message", "Joining to game...", "playing");
       }
 
-      socket.emit("optionsReload", rooms[roomID].options);
+      socket.emit("optionsReload", rooms[roomID].options, rooms[roomID].hostID);
     }
   );
 
@@ -212,7 +212,7 @@ export const connection = (socket: Socket) => {
       ) {
         //console.log(options);
         rooms[roomID].options = options;
-        io.to(roomID).emit("optionsReload", rooms[roomID].options);
+        io.to(roomID).emit("optionsReload", rooms[roomID].options, rooms[roomID].hostID);
         messaging.systemAnnouncement(roomID, "Options updated.");
       }
     }

@@ -2,7 +2,7 @@ import crownSrc from "/static/crown.svg";
 
 import { auth } from "./main";
 import { options } from "./sockets";
-import { updateOptions, setThemeType } from "./optionsReload";
+import { updateOptions, setThemeType, setGuessMode } from "./optionsReload";
 
 const isMobile = () => {
   return navigator.userAgentData && navigator.userAgentData.mobile;
@@ -199,7 +199,9 @@ export function gameSettingsRefresh(isHost) {
   if (isHost) {
     queueSize.removeAttribute("disabled");
     guessTime.removeAttribute("disabled");
-    guessesCount.removeAttribute("disabled");
+    if (options.guessingMode === "SELECTING")
+      guessesCount.removeAttribute("disabled");
+    else guessesCount.setAttribute("disabled", "true");
   } else {
     queueSize.setAttribute("disabled", "true");
     guessTime.setAttribute("disabled", "true");
@@ -210,22 +212,31 @@ export function gameSettingsRefresh(isHost) {
 let didOptionsSetup = false;
 export function setupOptionsGUI() {
   if (didOptionsSetup) return;
-  // Theme selector
-  document.getElementById("themeType").innerHTML = "";
+  // Guessing modes
+  let btnSelecting = document.createElement("button");
+  btnSelecting.innerHTML = "Selecting";
+  btnSelecting.addEventListener("click", () => setGuessMode("SELECTING"));
+  document.getElementById("guessMode").append(btnSelecting);
 
+  let btnTyping = document.createElement("button");
+  btnTyping.innerHTML = "Typing";
+  btnTyping.addEventListener("click", () => setGuessMode("TYPING"));
+  document.getElementById("guessMode").append(btnTyping);
+
+  // Theme types
   let btnOP = document.createElement("button");
   btnOP.innerHTML = "OP";
-  btnOP.addEventListener("click", () => setThemeType(0));
+  btnOP.addEventListener("click", () => setThemeType("OP"));
   document.getElementById("themeType").append(btnOP);
 
   let btnED = document.createElement("button");
   btnED.innerHTML = "ED";
-  btnED.addEventListener("click", () => setThemeType(1));
+  btnED.addEventListener("click", () => setThemeType("ED"));
   document.getElementById("themeType").append(btnED);
 
   let btnALL = document.createElement("button");
   btnALL.innerHTML = "ALL";
-  btnALL.addEventListener("click", () => setThemeType(2));
+  btnALL.addEventListener("click", () => setThemeType("ALL"));
   document.getElementById("themeType").append(btnALL);
 
   // Anime list service selector
@@ -242,31 +253,34 @@ export function setupOptionsGUI() {
   // Guess options
   let queueSizeInput = document.getElementById("queueSize");
   queueSizeInput.addEventListener("change", () => {
-    queueSizeInput.value = Math.min(
+    const val = Math.min(
       queueSizeInput.max,
       Math.max(queueSizeInput.min, queueSizeInput.value)
     );
-    options.queueSize = queueSizeInput.value;
+    queueSizeInput.value = val;
+    options.queueSize = val;
     updateOptions(options);
   });
 
   let guessTimeInput = document.getElementById("guessTime");
   guessTimeInput.addEventListener("change", () => {
-    guessTimeInput.value = Math.min(
+    const val = Math.min(
       guessTimeInput.max,
       Math.max(guessTimeInput.min, guessTimeInput.value)
     );
-    options.guessTime = guessTimeInput.value;
+    guessTimeInput.value = val;
+    options.guessTime = val;
     updateOptions(options);
   });
 
   let guessesCount = document.getElementById("guessesCount");
   guessesCount.addEventListener("change", () => {
-    guessesCount.value = Math.min(
+    const val = Math.min(
       guessesCount.max,
       Math.max(guessesCount.min, guessesCount.value)
     );
-    options.guessesCount = guessesCount.value;
+    guessesCount.value = val;
+    options.guessesCount = val;
     updateOptions(options);
   });
 

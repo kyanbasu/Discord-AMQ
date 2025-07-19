@@ -1,3 +1,4 @@
+import { gameSettingsRefresh } from "./helpers.js";
 import { auth, discordSdk, UpdateTextGuessAutocomplete } from "./main.js";
 import { socket, options } from "./sockets.js";
 
@@ -11,7 +12,7 @@ Options are:
    SELECTING - gives some answers to pick from
    TYPING - need to write entire name (with help of autocomplete)
 */
-export function optionsReload() {
+export function optionsReload(hostID) {
   document.getElementById("guessingZone").innerHTML = ""; // clears guessing zone
 
   //currently only works with picker
@@ -49,16 +50,15 @@ export function optionsReload() {
       break;
   }
 
-  document.getElementById("themeTypebtn").innerHTML = (() => {
-    switch (options.themeType) {
-      case 0:
-        return "OP";
-      case 1:
-        return "ED";
-      case 2:
-        return "ALL";
+  document.getElementById("themeTypebtn").innerHTML = options.themeType;
+  document.getElementById("guessModebtn").innerHTML = (() => {
+    switch (options.guessingMode) {
+      case "SELECTING":
+        return "Selecting";
+      case "TYPING":
+        return "Typing";
       default:
-        return "OP";
+        return "unknown";
     }
   })();
   document.getElementById("queueSize").value = options.queueSize;
@@ -79,6 +79,14 @@ export function optionsReload() {
       }
     }
   );
+
+  if (auth.user.id === hostID) gameSettingsRefresh(true);
+  else gameSettingsRefresh(false);
+}
+
+export function setGuessMode(mode) {
+  options.guessingMode = mode;
+  updateOptions(options);
 }
 
 export function setThemeType(type) {

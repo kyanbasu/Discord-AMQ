@@ -139,10 +139,10 @@ export function setupSocket() {
     incrementLoading("Done.");
   });
 
-  socket.on("optionsReload", (_options) => {
+  socket.on("optionsReload", (_options, hostID) => {
     options = _options;
     setupOptionsGUI();
-    optionsReload();
+    optionsReload(hostID);
   });
 
   socket.on("updatePlayerList", (playerList, host) => {

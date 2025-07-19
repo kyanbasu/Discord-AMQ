@@ -78,7 +78,8 @@ export const playNextQueue = async (roomID: string) => {
       );
       rooms[roomID].playerPlaying = false;
       rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
-      console.log(`history ${rooms[roomID].queueHistory.toString()}`);
+      console.log("history");
+      console.dir(rooms[roomID].queueHistory, { depth: null });
 
       let success = await getOtherTheme(roomID);
       if (!success) return;
@@ -206,7 +207,7 @@ export const playNextQueue = async (roomID: string) => {
           const pickedThemeUsername = pickedTheme.userId
             ? users[pickedTheme.userId].name
             : undefined;
-          console.log(`correct guess ${correctGuess.title}`)
+          console.log(`correct guess ${correctGuess.title}`);
           io.to(roomID).emit(
             "correctGuess",
             correctGuess.title,
