@@ -10,11 +10,10 @@ export {
   TitlePair,
   ClientSettings,
   Guess,
-  GuessingMode,
 };
 
-// Enums
-export { GameState, ThemeType };
+// "Enums"
+export { GameState, ThemeType, GuessingMode };
 
 // Types
 interface DiscordUser {
@@ -33,16 +32,20 @@ interface User {
   score: number;
 }
 
-enum ThemeType {
-  OP,
-  ED,
-  ALL,
-}
+const ThemeType = {
+  OP: "OP",
+  ED: "ED",
+  ALL: "ALL",
+} as const;
 
-enum GuessingMode {
-  SELECTING,
-  TYPING,
-}
+type ThemeType = keyof typeof ThemeType;
+
+const GuessingMode = {
+  SELECTING: "SELECTING",
+  TYPING: "TYPING",
+} as const;
+
+type GuessingMode = keyof typeof GuessingMode;
 
 interface RoomOptions {
   themeType: ThemeType;
@@ -54,10 +57,12 @@ interface RoomOptions {
   novideo: boolean; // if video is disabled on the server
 }
 
-enum GameState {
-  LOBBY,
-  PLAYING,
-}
+const GameState = {
+  LOBBY: "LOBBY",
+  PLAYING: "PLAYING",
+} as const;
+
+type GameState = keyof typeof GameState;
 
 interface QueueEntry {
   themeId: string;
