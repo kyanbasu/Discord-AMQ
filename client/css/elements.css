@@ -143,6 +143,8 @@ input {
   border-radius: 10px;
   margin: 2px 2px 2px 2px;
   transform: translateY(-4px);
+  background-color: #111;
+  color: white;
 }
 
 /* The switch - the box around the slider */

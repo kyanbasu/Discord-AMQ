@@ -394,7 +394,7 @@ function createRoom(user: User) {
     chathistory: "",
     options: {
       themeType: ThemeType.OP,
-      guessTime: 10,
+      guessTime: 20,
       queueSize: 10,
       guessesCount: 4,
       guessingMode: GuessingMode.TYPING,

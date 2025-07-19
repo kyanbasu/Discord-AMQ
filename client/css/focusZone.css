@@ -163,7 +163,7 @@ video {
 .autocomplete-items {
   position: absolute;
   overflow-y: scroll;
-  height: 40vh;
+  height: 60vh;
   top: 100%;
   left: 10px;
   right: 0;
