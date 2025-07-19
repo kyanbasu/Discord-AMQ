@@ -1,7 +1,6 @@
 import { join, basename, extname } from "path";
 
 class FileManager {
-  cacheDir: string;
   undefinedImage: string;
   ttl: number;
   map: Map<
@@ -10,11 +9,9 @@ class FileManager {
   >;
 
   constructor(
-    cacheDir: string = "../client/res",
     undefinedImage: string = "../client/undefined.jpg",
     ttl: number = 120000 // 2 minutes by default
   ) {
-    this.cacheDir = cacheDir;
     this.undefinedImage = undefinedImage;
     this.ttl = ttl;
     this.map = new Map(); // baseName -> { promise, timer }
@@ -47,7 +44,7 @@ class FileManager {
     }
 
     // Otherwise download the files
-    const p = this.downloadMediaBatch(urls, outputBaseName);
+    const p = this.downloadMediaBatch(urls);
 
     // Schedule its eviction
     const timer = this._makeExpiryTimer(outputBaseName);
@@ -66,16 +63,10 @@ class FileManager {
     return setTimeout(async () => {
       console.log(`Deleting ${baseName} files`);
       this.map.delete(baseName);
-      ["webm", "ogg", "jpg"].forEach(async (ext) => {
-        const res = Bun.file(join(this.cacheDir, `${baseName}.${ext}`));
-        if (await res.exists()) {
-          await res.delete();
-        }
-      });
     }, this.ttl);
   }
 
-  async downloadFile(url: string, outputName: string): Promise<Buffer> {
+  async downloadFile(url: string): Promise<Buffer> {
     if (Bun.argv.includes("--no-video") && url.endsWith(".webm")) {
       const res = Bun.file(this.undefinedImage);
       return await res.arrayBuffer().then((buf) => Buffer.from(buf));
@@ -109,10 +100,9 @@ class FileManager {
 
   async downloadMediaBatch(
     urls: string[],
-    outputBaseName: string
   ): Promise<Buffer[]> {
     // Kick off all three downloads concurrently, using the same base name
-    const downloads = urls.map((url) => this.downloadFile(url, outputBaseName));
+    const downloads = urls.map((url) => this.downloadFile(url));
 
     console.log("Downloading files:");
     console.log(urls);
