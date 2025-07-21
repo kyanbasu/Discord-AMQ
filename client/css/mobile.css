@@ -16,8 +16,16 @@
   }
 
   .focusZone {
-    height: 40vh;
+    height: 44vh;
     width: 90vw;
+  }
+
+  .mediaContainerOut {
+    height: 70%;
+  }
+
+  .themeTitle {
+    bottom: 16%;
   }
 
   .secondZone {
@@ -35,7 +43,7 @@
   }
 
   #Skip {
-    top: 0;
+    top: 20px;
   }
 
   .clientSettings {
