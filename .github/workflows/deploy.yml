@@ -14,10 +14,4 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          script: |
-            #!/usr/bin/env bash
-            set -e
-            cd ${{ secrets.PATH }}
-            git pull origin master
-            bun install
-            pm2 reload amq-server
+          script_path: .github/scripts/deploy.sh
