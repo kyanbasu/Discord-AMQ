@@ -21,8 +21,6 @@ export async function updatePlayerList(playerList, hostID) {
 
   players = playerList;
 
-  console.log(options.playerList);
-
   players.forEach((player) => {
     // Update player list on navbar, with avatars and crown for host
     (() => {
