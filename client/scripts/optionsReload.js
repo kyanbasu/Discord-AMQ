@@ -71,11 +71,17 @@ export function optionsReload(hostID) {
       .dispatchEvent(new Event("change"));
   }
 
-  Object.entries(options.playerListIncluded).forEach(
-    ([playerId, isIncluded]) => {
+  Object.entries(options.playerList).forEach(
+    ([playerId, { included, entries }]) => {
       const checkbox = document.getElementById(`checkbox-${playerId}`);
       if (checkbox) {
-        checkbox.checked = isIncluded;
+        checkbox.checked = included;
+      }
+      const entriesLabel = document.getElementById(
+        `player-entries-${playerId}`
+      );
+      if (entriesLabel) {
+        entriesLabel.textContent = `(${entries} entries)`;
       }
     }
   );

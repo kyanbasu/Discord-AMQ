@@ -47,13 +47,18 @@ const GuessingMode = {
 
 type GuessingMode = keyof typeof GuessingMode;
 
+interface playerListEntry {
+  included: boolean;
+  entries: number;
+}
+
 interface RoomOptions {
   themeType: ThemeType;
   guessTime: number;
   queueSize: number;
   guessesCount: number;
   guessingMode: GuessingMode;
-  playerListIncluded: Record<string, boolean>;
+  playerList: Record<string, playerListEntry>;
   novideo: boolean; // if video is disabled on the server
 }
 

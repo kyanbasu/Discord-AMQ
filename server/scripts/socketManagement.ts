@@ -82,7 +82,10 @@ export const connection = (socket: Socket) => {
     } else {
       if (!rooms[roomID].users.includes(user.id)) {
         rooms[roomID].users.push(user.id);
-        rooms[roomID].options.playerListIncluded[user.id] = true;
+        rooms[roomID].options.playerList[user.id] = {
+          included: true,
+          entries: user.list?.length || 0,
+        };
       }
 
       socket.emit("message", rooms[roomID].chathistory);
@@ -169,6 +172,16 @@ export const connection = (socket: Socket) => {
           users[discordUser.id].list = list.map((e) => e._id);
           socket.emit("data-list", username, Date.now(), service, list.length); // sync client with server
 
+          // Update entries label in game options
+          rooms[roomID].options.playerList[discordUser.id].entries =
+            list.length;
+
+          io.to(roomID).emit(
+            "optionsReload",
+            rooms[roomID].options,
+            rooms[roomID].hostID
+          );
+
           // Update user in database, including not exisitng animes and user-anime relations
           updateUser(
             discordUser.id,
@@ -212,7 +225,11 @@ export const connection = (socket: Socket) => {
       ) {
         //console.log(options);
         rooms[roomID].options = options;
-        io.to(roomID).emit("optionsReload", rooms[roomID].options, rooms[roomID].hostID);
+        io.to(roomID).emit(
+          "optionsReload",
+          rooms[roomID].options,
+          rooms[roomID].hostID
+        );
         messaging.systemAnnouncement(roomID, "Options updated.");
       }
     }
@@ -398,8 +415,8 @@ function createRoom(user: User) {
       queueSize: 10,
       guessesCount: 4,
       guessingMode: GuessingMode.TYPING,
-      playerListIncluded: {
-        [user.id]: true,
+      playerList: {
+        [user.id]: { included: true, entries: user.list?.length || 0 },
       },
       novideo: Bun.argv.includes("--no-video") ? true : false,
     },

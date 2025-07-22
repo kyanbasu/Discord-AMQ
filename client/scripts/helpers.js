@@ -21,6 +21,8 @@ export async function updatePlayerList(playerList, hostID) {
 
   players = playerList;
 
+  console.log(options.playerList);
+
   players.forEach((player) => {
     // Update player list on navbar, with avatars and crown for host
     (() => {
@@ -80,9 +82,20 @@ export async function updatePlayerList(playerList, hostID) {
       switchLabel.appendChild(checkbox);
       switchLabel.appendChild(slider);
 
-      // Append player label and switch to the list
+      // Create entries label
+      const entriesLabel = document.createElement("label");
+      entriesLabel.textContent = `(${
+        options.playerList && options.playerList.hasOwnProperty(player.id)
+          ? options.playerList[player.id].entries
+          : "?"
+      } entries)`;
+      entriesLabel.setAttribute("style", "margin-left: 8px;");
+      entriesLabel.id = `player-entries-${player.id}`;
+
+      // Append all elements to the list line
       playerLabelList.appendChild(playerLabel);
       playerLabelList.appendChild(switchLabel);
+      playerLabelList.appendChild(entriesLabel);
       playerLabelList.appendChild(document.createElement("br"));
 
       if (auth.user.id === hostID) {
