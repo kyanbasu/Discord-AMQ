@@ -111,7 +111,7 @@
   background-size: cover;
   filter: blur(5px);
   animation: float 20s ease-in-out infinite alternate;
-  background-image: url("../../test-res/KamiNoTouS2.jpg");
+  background-image: "";
   z-index: 1;
 }
 
