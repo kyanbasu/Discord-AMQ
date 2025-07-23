@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-cd $SECRET_PATH
-pwd
+cd /home/ubuntu/discord-amq
 
 echo "Pulling git"
 git pull origin main
