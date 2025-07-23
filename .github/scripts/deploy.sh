@@ -7,6 +7,10 @@ echo "Pulling git"
 git pull origin master
 
 echo "Installing dependencies"
+cd ./client
+npm install
+
+cd ../server
 bun install
 
 echo "Restarting service"
