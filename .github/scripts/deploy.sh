@@ -2,6 +2,7 @@
 set -e
 
 cd $SECRET_PATH
+pwd
 
 echo "Pulling git"
 git pull origin main
