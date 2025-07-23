@@ -14,5 +14,5 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          envs: PATH
+          envs: SECRET_PATH
           script_path: .github/scripts/deploy.sh

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-cd $PATH
+cd $SECRET_PATH
 
 echo "Pulling git"
 git pull origin main
