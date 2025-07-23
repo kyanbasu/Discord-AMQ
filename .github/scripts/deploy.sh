@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-cd /home/ubuntu/discord-amq
+cd $PATH
 
 echo "Pulling git"
-git pull origin master
+git pull origin main
 
 echo "Installing dependencies"
 cd ./client
