@@ -1,0 +1,93 @@
+<div class="focusZone">
+  <div id="player">
+    <div class="mediaContainerOut">
+      <div id="videoPlayerImgBg"></div>
+      <div class="mediaContainer">
+        <video id="videoPlayer" src=""></video>
+        <img id="videoPlayerImg" src="" />
+        <button id="Skip">skip</button>
+      </div>
+    </div>
+    <div class="themeTitle">
+      <h3 id="themeTitle">title</h3>
+    </div>
+  </div>
+
+  <div class="gameSettings" id="options">
+    <h3>Client settings</h3>
+    <label>Your username:</label>
+    <input
+      type="text"
+      id="animelistname"
+      name="name"
+      placeholder="username"
+    /><br />
+    <label>Service:</label>
+    <div class="dropdown">
+      <button class="dropbtn" id="animeServicebtn" disabled>MyAnimeList</button>
+      <div class="dropdown-content" id="animeService"></div>
+    </div>
+    <br />
+    <label>Current list from service:</label>
+    <label id="currentService">none</label><br />
+    <label>Last refreshed: </label>
+    <label id="lastAnimeListUpdate">today idk</label>
+    <button id="UpdateAnimeList">Refresh list</button><br />
+    <h3>Host settings</h3>
+    <label>Queue size:</label>
+    <input
+      id="queueSize"
+      placeholder="10"
+      value="10"
+      type="number"
+      min="3"
+      max="100"
+      style="width: 40px"
+      disabled
+    />
+    <label> (3-100)</label>
+    <br />
+    <label>Guess time:</label>
+    <input
+      id="guessTime"
+      placeholder="10"
+      value="10"
+      type="number"
+      min="1"
+      max="60"
+      style="width: 30px"
+      disabled
+    />
+    <label>seconds. (1-60)</label>
+    <br />
+    <label>Guesses count:</label>
+    <input
+      id="guessesCount"
+      placeholder="4"
+      value="4"
+      type="number"
+      min="2"
+      max="10"
+      style="width: 30px"
+      disabled
+    />
+    <label> (2-10)</label>
+    <br />
+    <label>Guessing mode</label>
+    <div class="dropdown">
+      <button class="dropbtn" id="guessModebtn" disabled>Typing</button>
+      <div class="dropdown-content" id="guessMode"></div>
+    </div>
+    <br />
+    <label>Theme type</label>
+    <div class="dropdown">
+      <button class="dropbtn" id="themeTypebtn" disabled>OP</button>
+      <div class="dropdown-content" id="themeType"></div>
+    </div>
+    <br />
+    <h4>Included anime lists:</h4>
+    <div id="includedPlayerLists"></div>
+  </div>
+
+  <div id="guessingZone"></div>
+</div>

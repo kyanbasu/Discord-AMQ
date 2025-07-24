@@ -1,0 +1,42 @@
+<div class="secondZone">
+  <div class="secondZoneIn">
+    <button id="PlayPause">Play</button>
+    <div id="chatContainer">
+      <nav>
+        <ul id="chat"></ul>
+      </nav>
+      <div class="chatInput">
+        <input id="chatin" placeholder="message" />
+        <button id="chatbtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="clientSettings">
+    <div style="display: flex">
+      <img src="/static/music-note.svg" class="clientSettingsIcon" />
+      <img src="/static/movie.svg" class="clientSettingsIcon" />
+    </div>
+    <label class="switch" style="transform: translateX(-4px)">
+      <input type="checkbox" checked="1" id="playerTypeSwitch" />
+      <span class="slider"></span> </label
+    ><br />
+    <input
+      type="range"
+      id="volume-slider"
+      orient="vertical"
+      style="height: 40vh; max-height: 200px"
+      min="0"
+      max="1"
+      step="0.01"
+    />
+    <img
+      src="/static/music-note.svg"
+      class="clientSettingsIcon"
+      style="margin-left: 26%"
+    />
+  </div>
+  <button id="settingsButton">
+    <img src="/static/settings-cogwheel.svg" style="width: 110%" />
+  </button>
+</div>

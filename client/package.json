@@ -10,7 +10,8 @@
     "tunnel": "cloudflared tunnel --url http://localhost:5173"
   },
   "devDependencies": {
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-plugin-handlebars": "^2.0.0"
   },
   "dependencies": {
     "@discord/embedded-app-sdk": "^2.0.0",

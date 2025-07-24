@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { loadEnv } from "vite";
+import handlebars from 'vite-plugin-handlebars';
 
 // https://vitejs.dev/config/
 export default defineConfig((mode) => {
@@ -43,5 +44,13 @@ export default defineConfig((mode) => {
       // },
       allowedHosts: [env.VITE_TUNNEL_HOST, "localhost"],
     },
+  plugins: [
+    handlebars({
+      // point to the folder where your partials live:
+      partialDirectory: 'html',
+      // (optional) turn off full page reload when a partial changes:
+      reloadOnPartialChange: false,
+    }),
+  ],
   };
 });
