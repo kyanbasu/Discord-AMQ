@@ -5,7 +5,8 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
-    "start": "bun run server.ts"
+    "start": "bun run server.ts",
+    "pm2": "pm2 start \"bun start\" --name amq-server -o ./out.log -e ./err.log"
   },
   "keywords": [],
   "author": "",

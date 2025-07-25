@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "pm2": "pm2 start \"vite\" --name amq-client -o ./out.log -e ./err.log",
     "tunnel": "cloudflared tunnel --url http://localhost:5173"
   },
   "devDependencies": {

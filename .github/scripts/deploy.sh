@@ -15,5 +15,6 @@ bun install
 
 echo "Restarting service"
 pm2 reload amq-server
+pm2 reload amq-client
 
 echo "Deploy complete."
