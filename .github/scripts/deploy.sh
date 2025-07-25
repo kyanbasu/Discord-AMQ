@@ -3,18 +3,18 @@ set -e
 
 cd /home/ubuntu/discord-amq
 
-echo "Pulling git"
+echo "📥 Pulling git"
 git pull origin main
 
-echo "Installing dependencies"
+echo "⌛ Installing dependencies"
 cd ./client
 npm install
 
 cd ../server
 bun install
 
-echo "Restarting service"
+echo "🔄 Restarting services"
 pm2 reload amq-server
 pm2 reload amq-client
 
-echo "Deploy complete."
+echo "🎉 Deploy complete."
