@@ -66,7 +66,7 @@ export const playNextQueue = async (roomID: string) => {
 
     if (!rooms[roomID].playerPlaying) rooms[roomID].playerPlaying = true;
     rooms[roomID].canPlayNext = false;
-    let audio = await getAudioUrl(
+    const audio = await getAudioUrl(
       rooms[roomID].queue[0].themeId,
       rooms[roomID].options.themeType
     ).catch((error) => console.error(error));
@@ -81,7 +81,7 @@ export const playNextQueue = async (roomID: string) => {
       console.log("history");
       console.dir(rooms[roomID].queueHistory, { depth: null });
 
-      let success = await getOtherTheme(roomID);
+      const success = await getOtherTheme(roomID);
       if (!success) return;
 
       await playNextQueue(roomID);
@@ -97,20 +97,20 @@ export const playNextQueue = async (roomID: string) => {
     if (!rooms[roomID]) return;
 
     // Guessing part
-    let usersGuessed: string[] = [];
+    const usersGuessed: string[] = [];
     if (rooms[roomID].options.guessingMode === GuessingMode.SELECTING) {
-      let concatLists: (string | undefined)[] = rooms[roomID].users
+      const concatLists: (string | undefined)[] = rooms[roomID].users
         .flatMap((user) => users[user].list)
         .filter((e) => e != audio.link.split("-")[0]); // to avoid duplicates in guesses
 
-      let ids: string[] = [audio.themeId];
+      const ids: string[] = [audio.themeId];
       for (
         let i = 0;
         i <
         Math.min(rooms[roomID].options.guessesCount, concatLists.length) - 1;
         i++
       ) {
-        let rng = Math.floor(Math.random() * concatLists.length);
+        const rng = Math.floor(Math.random() * concatLists.length);
         if (!concatLists[rng]) return;
         ids.push(concatLists[rng]);
         concatLists.splice(rng, 1);
@@ -246,7 +246,7 @@ export const playNextQueue = async (roomID: string) => {
 
 function summary(roomID: string) {
   let o = "";
-  let sortedUsers = Object.values(rooms[roomID].users).sort(
+  const sortedUsers = Object.values(rooms[roomID].users).sort(
     (a, b) => users[b].score - users[a].score
   );
   //.map(user => user) //not needed
@@ -286,12 +286,12 @@ function tryCache(roomID: string, tries: number = 1) {
 }
 
 async function getOtherTheme(roomID: string) {
-  const pickedUser = users[randomFromArray(rooms[roomID].users)];
+  const pickedUser = users[randomFromArray(rooms[roomID].users) as string];
   const tempList = pickedUser.list;
 
   if (!tempList) return false;
 
-  let picker = tempList.filter(
+  const picker = tempList.filter(
     (e: string) =>
       !rooms[roomID].queue.some((item: QueueEntry) => item.themeId === e) &&
       !rooms[roomID].queueHistory.some((item: QueueEntry) => item.themeId === e)
@@ -301,7 +301,7 @@ async function getOtherTheme(roomID: string) {
     return false;
   }
 
-  let aniid = randomFromArray(picker);
+  const aniid = randomFromArray(picker);
   const newPick: AnimeSchema | null = await AnimeSchema.findOne({
     _id: aniid,
   });

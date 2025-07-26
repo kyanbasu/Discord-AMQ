@@ -36,7 +36,7 @@ export const updateUser = async (
   username?: string,
   service?: number
 ) => {
-  let userData: UserSchema = {
+  const userData: UserSchema = {
     _id: userId,
     name: name,
     updated: Date.now(),

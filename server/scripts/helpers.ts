@@ -7,21 +7,50 @@ const fileManager = new FileManager();
 const anilistApiUrl = "https://graphql.anilist.co";
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
-export const shuffleArray = (array: any[]) => {
-  for (var i = array.length - 1; i >= 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var temp = array[i];
+export const shuffleArray = (array: unknown[]) => {
+  for (let i = array.length - 1; i >= 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = array[i];
     array[i] = array[j];
     array[j] = temp;
   }
 };
 
-export const randomFromArray = (array: any[]) => {
+export const randomFromArray = (array: unknown[]) => {
   return array[Math.floor(Math.random() * array.length)];
 };
 
+interface Video {
+  id: number;
+  basename: string;
+  filename: string;
+  size: number;
+  link: string;
+  audio: {
+    id: number;
+    basename: string;
+    filename: string;
+    size: number;
+    link: string;
+  };
+}
+
+interface AnimeThemeEntry {
+  id: number;
+  nsfw: boolean;
+  spoiler: boolean;
+  videos: Video[];
+}
+
+interface AnimeTheme {
+  id: number;
+  slug: string;
+  type: string;
+  animethemeentries: AnimeThemeEntry[];
+}
+
 interface AnimeResponse {
-  anime: [{ animethemes: any; name: string }];
+  anime: [{ animethemes: AnimeTheme[]; name: string }];
 }
 
 interface AudioUrl {
@@ -47,7 +76,7 @@ export const getAudioUrl: (
         if (themeType == ThemeType.ALL) _themes = obj.anime[0].animethemes;
         else
           _themes = obj.anime[0].animethemes.filter(
-            (e: any) => e.type == ThemeType[themeType]
+            (e: AnimeTheme) => e.type == ThemeType[themeType]
           );
 
         if (_themes.length == 0) return reject(new Error("No themes found"));
@@ -69,16 +98,13 @@ export const getAudioUrl: (
         const imgUrl = await AnimeSchema.findOne({ _id: themeId }).then(
           (res) => {
             if (res) return res.splash;
-            return undefined;
+            return "";
           }
         );
 
         //console.log(`> Downloading ${vidUrl} (${baseName})`);
         try {
-          const result = await fileManager.cache(
-            [vidUrl, audioUrl, imgUrl],
-            baseName
-          );
+          await fileManager.cache([vidUrl, audioUrl, imgUrl], baseName);
           // var start = Date.now();
           // const result = await downloadMediaBatch(
           //   [vidUrl, audioUrl, imgUrl],

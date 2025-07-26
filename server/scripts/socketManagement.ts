@@ -26,11 +26,11 @@ export const connection = (socket: Socket) => {
 
     if (message.includes("!play")) {
       try {
-        let q = message.split(" ").at(-1);
+        const q = message.split(" ").at(-1);
         if (!q) throw new Error(`Could not add to queue, message: ${message}`);
 
         addQueue(socket, roomID, q);
-      } catch (e) {
+      } catch {
         throw new Error(`Could not add to queue, message: ${message}`);
       }
       return;
@@ -48,7 +48,7 @@ export const connection = (socket: Socket) => {
 
   socket.on("join-room", async (roomID: string, discordUser: DiscordUser) => {
     socket.join(roomID);
-    let userDoc = await UserSchema.findOne({ _id: discordUser.id });
+    const userDoc = await UserSchema.findOne({ _id: discordUser.id });
 
     if (userDoc) {
       socket.emit(
@@ -62,7 +62,7 @@ export const connection = (socket: Socket) => {
         socket.emit("clientSettingsReload", userDoc.clientSettings);
     }
 
-    let user: User = {
+    const user: User = {
       id: discordUser.id,
       name: userDoc?.name,
       list: userDoc?.list ? userDoc.list.map(String) : [],
@@ -106,7 +106,7 @@ export const connection = (socket: Socket) => {
     async (roomID: string, discordUser: DiscordUser) => {
       socket.join(roomID);
 
-      let userDoc = await UserSchema.findOne({ _id: discordUser.id });
+      const userDoc = await UserSchema.findOne({ _id: discordUser.id });
 
       if (userDoc) {
         socket.emit(
@@ -118,7 +118,7 @@ export const connection = (socket: Socket) => {
         );
       }
 
-      let user: User = {
+      const user: User = {
         id: discordUser.id,
         name: userDoc?.name,
         list: userDoc?.list ? userDoc.list.map(String) : [],
@@ -275,7 +275,7 @@ export const connection = (socket: Socket) => {
               ];
           }
 
-          let randomPick = randomFromArray(
+          const randomPick = randomFromArray(
             selectedUser.list.filter(
               (e: string) =>
                 !rooms[roomID].queue.some(
@@ -285,11 +285,13 @@ export const connection = (socket: Socket) => {
                   (item: QueueEntry) => item.themeId === e
                 )
             )
-          );
+          ) as string;
+
           rooms[roomID].queue.push({
             themeId: randomPick,
             userId: selectedUser.id,
           });
+
           userIndex++;
         }
         messaging.systemMessage(roomID, "Game has started!", "play");
@@ -375,7 +377,7 @@ export const connection = (socket: Socket) => {
     if (!user) return;
     if (rooms[user.roomID!]) {
       const roomID = user.roomID!;
-      let index: number = rooms[roomID].users.indexOf(user.id);
+      const index: number = rooms[roomID].users.indexOf(user.id);
 
       if (index > -1) rooms[roomID].users.splice(index, 1);
 

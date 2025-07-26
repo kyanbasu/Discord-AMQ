@@ -14,7 +14,7 @@ import axios from "axios";
 import bodyParser from "body-parser";
 import fetch from "node-fetch";
 import http from "node:http";
-import { Server as SocketIOServer, Socket } from "socket.io";
+import { Server as SocketIOServer } from "socket.io";
 import { connection } from "./scripts/socketManagement.ts";
 import { DiscordUser, Room, User } from "./scripts/types.ts";
 import { initdb } from "./scripts/databaseManagement.ts";
@@ -30,9 +30,9 @@ const io: SocketIOServer = new SocketIOServer(server, {
   cors: { origin: "discordsays.com" },
 });
 
-let rooms: Record<string, Room> = {};
-let users: Record<string, User> = {};
-let discordUsers: Record<string, DiscordUser> = {};
+const rooms: Record<string, Room> = {};
+const users: Record<string, User> = {};
+const discordUsers: Record<string, DiscordUser> = {};
 
 // Allow express to parse JSON bodies
 app.use(express.json());
@@ -149,7 +149,7 @@ app.post(
       }
 
       const [headerLine] = envelope.split("\n");
-      let header: any =
+      const header: { dsn: string } =
         typeof headerLine === "object" ? headerLine : JSON.parse(headerLine);
       const { host, pathname, username } = new URL(header.dsn);
       const projectId = pathname.slice(1);
@@ -160,9 +160,9 @@ app.post(
       });
 
       res.status(200).end(); // or 201
-    } catch (err: Error | any) {
+    } catch (err: unknown) {
       console.error("Sentry Tunnel error:", err);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
       Sentry.captureException(err);
     }
   }

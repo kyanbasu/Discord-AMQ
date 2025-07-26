@@ -1,4 +1,4 @@
-import { join, basename, extname } from "path";
+import { basename, extname } from "path";
 
 class FileManager {
   undefinedImage: string;
@@ -98,9 +98,7 @@ class FileManager {
     return buffer;
   }
 
-  async downloadMediaBatch(
-    urls: string[],
-  ): Promise<Buffer[]> {
+  async downloadMediaBatch(urls: string[]): Promise<Buffer[]> {
     // Kick off all three downloads concurrently, using the same base name
     const downloads = urls.map((url) => this.downloadFile(url));
 
