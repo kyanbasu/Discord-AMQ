@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
 import { AnimeSchema } from "./schema";
 import { ThemeType } from "./types";
 import FileManager from "./fileManager";
@@ -64,6 +66,20 @@ export const getAudioUrl: (
   themeType: ThemeType
 ) => Promise<AudioUrl> = (themeId, themeType = ThemeType.ALL) => {
   return new Promise((resolve, reject) => {
+    if (process.env.VITE_SENTRY_ENVIRONMENT === "development") {
+      (async () => {
+        const baseName = `${themeId}-OP1`;
+        const o: AudioUrl = {
+          link: baseName,
+          themeId: themeId,
+          themeType: "OP",
+        };
+        await fileManager.cache(["webm", "ogg", "jpg"], baseName);
+        return resolve(o);
+      })();
+      return reject();
+    }
+
     fetch(
       `https://api.animethemes.moe/anime?filter[has]=resources&include=resources&filter[site]=Anilist&filter[external_id]=${themeId}&include=animethemes.animethemeentries.videos.audio`
     )
@@ -84,7 +100,7 @@ export const getAudioUrl: (
         const baseName = `${themeId}-${entry.slug}`;
 
         const o: AudioUrl = {
-          link: `${baseName}`,
+          link: baseName,
           themeId: themeId,
           themeType: entry.slug,
         };
@@ -105,14 +121,6 @@ export const getAudioUrl: (
         //console.log(`> Downloading ${vidUrl} (${baseName})`);
         try {
           await fileManager.cache([vidUrl, audioUrl, imgUrl], baseName);
-          // var start = Date.now();
-          // const result = await downloadMediaBatch(
-          //   [vidUrl, audioUrl, imgUrl],
-          //   baseName
-          // );
-          // console.log(`Downloaded files with base name: ${result}`);
-          // console.log(`Time taken batch: ${Date.now() - start}ms`);
-          // requestDeletion(baseName);
           return resolve(o);
         } catch (error) {
           console.error(`Error downloading files (${baseName}): ${error}`);

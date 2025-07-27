@@ -11,25 +11,25 @@ export default defineConfig((mode) => {
     server: {
       proxy: {
         "/api": {
-          target: "http://localhost:3001",
+          target: `${env.VITE_SERVER_ADDRESS}:${env.VITE_SERVER_PORT}`,
           changeOrigin: true,
           secure: false,
           ws: true,
         },
         "/media": {
-          target: "http://localhost:3001",
+          target: `${env.VITE_SERVER_ADDRESS}:${env.VITE_SERVER_PORT}`,
           changeOrigin: true,
           secure: false,
           ws: true,
         },
         "/socket.io": {
-          target: "http://localhost:3001",
+          target: `${env.VITE_SERVER_ADDRESS}:${env.VITE_SERVER_PORT}`,
           changeOrigin: true,
           secure: false,
           ws: true,
         },
         "/sentry-tunnel": {
-          target: "http://localhost:3001",
+          target: `${env.VITE_SERVER_ADDRESS}:${env.VITE_SERVER_PORT}`,
           changeOrigin: true,
           secure: false,
         },

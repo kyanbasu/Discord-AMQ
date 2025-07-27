@@ -34,7 +34,7 @@ const socketURL = window.location.href
   .replace("https", "wss");
 
 const socketOptions = {
-  path: "/.proxy/socket.io/",
+  path: import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development" ? "/.proxy/socket.io/" : "/socket.io/",
   transports: ["websocket"],
   reconnection: true,
   reconnectionDelay: 1000,

@@ -23,7 +23,7 @@ import { fileManager } from "./scripts/helpers.ts";
 initdb();
 
 const app = express();
-const port = 3001;
+const port = process.env.VITE_SERVER_PORT;
 
 const server = http.createServer(app);
 const io: SocketIOServer = new SocketIOServer(server, {
@@ -162,7 +162,9 @@ app.post(
       res.status(200).end(); // or 201
     } catch (err: unknown) {
       console.error("Sentry Tunnel error:", err);
-      res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+      res
+        .status(500)
+        .json({ error: err instanceof Error ? err.message : String(err) });
       Sentry.captureException(err);
     }
   }

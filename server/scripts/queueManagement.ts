@@ -66,10 +66,12 @@ export const playNextQueue = async (roomID: string) => {
 
     if (!rooms[roomID].playerPlaying) rooms[roomID].playerPlaying = true;
     rooms[roomID].canPlayNext = false;
+
     const audio = await getAudioUrl(
       rooms[roomID].queue[0].themeId,
       rooms[roomID].options.themeType
-    ).catch((error) => console.error(error));
+    ).catch((error) => console.error("error", error));
+
     if (!rooms[roomID]) return;
     if (!audio) {
       io.to(roomID).emit(

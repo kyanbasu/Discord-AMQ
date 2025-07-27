@@ -51,7 +51,8 @@ import { setupSocket, socket, options, updatedClientSettings } from "./sockets";
 import "../css/style.css";
 
 // Will eventually store the authenticated user's access_token
-let auth;
+var auth;
+var discordSdk;
 
 let dscstatus = {
   activity: {
@@ -114,55 +115,87 @@ function sendMessage() {
 let videoPlayer = document.getElementById("videoPlayer");
 let player = document.getElementById("player");
 
-const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
+if (import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development") {
+  discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
 
-incrementLoading("Connecting to Discord");
+  incrementLoading("Connecting to Discord");
 
-//removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
-setupDiscordSdk(discordSdk).then(async (_auth) => {
-  auth = _auth;
-  console.log("Discord SDK is authenticated");
-  incrementLoading("Connecting to server");
+  //removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
+  setupDiscordSdk(discordSdk).then(async (_auth) => {
+    auth = _auth;
+    console.log("Discord SDK is authenticated");
+    incrementLoading("Connecting to server");
 
-  setupSocket();
+    setupSocket();
 
-  //discordSdk configs
-  await discordSdk.commands.setActivity(dscstatus);
-  /*
+    //discordSdk configs
+    await discordSdk.commands.setActivity(dscstatus);
+    /*
   await discordSdk.commands.setConfig({
     use_interactive_pip: true
   })*/
 
-  socket.emit("discord-auth", auth.user);
+    socket.emit("discord-auth", auth.user);
 
-  Sentry.setUser({
-    id: auth.user.id,
-    username: auth.user.global_name || auth.user.username,
+    Sentry.setUser({
+      id: auth.user.id,
+      username: auth.user.global_name || auth.user.username,
+    });
+    Sentry.setTag("guildId", discordSdk.guildId);
+    Sentry.setTag("channelId", discordSdk.channelId);
+
+    Sentry.setUser({
+      id: auth.user.id,
+      username: auth.user.global_name || auth.user.username,
+    });
+    Sentry.setTag("guildId", discordSdk.guildId);
+    Sentry.setTag("channelId", discordSdk.channelId);
+
+    appendVoiceChannelName(discordSdk, socket, auth.user);
+
+    const handleLayoutModeUpdate = (update) => {
+      if (update.layout_mode <= 0) {
+        // UNHANDLED or FOCUSED
+        player.classList.remove("playerPIP");
+      } else {
+        // PIP, GRID
+        player.classList.add("playerPIP");
+      }
+    };
+
+    discordSdk.subscribe("ACTIVITY_LAYOUT_MODE_UPDATE", handleLayoutModeUpdate);
   });
-  Sentry.setTag("guildId", discordSdk.guildId);
-  Sentry.setTag("channelId", discordSdk.channelId);
+} else {
+  incrementLoading("Skipping discord connection.");
 
-  Sentry.setUser({
-    id: auth.user.id,
-    username: auth.user.global_name || auth.user.username,
-  });
-  Sentry.setTag("guildId", discordSdk.guildId);
-  Sentry.setTag("channelId", discordSdk.channelId);
-
-  appendVoiceChannelName(discordSdk, socket, auth.user);
-
-  const handleLayoutModeUpdate = (update) => {
-    if (update.layout_mode <= 0) {
-      // UNHANDLED or FOCUSED
-      player.classList.remove("playerPIP");
-    } else {
-      // PIP, GRID
-      player.classList.add("playerPIP");
-    }
+  discordSdk = {
+    guildId: 1,
+    channelId: 1,
+    commands: {
+      getChannel: (...a) => {
+        return { name: "test" };
+      },
+    },
   };
 
-  discordSdk.subscribe("ACTIVITY_LAYOUT_MODE_UPDATE", handleLayoutModeUpdate);
-});
+  auth = {
+    user: {
+      username: "testuser",
+      discriminator: "0",
+      id: "1",
+      avatar: "",
+      global_name: "test",
+    },
+  };
+
+  incrementLoading("Connecting to server");
+
+  setupSocket();
+
+  socket.emit("discord-auth", auth.user);
+
+  appendVoiceChannelName(discordSdk, socket, auth.user);
+}
 
 player.hidden = true;
 
@@ -212,37 +245,6 @@ videoPlayer.ontimeupdate = () => {
 videoPlayer.onended = () => {
   player.hidden = true;
 };
-
-//can remove
-async function appendGuildAvatar() {
-  const app = document.querySelector("#app");
-
-  // 1. From the HTTP API fetch a list of all of the user's guilds
-  const guilds = await fetch(`https://discord.com/api/v10/users/@me/guilds`, {
-    headers: {
-      // NOTE: we're using the access_token provided by the "authenticate" command
-      Authorization: `Bearer ${auth.access_token}`,
-      "Content-Type": "application/json",
-    },
-  }).then((response) => response.json());
-
-  // 2. Find the current guild's info, including it's "icon"
-  const currentGuild = guilds.find((g) => g.id === discordSdk.guildId);
-
-  // 3. Append to the UI an img tag with the related information
-  if (currentGuild != null) {
-    const guildImg = document.createElement("img");
-    guildImg.setAttribute(
-      "src",
-      // More info on image formatting here: https://discord.com/developers/docs/reference#image-formatting
-      `https://cdn.discordapp.com/icons/${currentGuild.id}/${currentGuild.icon}.webp?size=128`
-    );
-    guildImg.setAttribute("width", "128px");
-    guildImg.setAttribute("height", "128px");
-    guildImg.setAttribute("style", "border-radius: 50%;");
-    app.appendChild(guildImg);
-  }
-}
 
 // let animes = [];
 

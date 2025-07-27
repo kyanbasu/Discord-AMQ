@@ -37,6 +37,9 @@ export async function updatePlayerList(playerList, hostID) {
         "display:flex;align-items:center;max-width:100px"
       );
 
+      if(import.meta.env.VITE_SENTRY_ENVIRONMENT === "development")
+        avatarSrc = "/undefined.jpg"
+
       const avatarImg = document.createElement("img");
       avatarImg.setAttribute("src", avatarSrc);
       avatarImg.setAttribute("height", "80%");

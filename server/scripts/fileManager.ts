@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
 import { basename, extname } from "path";
 
 class FileManager {
@@ -20,7 +22,6 @@ class FileManager {
   getPromise(baseName: string): Promise<Buffer[]> | undefined {
     const entry = this.map.get(baseName);
     if (entry) {
-      // stupid typescript checking for second time
       // reset TTL
       clearTimeout(entry.timer); // refresh timer
       entry.timer = this._makeExpiryTimer(baseName);
@@ -31,16 +32,13 @@ class FileManager {
 
   cache(urls: string[], outputBaseName: string): Promise<Buffer[]> {
     // If already downloading or cached, return existing promise
-    if (this.map.has(outputBaseName)) {
+    const entry = this.map.get(outputBaseName);
+    if (entry) {
       console.log(`Waiting for exisitng promise ${outputBaseName}`);
-      const entry = this.map.get(outputBaseName);
-      if (entry) {
-        // stupid typescript checking for second time
-        // reset TTL
-        clearTimeout(entry.timer); // refresh timer
-        entry.timer = this._makeExpiryTimer(outputBaseName);
-        return entry.promise;
-      }
+      // reset TTL
+      clearTimeout(entry.timer); // refresh timer
+      entry.timer = this._makeExpiryTimer(outputBaseName);
+      return entry.promise;
     }
 
     // Otherwise download the files
@@ -67,6 +65,11 @@ class FileManager {
   }
 
   async downloadFile(url: string): Promise<Buffer> {
+    console.log("downloading file ", url);
+    if (process.env.VITE_SENTRY_ENVIRONMENT === "development") {
+      return await this.getLocalFiles(url);
+    }
+
     if (Bun.argv.includes("--no-video") && url.endsWith(".webm")) {
       const res = Bun.file(this.undefinedImage);
       return await res.arrayBuffer().then((buf) => Buffer.from(buf));
@@ -107,6 +110,30 @@ class FileManager {
 
     // Return promise
     return await Promise.all(downloads);
+  }
+
+  async getLocalFiles(url: string) {
+    switch (url) {
+      case "jpg": {
+        const res = Bun.file("../test-res/example.jpg");
+        return await res.arrayBuffer().then((buf) => Buffer.from(buf));
+      }
+
+      case "webm": {
+        const res = Bun.file("../test-res/example.webm");
+        return await res.arrayBuffer().then((buf) => Buffer.from(buf));
+      }
+
+      case "ogg": {
+        const res = Bun.file("../test-res/example.ogg");
+        return await res.arrayBuffer().then((buf) => Buffer.from(buf));
+      }
+
+      default: {
+        const res = Bun.file("../test-res/example.jpg");
+        return await res.arrayBuffer().then((buf) => Buffer.from(buf));
+      }
+    }
   }
 }
 
