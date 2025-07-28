@@ -34,8 +34,11 @@ const socketURL = window.location.href
   .replace("https", "wss");
 
 const socketOptions = {
-  path: import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development" ? "/.proxy/socket.io/" : "/socket.io/",
-  transports: ["websocket"],
+  path:
+    import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development"
+      ? "/.proxy/socket.io/"
+      : "/socket.io/",
+  transports: ["polling", "websocket", "webtransport"],
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionAttempts: Infinity,
@@ -110,6 +113,7 @@ export function setupSocket() {
         scope.setTag("socket.on", "audio");
         Sentry.captureException(e);
       });
+      console.error(e);
     }
   });
 
@@ -255,7 +259,7 @@ export function setupSocket() {
     }
   });
 
-  socket.io.on("connect_error", (err) => {
+  socket.on("connect_error", (err) => {
     console.error("Connection error:", err);
     Sentry.withScope((scope) => {
       console.log(err);
@@ -284,8 +288,12 @@ export function setupSocket() {
     displayMessage("Reconnect failed");
   });
 
-  socket.io.on("connect", () => {
+  socket.on("connect", () => {
     displayMessage("Connected");
+
+    socket.io.engine.on("upgrade", (transport) => {
+      console.log(`transport upgraded to ${transport.name}`);
+    });
   });
 }
 

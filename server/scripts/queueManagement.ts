@@ -1,7 +1,7 @@
 import { Socket } from "socket.io";
 import { rooms, io, users, discordUsers } from "../server.ts";
 import { shuffleArray, getAudioUrl, randomFromArray } from "./helpers.ts";
-import { systemMessage, userAnnouncement } from "./messaging.ts";
+import { sendMessage, systemMessage, userAnnouncement } from "./messaging.ts";
 import { GameState, Guess, GuessingMode, QueueEntry } from "./types.ts";
 import { AnimeSchema } from "./schema.ts";
 import { User } from "./types.ts";
@@ -67,10 +67,15 @@ export const playNextQueue = async (roomID: string) => {
     if (!rooms[roomID].playerPlaying) rooms[roomID].playerPlaying = true;
     rooms[roomID].canPlayNext = false;
 
-    const audio = await getAudioUrl(
-      rooms[roomID].queue[0].themeId,
-      rooms[roomID].options.themeType
-    ).catch((error) => console.error("error", error));
+    let audio;
+    try {
+      audio = await getAudioUrl(
+        rooms[roomID].queue[0].themeId,
+        rooms[roomID].options.themeType
+      );
+    } catch (error) {
+      console.error("error", error);
+    }
 
     if (!rooms[roomID]) return;
     if (!audio) {
@@ -189,6 +194,10 @@ export const playNextQueue = async (roomID: string) => {
         _id: correctGuessID,
       });
 
+      if (process.env.VITE_SENTRY_ENVIRONMENT === "development") {
+        sendMessage(roomID, "it is " + correctGuess?.title.ro || "unknown");
+      }
+
       if (!correctGuess) return;
 
       Object.values(rooms[roomID].users).forEach((u) => {
@@ -237,7 +246,7 @@ export const playNextQueue = async (roomID: string) => {
             rooms[roomID].currentTimeout = null;
             await playNextQueue(roomID);
             return;
-          }, (90 - rooms[roomID].options.guessTime) * 1000) as unknown as NodeJS.Timeout;
+          }, (100 - rooms[roomID].options.guessTime) * 1000) as unknown as NodeJS.Timeout;
         }, rooms[roomID].options.guessTime * 1000 + 1000) as unknown as NodeJS.Timeout;
       }
     }

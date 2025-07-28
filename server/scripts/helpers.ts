@@ -67,17 +67,22 @@ export const getAudioUrl: (
 ) => Promise<AudioUrl> = (themeId, themeType = ThemeType.ALL) => {
   return new Promise((resolve, reject) => {
     if (process.env.VITE_SENTRY_ENVIRONMENT === "development") {
+      const baseName = `${themeId}-OP1`;
+      const o: AudioUrl = {
+        link: baseName,
+        themeId: themeId,
+        themeType: "OP",
+      };
       (async () => {
-        const baseName = `${themeId}-OP1`;
-        const o: AudioUrl = {
-          link: baseName,
-          themeId: themeId,
-          themeType: "OP",
-        };
-        await fileManager.cache(["webm", "ogg", "jpg"], baseName);
-        return resolve(o);
+        fileManager
+          .cache(["webm", "ogg", "jpg"], baseName)
+          .then(() => {
+            return resolve(o);
+          })
+          .catch((e) => {
+            return reject(e);
+          });
       })();
-      return reject();
     }
 
     fetch(

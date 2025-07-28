@@ -4,7 +4,9 @@ import {
   RPCCloseCodes,
 } from "@discord/embedded-app-sdk";
 
-patchUrlMappings([{ prefix: ".proxy/", target: "discordsays.com/.proxy/" }]);
+if (import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development") {
+  patchUrlMappings([{ prefix: ".proxy/", target: "discordsays.com/.proxy/" }]);
+}
 
 //closes app on vite reload, because thing would be broken that way
 import.meta.hot.on("vite:beforeFullReload", async () => {
@@ -175,6 +177,7 @@ if (import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development") {
       getChannel: (...a) => {
         return { name: "test" };
       },
+      setActivity: (...a) => {},
     },
   };
 

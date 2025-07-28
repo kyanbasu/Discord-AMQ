@@ -27,7 +27,10 @@ const port = process.env.VITE_SERVER_PORT;
 
 const server = http.createServer(app);
 const io: SocketIOServer = new SocketIOServer(server, {
+  transports: ["polling", "websocket", "webtransport"],
   cors: { origin: "discordsays.com" },
+  pingTimeout: 60000, //default 20s
+  pingInterval: 25000, //default 25s
 });
 
 const rooms: Record<string, Room> = {};
