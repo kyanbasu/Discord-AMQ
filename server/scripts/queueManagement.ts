@@ -184,8 +184,8 @@ export const playNextQueue = async (roomID: string) => {
             rooms[roomID].currentTimeout = null;
             await playNextQueue(roomID);
             return;
-          }, (90 - rooms[roomID].options.guessTime) * 1000) as unknown as NodeJS.Timeout;
-        }, rooms[roomID].options.guessTime * 1000 + 1000) as unknown as NodeJS.Timeout;
+          }, (100 - rooms[roomID].options.guessTime) * 1000);
+        }, rooms[roomID].options.guessTime * 1000 + 1000);
       }
     } else if (rooms[roomID].options.guessingMode === GuessingMode.TYPING) {
       const correctGuessID = audio.themeId;
@@ -246,8 +246,8 @@ export const playNextQueue = async (roomID: string) => {
             rooms[roomID].currentTimeout = null;
             await playNextQueue(roomID);
             return;
-          }, (100 - rooms[roomID].options.guessTime) * 1000) as unknown as NodeJS.Timeout;
-        }, rooms[roomID].options.guessTime * 1000 + 1000) as unknown as NodeJS.Timeout;
+          }, (100 - rooms[roomID].options.guessTime) * 1000);
+        }, rooms[roomID].options.guessTime * 1000 + 1000);
       }
     }
   } else {
