@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { rooms, io, users, discordUsers } from "../server.ts";
+import { rooms, io, users, discordUsers, runningLocally } from "../server.ts";
 import { shuffleArray, getAudioUrl, randomFromArray } from "./helpers.ts";
 import { sendMessage, systemMessage, userAnnouncement } from "./messaging.ts";
 import { GameState, Guess, GuessingMode, QueueEntry } from "./types.ts";
@@ -194,7 +194,7 @@ export const playNextQueue = async (roomID: string) => {
         _id: correctGuessID,
       });
 
-      if (process.env.VITE_SENTRY_ENVIRONMENT === "development") {
+      if (runningLocally) {
         sendMessage(roomID, "it is " + correctGuess?.title.ro || "unknown");
       }
 

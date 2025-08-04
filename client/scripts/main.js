@@ -4,7 +4,9 @@ import {
   RPCCloseCodes,
 } from "@discord/embedded-app-sdk";
 
-if (import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development") {
+const runningLocally = import.meta.env.VITE_RUN_LOCAL === "true";
+
+if (!runningLocally) {
   patchUrlMappings([{ prefix: ".proxy/", target: "discordsays.com/.proxy/" }]);
 }
 
@@ -117,7 +119,7 @@ function sendMessage() {
 let videoPlayer = document.getElementById("videoPlayer");
 let player = document.getElementById("player");
 
-if (import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development") {
+if (!runningLocally) {
   discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
 
   incrementLoading("Connecting to Discord");
@@ -306,4 +308,12 @@ function appExit() {
   socket.disconnect();
 }
 
-export { auth, dscstatus, videoPlayer, player, discordSdk, selectedPlayerType };
+export {
+  auth,
+  dscstatus,
+  videoPlayer,
+  player,
+  discordSdk,
+  selectedPlayerType,
+  runningLocally,
+};

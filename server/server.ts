@@ -37,11 +37,13 @@ const rooms: Record<string, Room> = {};
 const users: Record<string, User> = {};
 const discordUsers: Record<string, DiscordUser> = {};
 
+const runningLocally: boolean = process.env.VITE_RUN_LOCAL === "true";
+
 // Allow express to parse JSON bodies
 app.use(express.json());
 app.use(bodyParser.text({ type: ["text/*", "*/json"], limit: "50mb" }));
 
-export { users, discordUsers, rooms, io };
+export { users, discordUsers, rooms, io, runningLocally };
 
 io.on("connection", (socket) => connection(socket));
 

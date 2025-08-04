@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "../.env" });
 import { basename, extname } from "path";
+import { runningLocally } from "../server";
 
 class FileManager {
   undefinedImage: string;
@@ -66,7 +67,7 @@ class FileManager {
 
   async downloadFile(url: string): Promise<Buffer> {
     console.log("downloading file ", url);
-    if (process.env.VITE_SENTRY_ENVIRONMENT === "development") {
+    if (runningLocally) {
       return await this.getLocalFiles(url);
     }
 

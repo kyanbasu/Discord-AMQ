@@ -19,6 +19,8 @@ import {
   auth,
 } from "./main";
 
+const runningLocally = import.meta.env.VITE_RUN_LOCAL === "true";
+
 import { autocompleteList } from "./optionsReload";
 
 import * as Sentry from "@sentry/browser";
@@ -34,10 +36,7 @@ const socketURL = window.location.href
   .replace("https", "wss");
 
 const socketOptions = {
-  path:
-    import.meta.env.VITE_SENTRY_ENVIRONMENT !== "development"
-      ? "/.proxy/socket.io/"
-      : "/socket.io/",
+  path: !runningLocally ? "/.proxy/socket.io/" : "/socket.io/",
   transports: ["polling", "websocket", "webtransport"],
   reconnection: true,
   reconnectionDelay: 1000,

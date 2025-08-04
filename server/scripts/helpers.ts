@@ -3,6 +3,7 @@ dotenv.config({ path: "../.env" });
 import { AnimeSchema } from "./schema";
 import { ThemeType } from "./types";
 import FileManager from "./fileManager";
+import { runningLocally } from "../server";
 
 const fileManager = new FileManager();
 
@@ -66,7 +67,7 @@ export const getAudioUrl: (
   themeType: ThemeType
 ) => Promise<AudioUrl> = (themeId, themeType = ThemeType.ALL) => {
   return new Promise((resolve, reject) => {
-    if (process.env.VITE_SENTRY_ENVIRONMENT === "development") {
+    if (runningLocally) {
       const baseName = `${themeId}-OP1`;
       const o: AudioUrl = {
         link: baseName,
