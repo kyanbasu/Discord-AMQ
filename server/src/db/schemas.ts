@@ -1,5 +1,5 @@
 import * as mongoose from "mongoose";
-import { ClientSettings, TitlePair } from "./types";
+import { ClientSettings, TitlePair } from "../types";
 
 // User
 const ClientSettingsSchema = new mongoose.Schema<ClientSettings>(

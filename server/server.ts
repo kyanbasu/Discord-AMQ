@@ -13,39 +13,15 @@ import express, { Request, Response } from "express";
 import axios from "axios";
 import bodyParser from "body-parser";
 import fetch from "node-fetch";
-import http from "node:http";
-import { Server as SocketIOServer } from "socket.io";
-import { connection } from "./scripts/socketManagement.ts";
-import { DiscordUser, Room, User } from "./scripts/types.ts";
-import { initdb } from "./scripts/databaseManagement.ts";
-import { fileManager } from "./scripts/helpers.ts";
+import { initdb } from "./src/db/databaseManagement.ts";
+import { fileManager } from "./src/helpers/helpers.ts";
+import { app, server, port } from "./constants.ts";
 
 initdb();
-
-const app = express();
-const port = process.env.VITE_SERVER_PORT;
-
-const server = http.createServer(app);
-const io: SocketIOServer = new SocketIOServer(server, {
-  transports: ["polling", "websocket", "webtransport"],
-  cors: { origin: "discordsays.com" },
-  pingTimeout: 60000, //default 20s
-  pingInterval: 25000, //default 25s
-});
-
-const rooms: Record<string, Room> = {};
-const users: Record<string, User> = {};
-const discordUsers: Record<string, DiscordUser> = {};
-
-const runningLocally: boolean = process.env.VITE_RUN_LOCAL === "true";
 
 // Allow express to parse JSON bodies
 app.use(express.json());
 app.use(bodyParser.text({ type: ["text/*", "*/json"], limit: "50mb" }));
-
-export { users, discordUsers, rooms, io, runningLocally };
-
-io.on("connection", (socket) => connection(socket));
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);

@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { io, rooms } from "../server.ts";
+import { io, rooms } from "../../constants.ts";
 
 export const sendMessage = (roomID: string, message: string) => {
   if (!rooms[roomID]) return; //socket.emit('message', 'This room doesn\'t exist.')

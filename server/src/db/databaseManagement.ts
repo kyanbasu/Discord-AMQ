@@ -1,7 +1,7 @@
-import { AnimeSchema, UserSchema } from "./schema";
+import { AnimeSchema, UserSchema } from "./schemas";
 import * as mongoose from "mongoose";
 import dotenv from "dotenv";
-import { ClientSettings } from "./types";
+import { ClientSettings } from "../types";
 dotenv.config({ path: "../.env" });
 
 export const initdb = async () => {
