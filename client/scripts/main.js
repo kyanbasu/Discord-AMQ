@@ -6,10 +6,6 @@ import {
 
 const runningLocally = import.meta.env.VITE_RUN_LOCAL === "true";
 
-if (!runningLocally) {
-  patchUrlMappings([{ prefix: ".proxy/", target: "discordsays.com/.proxy/" }]);
-}
-
 //closes app on vite reload, because thing would be broken that way
 import.meta.hot.on("vite:beforeFullReload", async () => {
   await discordSdk.close(RPCCloseCodes.CLOSE_NORMAL, "You exited from app");
@@ -19,7 +15,7 @@ import * as Sentry from "@sentry/browser";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
-  tunnel: "/.proxy/sentry-tunnel",
+  tunnel: "/sentry-tunnel",
   environment: import.meta.env.VITE_SENTRY_ENVIRONMENT || "unknown",
   sendDefaultPii: true,
   integrations: [

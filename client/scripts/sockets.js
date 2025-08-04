@@ -36,7 +36,7 @@ const socketURL = window.location.href
   .replace("https", "wss");
 
 const socketOptions = {
-  path: !runningLocally ? "/.proxy/socket.io/" : "/socket.io/",
+  path: "/socket.io/",
   transports: ["polling", "websocket", "webtransport"],
   reconnection: true,
   reconnectionDelay: 1000,
