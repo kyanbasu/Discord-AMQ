@@ -1,8 +1,8 @@
 import { Socket } from "socket.io";
 import { discordUsers, rooms, users } from "../../constants";
-import { DiscordUser, GameState, User } from "../types";
-import { createRoom, updatePlayerList } from "../socketManagement";
 import { UserSchema } from "../db/schemas";
+import { createRoom, updatePlayerList } from "../socketManagement";
+import { DiscordUser, GameState, User } from "../types";
 
 export function handleConnection(socket: Socket) {
   socket.on("join-room", async (roomID: string, discordUser: DiscordUser) => {

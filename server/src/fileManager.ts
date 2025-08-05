@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
 import { basename, extname } from "path";
 import { runningLocally } from "../constants";
+dotenv.config({ path: "../.env" });
 
 class FileManager {
   undefinedImage: string;

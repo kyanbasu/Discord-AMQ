@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
 import FileManager from "../fileManager";
+dotenv.config({ path: "../.env" });
 
 export { fileManager };
 

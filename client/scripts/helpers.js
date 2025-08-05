@@ -301,7 +301,7 @@ export function setupOptionsGUI() {
 }
 
 let loadingProgress = 0;
-const maxLoadingItems = 3;
+const maxLoadingItems = 4;
 export function incrementLoading(state = "") {
   loadingProgress++;
   document.getElementById("loading-progress").value =

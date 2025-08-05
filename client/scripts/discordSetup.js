@@ -28,6 +28,7 @@ export async function setupDiscordSdk(discordSdk) {
   }).catch((e) => {
     console.log(JSON.stringify(e));
   });
+
   const { access_token } = await response.json();
 
   if (!access_token) {
@@ -48,6 +49,6 @@ export async function setupDiscordSdk(discordSdk) {
   if (auth == null) {
     throw new Error("Authenticate command failed");
   } else {
-    return auth;
+    return { auth, access_token };
   }
 }

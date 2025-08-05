@@ -1,10 +1,11 @@
 import { Socket } from "socket.io";
-import * as messaging from "../helpers/messaging";
 import { rooms, users } from "../../constants";
-import { GameState, QueueEntry, User } from "../types";
-import { randomFromArray } from "../helpers/helpers";
-import { playNextQueue } from "../queueManagement/playNextQueue";
 import { AnimeSchema } from "../db/schemas";
+import { randomFromArray } from "../helpers/helpers";
+import * as messaging from "../helpers/messaging";
+import { playNextQueue } from "../queueManagement/playNextQueue";
+import { addQueue } from "../queueManagement/queueManagement";
+import { GameState, QueueEntry, User } from "../types";
 
 export function handleGame(socket: Socket) {
   socket.on("playPause", async (roomID: string) => {
@@ -101,6 +102,10 @@ export function handleGame(socket: Socket) {
 
       await playNextQueue(roomID);
     }
+  });
+
+  socket.on("addQueue", async (roomID: string, malID: string) => {
+    addQueue(socket, roomID, malID);
   });
 
   socket.on("autocomplete", async (q) => {

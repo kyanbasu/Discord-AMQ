@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
-import { addQueue } from "../queueManagement/queueManagement";
 import * as messaging from "../helpers/messaging";
+import { addQueue } from "../queueManagement/queueManagement";
 
 export function handleMessages(socket: Socket) {
   socket.on("message", (roomID: string, message: string) => {

@@ -1,9 +1,9 @@
 import { Socket } from "socket.io";
+import { io, rooms, users } from "../../constants";
+import { updateUser, updateUserClientSettings } from "../db/databaseManagement";
+import { getAnimeList } from "../helpers/getAnimeList";
 import * as messaging from "../helpers/messaging";
 import { ClientSettings, DiscordUser, GameState, RoomOptions } from "../types";
-import { io, rooms, users } from "../../constants";
-import { getAnimeList } from "../helpers/getAnimeList";
-import { updateUser, updateUserClientSettings } from "../db/databaseManagement";
 
 export function handleOptionsUpdate(socket: Socket) {
   socket.on(

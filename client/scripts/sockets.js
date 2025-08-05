@@ -42,11 +42,12 @@ const socketOptions = {
   reconnectionDelay: 1000,
   reconnectionAttempts: Infinity,
   forceNew: true,
+  auth: { token: "" },
 };
 
-let socket = io(socketURL, socketOptions);
+var socket;
 
-let options = {};
+var options = {};
 
 const clientSettings = {
   themeLang: "ro",
@@ -71,7 +72,10 @@ export function updatedClientSettings() {
   }, 5_000);
 }
 
-export function setupSocket() {
+export function setupSocket(access_token) {
+  socketOptions.auth.token = access_token;
+  socket = io(socketURL, socketOptions);
+
   socket.on("audio", async (url, guesses = null) => {
     try {
       if (guesses) {
@@ -259,6 +263,13 @@ export function setupSocket() {
   });
 
   socket.on("connect_error", (err) => {
+    if (err.message === "failed auth" || err.message === "no token") {
+      console.error(err);
+      document.getElementById("loading-state").innerHTML +=
+        "</br>Invalid token. Restart app.";
+      socket.close();
+      return;
+    }
     console.error("Connection error:", err);
     Sentry.withScope((scope) => {
       console.log(err);

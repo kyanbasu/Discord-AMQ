@@ -1,10 +1,10 @@
-import { rooms, io, users, discordUsers, runningLocally } from "../../constants.ts";
-import { shuffleArray } from "../helpers/helpers.ts";
+import { discordUsers, io, rooms, runningLocally, users } from "../../constants.ts";
+import { AnimeSchema } from "../db/schemas.ts";
 import { getTheme } from "../helpers/getTheme.ts";
+import { shuffleArray } from "../helpers/helpers.ts";
 import { sendMessage, systemMessage } from "../helpers/messaging.ts";
 import { Guess, GuessingMode } from "../types.ts";
-import { AnimeSchema } from "../db/schemas.ts";
-import { summary, getOtherTheme, tryCache } from "./queueManagement.ts";
+import { getOtherTheme, summary, tryCache } from "./queueManagement.ts";
 
 export const playNextQueue = async (roomID: string) => {
   if (!rooms[roomID] ||

@@ -1,6 +1,6 @@
+import * as Sentry from "@sentry/bun";
 import dotenv from "dotenv";
 dotenv.config({ path: "../.env" });
-import * as Sentry from "@sentry/bun";
 
 Sentry.init({
   dsn: process.env.VITE_SENTRY_DSN,
@@ -9,13 +9,13 @@ Sentry.init({
   _experiments: { enableLogs: true },
 });
 
-import express, { Request, Response } from "express";
 import axios from "axios";
 import bodyParser from "body-parser";
+import express, { Request, Response } from "express";
 import fetch from "node-fetch";
+import { app, port, server } from "./constants.ts";
 import { initdb } from "./src/db/databaseManagement.ts";
 import { fileManager } from "./src/helpers/helpers.ts";
-import { app, server, port } from "./constants.ts";
 
 initdb();
 
@@ -50,7 +50,11 @@ app.post("/api/token", async (req: Request, res: Response) => {
       }),
     });
 
-    const { access_token } = (await response.json()) as {
+    const json = await response.json();
+
+    console.log(json);
+
+    const { access_token } = json as {
       access_token: string;
     };
     res.send({ access_token });

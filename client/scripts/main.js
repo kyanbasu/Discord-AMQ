@@ -115,57 +115,71 @@ function sendMessage() {
 let videoPlayer = document.getElementById("videoPlayer");
 let player = document.getElementById("player");
 
-if (!runningLocally) {
+if (runningLocally) {
+  connectFakeDiscord();
+} else {
+  await connectDiscord();
+}
+
+async function connectDiscord() {
   discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
 
   incrementLoading("Connecting to Discord");
-
+  let access_token;
   //removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
-  setupDiscordSdk(discordSdk).then(async (_auth) => {
-    auth = _auth;
-    console.log("Discord SDK is authenticated");
-    incrementLoading("Connecting to server");
+  ({ auth, access_token } = await setupDiscordSdk(discordSdk));
 
-    setupSocket();
+  console.log("Discord SDK is authenticated");
+  incrementLoading("Connecting to server");
 
-    //discordSdk configs
-    await discordSdk.commands.setActivity(dscstatus);
-    /*
+  setupSocket(access_token);
+
+  incrementLoading("Authenticating with server");
+
+  await new Promise((resolve, reject) => {
+    socket.once("authenticated", (user) => {
+      console.log("Authenticated with server as " + user.id);
+      resolve(user);
+    });
+  });
+
+  //discordSdk configs
+  await discordSdk.commands.setActivity(dscstatus);
+  /*
   await discordSdk.commands.setConfig({
     use_interactive_pip: true
   })*/
 
-    socket.emit("discord-auth", auth.user);
-
-    Sentry.setUser({
-      id: auth.user.id,
-      username: auth.user.global_name || auth.user.username,
-    });
-    Sentry.setTag("guildId", discordSdk.guildId);
-    Sentry.setTag("channelId", discordSdk.channelId);
-
-    Sentry.setUser({
-      id: auth.user.id,
-      username: auth.user.global_name || auth.user.username,
-    });
-    Sentry.setTag("guildId", discordSdk.guildId);
-    Sentry.setTag("channelId", discordSdk.channelId);
-
-    appendVoiceChannelName(discordSdk, socket, auth.user);
-
-    const handleLayoutModeUpdate = (update) => {
-      if (update.layout_mode <= 0) {
-        // UNHANDLED or FOCUSED
-        player.classList.remove("playerPIP");
-      } else {
-        // PIP, GRID
-        player.classList.add("playerPIP");
-      }
-    };
-
-    discordSdk.subscribe("ACTIVITY_LAYOUT_MODE_UPDATE", handleLayoutModeUpdate);
+  Sentry.setUser({
+    id: auth.user.id,
+    username: auth.user.global_name || auth.user.username,
   });
-} else {
+  Sentry.setTag("guildId", discordSdk.guildId);
+  Sentry.setTag("channelId", discordSdk.channelId);
+
+  Sentry.setUser({
+    id: auth.user.id,
+    username: auth.user.global_name || auth.user.username,
+  });
+  Sentry.setTag("guildId", discordSdk.guildId);
+  Sentry.setTag("channelId", discordSdk.channelId);
+
+  appendVoiceChannelName(discordSdk, socket, auth.user);
+
+  const handleLayoutModeUpdate = (update) => {
+    if (update.layout_mode <= 0) {
+      // UNHANDLED or FOCUSED
+      player.classList.remove("playerPIP");
+    } else {
+      // PIP, GRID
+      player.classList.add("playerPIP");
+    }
+  };
+
+  discordSdk.subscribe("ACTIVITY_LAYOUT_MODE_UPDATE", handleLayoutModeUpdate);
+}
+
+function connectFakeDiscord() {
   incrementLoading("Skipping discord connection.");
 
   discordSdk = {

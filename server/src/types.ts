@@ -20,6 +20,35 @@ interface DiscordUser {
   id: string; // discord id
   avatar: string; // discord avatar
   global_name: string; // discord global name
+  username: string;
+  discriminator: string;
+  public_flags: number;
+  flags: number;
+  banner: string | null;
+  accent_color: number | null;
+  avatar_decoration_data: {
+    asset: string;
+    sku_id: string;
+    expires_at: string | null;
+  } | null;
+  collectibles: unknown;
+  display_name_styles: unknown;
+  banner_color: string | null;
+  clan: {
+    identity_guild_id: string;
+    identity_enabled: boolean;
+    tag: string;
+    badge: string;
+  } | null;
+  primary_guild: {
+    identity_guild_id: string;
+    identity_enabled: boolean;
+    tag: string;
+    badge: string;
+  } | null;
+  mfa_enabled: boolean;
+  locale: string;
+  premium_type: number;
 }
 
 interface User {
