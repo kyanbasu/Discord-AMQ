@@ -52,8 +52,6 @@ app.post("/api/token", async (req: Request, res: Response) => {
 
     const json = await response.json();
 
-    console.log(json);
-
     const { access_token } = json as {
       access_token: string;
     };

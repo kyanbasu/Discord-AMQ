@@ -19,8 +19,6 @@ import {
   auth,
 } from "./main";
 
-const runningLocally = import.meta.env.VITE_RUN_LOCAL === "true";
-
 import { autocompleteList } from "./optionsReload";
 
 import * as Sentry from "@sentry/browser";

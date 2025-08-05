@@ -49,6 +49,6 @@ export async function setupDiscordSdk(discordSdk) {
   if (auth == null) {
     throw new Error("Authenticate command failed");
   } else {
-    return { auth, access_token };
+    return auth;
   }
 }

@@ -1,8 +1,4 @@
-import {
-  DiscordSDK,
-  patchUrlMappings,
-  RPCCloseCodes,
-} from "@discord/embedded-app-sdk";
+import { DiscordSDK, RPCCloseCodes } from "@discord/embedded-app-sdk";
 
 const runningLocally = import.meta.env.VITE_RUN_LOCAL === "true";
 
@@ -125,14 +121,13 @@ async function connectDiscord() {
   discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
 
   incrementLoading("Connecting to Discord");
-  let access_token;
   //removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
-  ({ auth, access_token } = await setupDiscordSdk(discordSdk));
+  auth = await setupDiscordSdk(discordSdk);
 
   console.log("Discord SDK is authenticated");
   incrementLoading("Connecting to server");
 
-  setupSocket(access_token);
+  setupSocket(auth.access_token);
 
   incrementLoading("Authenticating with server");
 
