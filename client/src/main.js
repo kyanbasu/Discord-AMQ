@@ -1,4 +1,4 @@
-import { DiscordSDK, RPCCloseCodes } from "@discord/embedded-app-sdk";
+import { RPCCloseCodes } from "@discord/embedded-app-sdk";
 
 const runningLocally = import.meta.env.VITE_RUN_LOCAL === "true";
 
@@ -34,79 +34,19 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
 });
 
-import { setupDiscordSdk } from "./discordSetup";
-import {
-  appendVoiceChannelName,
-  displayAnnoucement,
-  getService,
-  incrementLoading,
-} from "./helpers";
+import { connectDiscord, connectFakeDiscord, discordSdk } from "./discordSetup";
 
-import { setupSocket, socket, options, updatedClientSettings } from "./sockets";
+import { socket, options, updatedClientSettings } from "./sockets";
 
 import "../css/style.css";
+import { Skip } from "./windowFunctions";
 
-// Will eventually store the authenticated user's access_token
-var auth;
-var discordSdk;
-
-let dscstatus = {
-  activity: {
-    type: 0,
-    details: "In the lobby",
-    assets: {
-      large_text: "change this in prod",
-      small_image: "map-mainframe",
-      small_text: "in Mainframe",
-    },
-    timestamps: {
-      start: Math.floor(Date.now() / 1000),
-    },
-  },
-};
+export { videoPlayer, player, runningLocally };
 
 document.getElementById("Skip").hidden = true;
 document.getElementById("guessingZone").hidden = true;
 
-let selectedPlayerType = "ogg";
-
-document.getElementById("playerTypeSwitch").addEventListener("change", () => {
-  if (options.novideo && document.getElementById("playerTypeSwitch").checked) {
-    document.getElementById("playerTypeSwitch").checked = 0;
-    displayAnnoucement(
-      "Video is disabled on the server, using audio only mode",
-      1
-    );
-    selectedPlayerType = "ogg";
-    return;
-  }
-  if (document.getElementById("playerTypeSwitch").checked)
-    selectedPlayerType = "webm";
-  else selectedPlayerType = "ogg";
-});
-
 document.getElementById("playerTypeSwitch").dispatchEvent(new Event("change"));
-
-document.getElementById("chatbtn").onclick = () => {
-  sendMessage();
-};
-
-document.getElementById("chatin").onkeyup = (e) => {
-  if (e.key === "Enter") {
-    sendMessage();
-  }
-};
-
-function sendMessage() {
-  const text = document.getElementById("chatin").value;
-  if (text.length > 0 && auth)
-    socket.emit(
-      "message",
-      `${discordSdk.guildId}/${discordSdk.channelId}`,
-      `${auth.user.global_name}: ${text}`
-    );
-  document.getElementById("chatin").value = "";
-}
 
 let videoPlayer = document.getElementById("videoPlayer");
 let player = document.getElementById("player");
@@ -115,96 +55,6 @@ if (runningLocally) {
   connectFakeDiscord();
 } else {
   await connectDiscord();
-}
-
-async function connectDiscord() {
-  discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
-
-  incrementLoading("Connecting to Discord");
-  //removeFadeOut(document.getElementById('loading'), 500) //remove this in prod
-  auth = await setupDiscordSdk(discordSdk);
-
-  console.log("Discord SDK is authenticated");
-  incrementLoading("Connecting to server");
-
-  setupSocket(auth.access_token);
-
-  incrementLoading("Authenticating with server");
-
-  await new Promise((resolve, reject) => {
-    socket.once("authenticated", (user) => {
-      console.log("Authenticated with server as " + user.id);
-      resolve(user);
-    });
-  });
-
-  //discordSdk configs
-  await discordSdk.commands.setActivity(dscstatus);
-  /*
-  await discordSdk.commands.setConfig({
-    use_interactive_pip: true
-  })*/
-
-  Sentry.setUser({
-    id: auth.user.id,
-    username: auth.user.global_name || auth.user.username,
-  });
-  Sentry.setTag("guildId", discordSdk.guildId);
-  Sentry.setTag("channelId", discordSdk.channelId);
-
-  Sentry.setUser({
-    id: auth.user.id,
-    username: auth.user.global_name || auth.user.username,
-  });
-  Sentry.setTag("guildId", discordSdk.guildId);
-  Sentry.setTag("channelId", discordSdk.channelId);
-
-  appendVoiceChannelName(discordSdk, socket, auth.user);
-
-  const handleLayoutModeUpdate = (update) => {
-    if (update.layout_mode <= 0) {
-      // UNHANDLED or FOCUSED
-      player.classList.remove("playerPIP");
-    } else {
-      // PIP, GRID
-      player.classList.add("playerPIP");
-    }
-  };
-
-  discordSdk.subscribe("ACTIVITY_LAYOUT_MODE_UPDATE", handleLayoutModeUpdate);
-}
-
-function connectFakeDiscord() {
-  incrementLoading("Skipping discord connection.");
-
-  discordSdk = {
-    guildId: 1,
-    channelId: 1,
-    commands: {
-      getChannel: (...a) => {
-        return { name: "test" };
-      },
-      setActivity: (...a) => {},
-    },
-  };
-
-  auth = {
-    user: {
-      username: "testuser",
-      discriminator: "0",
-      id: "1",
-      avatar: "",
-      global_name: "test",
-    },
-  };
-
-  incrementLoading("Connecting to server");
-
-  setupSocket();
-
-  socket.emit("discord-auth", auth.user);
-
-  appendVoiceChannelName(discordSdk, socket, auth.user);
 }
 
 player.hidden = true;
@@ -256,16 +106,6 @@ videoPlayer.onended = () => {
   player.hidden = true;
 };
 
-// let animes = [];
-
-export function PlayPause() {
-  socket.emit("playPause", `${discordSdk.guildId}/${discordSdk.channelId}`);
-}
-
-export function Skip() {
-  socket.emit("skip", `${discordSdk.guildId}/${discordSdk.channelId}`);
-}
-
 let UpdateTextGuessAutocompleteTimeout = null;
 
 export function UpdateTextGuessAutocomplete() {
@@ -281,29 +121,6 @@ export function UpdateTextGuessAutocomplete() {
   }, 300);
 }
 
-let canUpdateAL = true;
-
-export function UpdateAnimeList() {
-  if (!canUpdateAL) {
-    displayAnnoucement(
-      "You can only update your anime list every 30 seconds",
-      1
-    );
-    return;
-  }
-  socket.emit(
-    "updateAL",
-    `${discordSdk.guildId}/${discordSdk.channelId}`,
-    auth.user,
-    document.getElementById("animelistname").value,
-    getService()
-  );
-  canUpdateAL = false;
-  setTimeout(() => {
-    canUpdateAL = true;
-  }, 30_000);
-}
-
 document.onvisibilitychange = (event) => {
   //user exited app
   if (document.visibilityState == "hidden") appExit();
@@ -312,13 +129,3 @@ document.onvisibilitychange = (event) => {
 function appExit() {
   socket.disconnect();
 }
-
-export {
-  auth,
-  dscstatus,
-  videoPlayer,
-  player,
-  discordSdk,
-  selectedPlayerType,
-  runningLocally,
-};

@@ -177,7 +177,7 @@ video {
   left: 10px;
   right: 0;
   border: 1px solid var(--maindark);
-  z-index: 99;
+  z-index: 9;
   background: #222222;
 }
 .autocomplete-items div {

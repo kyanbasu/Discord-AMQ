@@ -1,5 +1,7 @@
-import { gameSettingsRefresh } from "./helpers.js";
-import { auth, discordSdk, UpdateTextGuessAutocomplete } from "./main.js";
+import { gameSettingsRefresh } from "./helpers/helpers.js";
+import { UpdateTextGuessAutocomplete } from "./main.js";
+import { auth } from "./discordSetup.js";
+import { discordSdk } from "./discordSetup.js";
 import { socket, options } from "./sockets.js";
 
 let autocompleteList;

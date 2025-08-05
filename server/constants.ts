@@ -18,6 +18,15 @@ const io: SocketIOServer = new SocketIOServer(server, {
 });
 
 io.use(async (socket, next) => {
+  if (runningLocally) {
+    const user = socket.handshake.auth?.user;
+    if (user) {
+      socket.data.discordUser = user;
+      return next();
+    }
+    return next(Error("failed auth"));
+  }
+
   const token = socket.handshake.auth?.token;
   if (!token) return next(Error("no token"));
 

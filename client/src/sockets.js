@@ -1,23 +1,21 @@
 let songCounter = 0;
 
 import {
-  updatePlayerList,
-  displayMessage,
   displayAnnoucement,
-  preloadMedia,
-  setupOptionsGUI,
-  setService,
+  displayMessage,
   incrementLoading,
-} from "./helpers";
+  preloadMedia,
+  setService,
+  setupOptionsGUI,
+} from "./helpers/helpers";
 
-import {
-  dscstatus,
-  videoPlayer,
-  player,
-  discordSdk,
-  selectedPlayerType,
-  auth,
-} from "./main";
+import { updatePlayerList } from "./helpers/updatePlayerList";
+
+import { dscstatus } from "./discordSetup";
+import { player, runningLocally, videoPlayer } from "./main";
+import { auth } from "./discordSetup";
+import { discordSdk } from "./discordSetup";
+import { selectedPlayerType } from "./windowEventListeners";
 
 import { autocompleteList } from "./optionsReload";
 
@@ -26,6 +24,8 @@ import * as Sentry from "@sentry/browser";
 import { optionsReload } from "./optionsReload";
 
 import { io } from "socket.io-client";
+
+export { clientSettings, options, socket };
 
 const socketURL = window.location.href
   .split("/")
@@ -40,7 +40,7 @@ const socketOptions = {
   reconnectionDelay: 1000,
   reconnectionAttempts: Infinity,
   forceNew: true,
-  auth: { token: "" },
+  auth: { token: "", user: {} },
 };
 
 var socket;
@@ -51,13 +51,6 @@ const clientSettings = {
   themeLang: "ro",
   volume: 0,
 };
-
-const acceptableTitleLang = ["ro", "en", "ja"];
-export function ThemeTitleLanguageChange(value) {
-  if (!acceptableTitleLang.includes(value)) return;
-  clientSettings.themeLang = value;
-  updatedClientSettings();
-}
 
 let updateClientSettingsTimeout = null;
 export function updatedClientSettings() {
@@ -70,8 +63,10 @@ export function updatedClientSettings() {
   }, 5_000);
 }
 
-export function setupSocket(access_token) {
-  socketOptions.auth.token = access_token;
+export function setupSocket(socketAuth) {
+  if (runningLocally) socketOptions.auth.user = socketAuth;
+  else socketOptions.auth.token = socketAuth;
+
   socket = io(socketURL, socketOptions);
 
   socket.on("audio", async (url, guesses = null) => {
@@ -312,5 +307,3 @@ function resync() {
     auth.user
   );
 }
-
-export { socket, options };
