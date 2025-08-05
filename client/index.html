@@ -27,10 +27,10 @@
 
     {{> focusZone}} {{> secondZone}} {{> clientSettings}}
 
-    <script type="module" src="/scripts/main.js"></script>
+    <script type="module" src="/src/main.js"></script>
     <script type="module">
-      import { PlayPause, Skip, UpdateAnimeList } from "/scripts/main.js";
-      import { ThemeTitleLanguageChange } from "/scripts/sockets.js";
+      import { PlayPause, Skip, UpdateAnimeList } from "/src/main.js";
+      import { ThemeTitleLanguageChange } from "/src/sockets.js";
 
       document.getElementById("PlayPause").addEventListener("click", PlayPause);
       document.getElementById("Skip").addEventListener("click", Skip);

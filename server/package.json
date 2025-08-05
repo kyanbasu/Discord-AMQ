@@ -12,25 +12,22 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@eslint/js": "^9.32.0",
     "@sentry/bun": "^9.44.2",
     "axios": "^1.11.0",
     "body-parser": "^2.2.0",
     "dotenv": "^16.6.1",
-    "eslint": "^9.32.0",
     "express": "^4.21.2",
     "mongoose": "^8.17.0",
     "node-fetch": "^3.3.2",
-    "socket.io": "^4.8.1",
-    "typescript-eslint": "^8.39.0"
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.32.0",
     "@types/express": "^5.0.3",
     "@types/fluent-ffmpeg": "^2.1.27",
-    "@types/socket.io": "^3.0.2",
-    "bun-types": "^1.2.19"
-  },
-  "peerDependencies": {
-    "typescript": "^5.8.3"
+    "bun-types": "^1.2.19",
+    "eslint": "^9.32.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0"
   }
 }
