@@ -1,29 +1,22 @@
-let songCounter = 0;
-
 import {
-  displayAnnoucement,
-  displayMessage,
   incrementLoading,
   preloadMedia,
   setService,
   setupOptionsGUI,
 } from "./helpers/helpers";
 
-import { updatePlayerList } from "./helpers/updatePlayerList";
-
-import { dscstatus } from "./discordSetup";
-import { player, runningLocally, videoPlayer } from "./main";
 import { auth } from "./discordSetup";
-import { discordSdk } from "./discordSetup";
+import { updatePlayerList } from "./helpers/updatePlayerList";
+import { runningLocally } from "./main";
 import { selectedPlayerType } from "./windowEventListeners";
-
-import { autocompleteList } from "./optionsReload";
-
-import * as Sentry from "@sentry/browser";
 
 import { optionsReload } from "./optionsReload";
 
 import { io } from "socket.io-client";
+import { handleOnAudio } from "./socketHandlers/audio";
+import { handleConnection } from "./socketHandlers/connection";
+import { handleGuessing } from "./socketHandlers/guessing";
+import { handleMessaging } from "./socketHandlers/messaging";
 
 export { clientSettings, options, socket };
 
@@ -69,71 +62,13 @@ export function setupSocket(socketAuth) {
 
   socket = io(socketURL, socketOptions);
 
-  socket.on("audio", async (url, guesses = null) => {
-    try {
-      if (guesses) {
-        console.log(guesses);
-        for (let i = 0; i < guesses.length; i++) {
-          document.getElementById(`guess${i}`).innerHTML =
-            guesses[i][clientSettings.themeLang];
-          document.getElementById(`guess${i}`).classList.remove("guessButton");
-        }
-      } else {
-        const animeTextGuess = document.getElementById("animeTextGuess");
-        if (animeTextGuess) animeTextGuess.value = "";
-      }
-      document.getElementById("guessingZone").hidden = false;
-      //document.getElementById("options").hidden = true;
-      songCounter += 1;
+  handleOnAudio(socket);
 
-      dscstatus.activity.details = `In game ${songCounter} of ${options.queueSize}`;
-      await discordSdk.commands.setActivity(dscstatus);
+  handleConnection(socket);
 
-      player.hidden = true;
-      videoPlayer.src = `media/${url}/${selectedPlayerType}`;
-      videoPlayer.triggeredSkip = false;
+  handleGuessing(socket);
 
-      document.getElementById(
-        "videoPlayerImgBg"
-      ).style.backgroundImage = `url('media/${url}/jpg')`;
-
-      let _src = "";
-      if (selectedPlayerType == "ogg") _src = `media/${url}/jpg`;
-
-      document.getElementById("videoPlayerImg").src = _src;
-
-      document.getElementById("Skip").hidden = true;
-      videoPlayer.play();
-    } catch (e) {
-      Sentry.withScope((scope) => {
-        scope.setTag("socket.on", "audio");
-        Sentry.captureException(e);
-      });
-      console.error(e);
-    }
-  });
-
-  socket.on("correctGuess", (title, themeType, usr) => {
-    document.getElementById("themeTitle").innerText = `${
-      title[clientSettings.themeLang]
-    } ${themeType}`;
-    player.hidden = false;
-    document.getElementById("guessingZone").hidden = true;
-    displayMessage(
-      `That was ${
-        title[clientSettings.themeLang]
-      } ${themeType} from ${usr}'s list`
-    );
-    setTimeout(() => {
-      document.getElementById("Skip").hidden = false;
-    }, 3000);
-  });
-
-  socket.on("correctlyGuessed", (e) => {
-    displayMessage(
-      `<span style="color: var(--maincontrast)"> Correctly guessed: ${e}</span>`
-    );
-  });
+  handleMessaging(socket);
 
   socket.on("loadingUpdate", () => {
     incrementLoading("Done.");
@@ -147,40 +82,6 @@ export function setupSocket(socketAuth) {
 
   socket.on("updatePlayerList", (playerList, host) => {
     updatePlayerList(playerList, host);
-  });
-
-  socket.on("message", async (text, additionalInfo = null) => {
-    displayMessage(text);
-    switch (additionalInfo) {
-      case "pause":
-        document.getElementById("PlayPause").innerHTML = "Play";
-        break;
-
-      case "play":
-        document.getElementById("PlayPause").innerHTML = "Pause";
-        document.getElementById("options").hidden = true;
-        break;
-
-      case "end":
-        document.getElementById("PlayPause").innerHTML = "Play";
-        videoPlayer.src = "";
-        player.hidden = true;
-        document.getElementById("guessingZone").hidden = true;
-        document.getElementById("options").hidden = false;
-        dscstatus.activity.details = "In the lobby";
-        songCounter = 0;
-        await discordSdk.commands.setActivity(dscstatus);
-        break;
-
-      case "playing": //when lobby is in game and playing
-        document.getElementById("options").hidden = true;
-        document.getElementById("player").hidden = false;
-        document.getElementById("Skip").hidden = false;
-        break;
-
-      default:
-        break;
-    }
   });
 
   socket.on("data-list", (username, updated, service, count) => {
@@ -206,104 +107,8 @@ export function setupSocket(socketAuth) {
     }
   });
 
-  socket.on("autocompleteResults", (results) => {
-    if (results.length === 0) return;
-    console.log(results);
-
-    autocompleteList.innerHTML = "";
-    results.forEach((result) => {
-      console.log(result);
-      const div = document.createElement("div");
-      div.innerHTML = `<strong>${
-        result.title[clientSettings.themeLang]
-      }</strong>`;
-      div.addEventListener("click", () => {
-        document.getElementById("animeTextGuess").value =
-          result.title[clientSettings.themeLang];
-        console.log(result.id);
-        socket.emit("guess", auth.user, result.id);
-        autocompleteList.innerHTML = "";
-      });
-      autocompleteList.appendChild(div);
-    });
-  });
-
   socket.on("cacheURL", (url) => {
     console.log(url);
     preloadMedia(url, selectedPlayerType);
   });
-
-  socket.on("announce", (message, importanceLevel = 0) => {
-    displayAnnoucement(message, importanceLevel);
-  });
-
-  socket.on("disconnect", (reason, details) => {
-    Sentry.withScope((scope) => {
-      console.log(details);
-      scope.setExtra("details", details);
-      Sentry.captureException(Error(`User disconnected, reason: ${reason}`));
-    });
-
-    displayMessage(`disconnected... reason: ${reason}`);
-    console.log("reason: ", reason);
-
-    if (reason !== "ping timeout") {
-      setTimeout(() => {
-        socket.open();
-        resync();
-      }, 500);
-    }
-  });
-
-  socket.on("connect_error", (err) => {
-    if (err.message === "failed auth" || err.message === "no token") {
-      console.error(err);
-      document.getElementById("loading-state").innerHTML +=
-        "</br>Invalid token. Restart app.";
-      socket.close();
-      return;
-    }
-    console.error("Connection error:", err);
-    Sentry.withScope((scope) => {
-      console.log(err);
-      scope.setExtra("error", err);
-      Sentry.captureException(Error(`User connect_error: ${err}`));
-    });
-    setTimeout(() => {
-      socket.open();
-      resync();
-    }, 500);
-  });
-
-  socket.io.on("reconnect_attempt", (num) => {
-    console.log(`Reconnection attempt #${num}`);
-    displayMessage(`Reconnecting...`);
-  });
-
-  socket.io.on("reconnect", () => {
-    displayMessage("Connected");
-    resync();
-  });
-
-  // Optional retry limit or fallback logic in reconnect_failed
-  socket.io.on("reconnect_failed", () => {
-    console.error("Reconnect unsuccessful, prompt for manual reload");
-    displayMessage("Reconnect failed");
-  });
-
-  socket.on("connect", () => {
-    displayMessage("Connected");
-
-    socket.io.engine.on("upgrade", (transport) => {
-      console.log(`transport upgraded to ${transport.name}`);
-    });
-  });
-}
-
-function resync() {
-  socket.emit(
-    "client-resync",
-    `${discordSdk.guildId}/${discordSdk.channelId}`,
-    auth.user
-  );
 }

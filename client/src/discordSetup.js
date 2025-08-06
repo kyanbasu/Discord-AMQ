@@ -121,6 +121,7 @@ export async function connectDiscord() {
 
   discordSdk.subscribe("ACTIVITY_LAYOUT_MODE_UPDATE", handleLayoutModeUpdate);
 }
+
 export function connectFakeDiscord() {
   incrementLoading("Skipping discord connection.");
 
