@@ -1,8 +1,8 @@
 import { auth, discordSdk } from "../discordSetup";
-import { displayMessage } from "../helpers/helpers";
+import { displayMessage, incrementLoading } from "../helpers/helpers";
 
 import * as Sentry from "@sentry/browser";
-import { socket } from "../sockets";
+import { socket } from "../socketCore";
 
 export function handleConnection(socket) {
   socket.on("disconnect", (reason, details) => {
@@ -60,6 +60,10 @@ export function handleConnection(socket) {
     socket.io.engine.on("upgrade", (transport) => {
       console.log(`transport upgraded to ${transport.name}`);
     });
+  });
+
+  socket.on("loadingUpdate", () => {
+    incrementLoading("Done.");
   });
 }
 

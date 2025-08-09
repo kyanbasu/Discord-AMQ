@@ -1,6 +1,6 @@
 import { displayAnnoucement } from "./helpers/helpers";
 
-import { socket, options } from "./sockets";
+import { socket, options } from "./socketCore";
 
 import { auth } from "./discordSetup";
 import { discordSdk } from "./discordSetup";

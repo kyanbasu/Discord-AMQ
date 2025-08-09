@@ -2,7 +2,7 @@ import crownSrc from "/static/crown.svg";
 
 import { runningLocally } from "../main";
 import { auth } from "../discordSetup";
-import { options } from "../sockets";
+import { options } from "../socketCore";
 import { updateOptions } from "../optionsReload";
 import { gameSettingsRefresh } from "./helpers";
 

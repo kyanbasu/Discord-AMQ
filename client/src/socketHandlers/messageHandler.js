@@ -1,4 +1,4 @@
-import { resetSongCounter } from "./audio";
+import { resetSongCounter } from "./audioHandler";
 import { discordSdk, dscstatus } from "../discordSetup";
 import { displayAnnoucement, displayMessage } from "../helpers/helpers";
 import { player, videoPlayer } from "../main";

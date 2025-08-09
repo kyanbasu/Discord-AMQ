@@ -2,7 +2,7 @@ import { auth } from "../discordSetup";
 import { displayMessage } from "../helpers/helpers";
 import { player } from "../main";
 import { autocompleteList } from "../optionsReload";
-import { clientSettings } from "../sockets";
+import { clientSettings } from "../socketCore";
 
 export function handleGuessing(socket) {
   socket.on("correctGuess", (title, themeType, usr) => {

@@ -2,13 +2,12 @@ import { DiscordSDK } from "@discord/embedded-app-sdk";
 import * as Sentry from "@sentry/browser";
 import { appendVoiceChannelName, incrementLoading } from "./helpers/helpers";
 
-import { setupSocket, socket } from "./sockets";
+import { setupSocket, socket } from "./socketCore";
 
 export { dscstatus, discordSdk, auth };
 
 // Will eventually store the authenticated user's access_token
 var auth;
-
 var discordSdk;
 
 async function setupDiscordSdk(discordSdk) {

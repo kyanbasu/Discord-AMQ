@@ -1,8 +1,7 @@
 import {
-  incrementLoading,
   preloadMedia,
   setService,
-  setupOptionsGUI,
+  setupOptionsGUI
 } from "./helpers/helpers";
 
 import { auth } from "./discordSetup";
@@ -13,10 +12,10 @@ import { selectedPlayerType } from "./windowEventListeners";
 import { optionsReload } from "./optionsReload";
 
 import { io } from "socket.io-client";
-import { handleOnAudio } from "./socketHandlers/audio";
-import { handleConnection } from "./socketHandlers/connection";
-import { handleGuessing } from "./socketHandlers/guessing";
-import { handleMessaging } from "./socketHandlers/messaging";
+import { handleOnAudio } from "./socketHandlers/audioHandler";
+import { handleConnection } from "./socketHandlers/connectionHandler";
+import { handleGuessing } from "./socketHandlers/guessHandler";
+import { handleMessaging } from "./socketHandlers/messageHandler";
 
 export { clientSettings, options, socket };
 
@@ -69,10 +68,6 @@ export function setupSocket(socketAuth) {
   handleGuessing(socket);
 
   handleMessaging(socket);
-
-  socket.on("loadingUpdate", () => {
-    incrementLoading("Done.");
-  });
 
   socket.on("optionsReload", (_options, hostID) => {
     options = _options;

@@ -2,7 +2,7 @@ import { displayAnnoucement, getService } from "./helpers/helpers";
 import { auth } from "./discordSetup";
 import { discordSdk } from "./discordSetup";
 
-import { clientSettings, socket, updatedClientSettings } from "./sockets";
+import { clientSettings, socket, updatedClientSettings } from "./socketCore";
 // let animes = [];
 
 export function PlayPause() {

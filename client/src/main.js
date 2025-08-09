@@ -36,7 +36,7 @@ Sentry.init({
 
 import { connectDiscord, connectFakeDiscord, discordSdk } from "./discordSetup";
 
-import { socket, options, updatedClientSettings } from "./sockets";
+import { socket, options, updatedClientSettings } from "./socketCore";
 
 import "../css/style.css";
 import { Skip } from "./windowFunctions";

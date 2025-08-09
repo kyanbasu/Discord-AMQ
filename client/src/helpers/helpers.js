@@ -1,4 +1,4 @@
-import { options } from "../sockets";
+import { options } from "../socketCore";
 import { updateOptions, setThemeType, setGuessMode } from "../optionsReload";
 
 let ALservice = 0; // Default to MyAnimeList = 0, 1 = AniList
