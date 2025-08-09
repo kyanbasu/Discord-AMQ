@@ -6,9 +6,10 @@
 
 @import "./secondZone.css";
 
+/* overwrites some elements.css, keep it under */
 @import "./extras.css";
 
 @import "./clientSettings.css";
 
-/* keep at the bottom */
+/* keep mobile styling at the bottom */
 @import "./mobile.css";

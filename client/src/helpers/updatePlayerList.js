@@ -17,6 +17,13 @@ export async function updatePlayerList(playerList, hostID) {
 
   players = playerList;
 
+  // Enable/disable elements based if user is host
+  if (auth.user.id === hostID) {
+    document.getElementById("PlayPause").disabled = false;
+  } else {
+    document.getElementById("PlayPause").disabled = true;
+  }
+
   players.forEach((player) => {
     // Update player list on navbar, with avatars and crown for host
     (() => {

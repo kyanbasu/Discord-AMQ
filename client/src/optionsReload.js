@@ -105,6 +105,7 @@ export function setThemeType(type) {
 let pendingOptionsUpdate = null;
 
 export function updateOptions(options) {
+  document.getElementById("PlayPause").disabled = true
   clearTimeout(pendingOptionsUpdate);
   pendingOptionsUpdate = setTimeout(() => {
     socket.emit(
@@ -113,6 +114,7 @@ export function updateOptions(options) {
       auth.user,
       options
     );
+    document.getElementById("PlayPause").disabled = false
   }, 1000);
 }
 

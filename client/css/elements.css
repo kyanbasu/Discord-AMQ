@@ -86,6 +86,18 @@ button:active {
   border-color: var(--maindark);
 }
 
+button:disabled,
+button[disabled] {
+  background: var(--maindark);
+  color: gray;
+}
+
+button:disabled::after,
+button[disabled]::after {
+  transition: none;
+  width: 0;
+}
+
 button:focus,
 button:focus-visible {
   outline: 4px auto var(--maindark);

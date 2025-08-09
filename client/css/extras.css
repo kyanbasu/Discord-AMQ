@@ -1,5 +1,7 @@
 /* Dropdown Button */
-.dropbtn {
+.dropbtn,
+.dropbtn:disabled,
+.dropbtn[disabled] {
   background: linear-gradient(to right, var(--mainlight), var(--mainlight));
   color: white;
   padding: 1em;
