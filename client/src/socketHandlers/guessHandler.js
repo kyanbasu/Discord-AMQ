@@ -34,7 +34,6 @@ export function handleGuessing(socket) {
 
     autocompleteList.innerHTML = "";
     results.forEach((result) => {
-      console.log(result.title[clientSettings.themeLang])
       const div = document.createElement("div");
       div.innerHTML = `<strong>${
         result.title[clientSettings.themeLang]

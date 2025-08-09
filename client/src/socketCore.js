@@ -1,19 +1,10 @@
-import {
-  preloadMedia,
-  setService,
-  setupOptionsGUI
-} from "./helpers/helpers";
-
-import { auth } from "./discordSetup";
-import { updatePlayerList } from "./helpers/updatePlayerList";
-import { runningLocally } from "./main";
-import { selectedPlayerType } from "./windowEventListeners";
-
-import { optionsReload } from "./optionsReload";
-
 import { io } from "socket.io-client";
+import { auth } from "./discordSetup";
+import { runningLocally } from "./main";
+
 import { handleOnAudio } from "./socketHandlers/audioHandler";
 import { handleConnection } from "./socketHandlers/connectionHandler";
+import { handleData } from "./socketHandlers/dataHandler";
 import { handleGuessing } from "./socketHandlers/guessHandler";
 import { handleMessaging } from "./socketHandlers/messageHandler";
 
@@ -37,7 +28,7 @@ const socketOptions = {
 
 var socket;
 
-var options = {};
+const options = {};
 
 const clientSettings = {
   themeLang: "ro",
@@ -69,41 +60,5 @@ export function setupSocket(socketAuth) {
 
   handleMessaging(socket);
 
-  socket.on("optionsReload", (_options, hostID) => {
-    options = _options;
-    setupOptionsGUI();
-    optionsReload(hostID);
-  });
-
-  socket.on("updatePlayerList", (playerList, host) => {
-    updatePlayerList(playerList, host);
-  });
-
-  socket.on("data-list", (username, updated, service, count) => {
-    document.getElementById("animelistname").value = username;
-    document.getElementById("lastAnimeListUpdate").innerText = new Date(
-      updated
-    ).toLocaleString();
-    setService(service, true, ` (${count} entries)`);
-  });
-
-  socket.on("clientSettingsReload", (_clientSettings) => {
-    document.getElementById("volume-slider").value = _clientSettings.volume;
-    document.getElementById("volume-slider").dispatchEvent(new Event("input"));
-    const radios = document.getElementsByName("themeTitleLanguage");
-    for (let radio of radios) {
-      if (radio.value === _clientSettings.themeLang) {
-        radio.checked = true;
-        // Optional: trigger change event if needed
-        const changeEvent = new Event("change", { bubbles: true });
-        radio.dispatchEvent(changeEvent);
-        break;
-      }
-    }
-  });
-
-  socket.on("cacheURL", (url) => {
-    console.log(url);
-    preloadMedia(url, selectedPlayerType);
-  });
+  handleData(socket);
 }

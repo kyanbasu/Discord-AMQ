@@ -1,5 +1,6 @@
 import { discordSdk, dscstatus } from "../discordSetup";
 import { player, videoPlayer } from "../main";
+import { options } from "../socketCore";
 import { selectedPlayerType } from "../windowEventListeners";
 
 import * as Sentry from "@sentry/browser";

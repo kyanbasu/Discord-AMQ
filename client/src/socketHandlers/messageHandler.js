@@ -1,7 +1,7 @@
-import { resetSongCounter } from "./audioHandler";
 import { discordSdk, dscstatus } from "../discordSetup";
 import { displayAnnoucement, displayMessage } from "../helpers/helpers";
 import { player, videoPlayer } from "../main";
+import { resetSongCounter } from "./audioHandler";
 
 export function handleMessaging(socket) {
   socket.on("message", async (text, additionalInfo = null) => {
