@@ -1,10 +1,18 @@
-import { options } from "../socketCore";
-import { updateOptions, setThemeType, setGuessMode } from "../optionsReload";
+import { options } from "src/socketCore.js";
+import {
+  updateOptions,
+  setThemeType,
+  setGuessMode,
+} from "src/optionsReload.js";
+import {
+  guessesCountInputEl,
+  guessTimeInputEl,
+  loadingProgressEl,
+  queueSizeInputEl,
+} from "src/appElements.js";
 
 let ALservice = 0; // Default to MyAnimeList = 0, 1 = AniList
 const ALservices = ["MyAnimeList", "AniList"];
-
-
 
 export function setService(_service, fromServer = false, astr = "") {
   ALservice = _service;
@@ -153,35 +161,35 @@ export function setupOptionsGUI() {
   document.getElementById("animeService").append(btnAl);
 
   // Guess options
-  let queueSizeInput = document.getElementById("queueSize");
-  queueSizeInput.addEventListener("change", () => {
+  queueSizeInputEl.addEventListener("change", () => {
     const val = Math.min(
-      queueSizeInput.max,
-      Math.max(queueSizeInput.min, queueSizeInput.value)
+      Number(queueSizeInputEl.max),
+      Math.max(Number(queueSizeInputEl.min), Number(queueSizeInputEl.value))
     );
-    queueSizeInput.value = val;
+    queueSizeInputEl.value = val.toString();
     options.queueSize = val;
     updateOptions(options);
   });
 
-  let guessTimeInput = document.getElementById("guessTime");
-  guessTimeInput.addEventListener("change", () => {
+  guessTimeInputEl.addEventListener("change", () => {
     const val = Math.min(
-      guessTimeInput.max,
-      Math.max(guessTimeInput.min, guessTimeInput.value)
+      Number(guessTimeInputEl.max),
+      Math.max(Number(guessTimeInputEl.min), Number(guessTimeInputEl.value))
     );
-    guessTimeInput.value = val;
+    guessTimeInputEl.value = val.toString();
     options.guessTime = val;
     updateOptions(options);
   });
 
-  let guessesCount = document.getElementById("guessesCount");
-  guessesCount.addEventListener("change", () => {
+  guessesCountInputEl.addEventListener("change", () => {
     const val = Math.min(
-      guessesCount.max,
-      Math.max(guessesCount.min, guessesCount.value)
+      Number(guessesCountInputEl.max),
+      Math.max(
+        Number(guessesCountInputEl.min),
+        Number(guessesCountInputEl.value)
+      )
     );
-    guessesCount.value = val;
+    guessesCountInputEl.value = val.toString();
     options.guessesCount = val;
     updateOptions(options);
   });
@@ -193,8 +201,7 @@ let loadingProgress = 0;
 const maxLoadingItems = 4;
 export function incrementLoading(state = "") {
   loadingProgress++;
-  document.getElementById("loading-progress").value =
-    (loadingProgress / maxLoadingItems) * 100;
+  loadingProgressEl.value = (loadingProgress / maxLoadingItems) * 100;
 
   document.getElementById("loading-state").innerText = state;
 

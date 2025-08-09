@@ -1,8 +1,8 @@
-import { auth, discordSdk } from "../discordSetup";
-import { displayMessage, incrementLoading } from "../helpers/helpers";
+import { auth, discordSdk } from "src/discordSetup.js";
+import { displayMessage, incrementLoading } from "src/helpers/helpers.js";
 
 import * as Sentry from "@sentry/browser";
-import { socket } from "../socketCore";
+import { socket } from "src/socketCore.js";
 
 export function handleConnection(socket) {
   socket.on("disconnect", (reason, details) => {

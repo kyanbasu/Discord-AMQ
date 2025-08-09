@@ -1,10 +1,12 @@
+// @ts-ignore
 import crownSrc from "/static/crown.svg";
 
-import { runningLocally } from "../main";
-import { auth } from "../discordSetup";
-import { options } from "../socketCore";
-import { updateOptions } from "../optionsReload";
-import { gameSettingsRefresh } from "./helpers";
+import { auth } from "src/discordSetup.js";
+import { runningLocally } from "src/main.js";
+import { updateOptions } from "src/optionsReload.js";
+import { options } from "src/socketCore.js";
+import { gameSettingsRefresh } from "./helpers.js";
+import { playPauseEl } from "src/appElements.js";
 
 var players = {};
 
@@ -19,9 +21,9 @@ export async function updatePlayerList(playerList, hostID) {
 
   // Enable/disable elements based if user is host
   if (auth.user.id === hostID) {
-    document.getElementById("PlayPause").disabled = false;
+    playPauseEl.disabled = false;
   } else {
-    document.getElementById("PlayPause").disabled = true;
+    playPauseEl.disabled = true;
   }
 
   players.forEach((player) => {
@@ -104,7 +106,7 @@ export async function updatePlayerList(playerList, hostID) {
       if (auth.user.id === hostID) {
         checkbox.addEventListener("change", setPlayerIncluded);
       } else {
-        checkbox.setAttribute("disabled", true);
+        checkbox.setAttribute("disabled", "true");
       }
     })();
   });

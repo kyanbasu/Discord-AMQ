@@ -1,17 +1,15 @@
-import { displayAnnoucement } from "./helpers/helpers";
-
-import { socket, options } from "./socketCore";
-
-import { auth } from "./discordSetup";
-import { discordSdk } from "./discordSetup";
+import { chatInputEl, playerTypeSwitchEl } from "./appElements.js";
+import { auth, discordSdk } from "./discordSetup.js";
+import { displayAnnoucement } from "./helpers/helpers.js";
+import { options, socket } from "./socketCore.js";
 
 export { selectedPlayerType };
 
 // Switching between playing audio/video of a theme
 let selectedPlayerType = "ogg";
-document.getElementById("playerTypeSwitch").addEventListener("change", () => {
-  if (options.novideo && document.getElementById("playerTypeSwitch").checked) {
-    document.getElementById("playerTypeSwitch").checked = 0;
+playerTypeSwitchEl.addEventListener("change", () => {
+  if (options.novideo && playerTypeSwitchEl.checked) {
+    playerTypeSwitchEl.checked = false;
     displayAnnoucement(
       "Video is disabled on the server, using audio only mode",
       1
@@ -19,8 +17,7 @@ document.getElementById("playerTypeSwitch").addEventListener("change", () => {
     selectedPlayerType = "ogg";
     return;
   }
-  if (document.getElementById("playerTypeSwitch").checked)
-    selectedPlayerType = "webm";
+  if (playerTypeSwitchEl.checked) selectedPlayerType = "webm";
   else selectedPlayerType = "ogg";
 });
 
@@ -28,18 +25,18 @@ document.getElementById("playerTypeSwitch").addEventListener("change", () => {
 document.getElementById("chatbtn").onclick = () => {
   sendMessage();
 };
-document.getElementById("chatin").onkeyup = (e) => {
+chatInputEl.onkeyup = (e) => {
   if (e.key === "Enter") {
     sendMessage();
   }
 };
 function sendMessage() {
-  const text = document.getElementById("chatin").value;
+  const text = chatInputEl.value;
   if (text.length > 0 && auth)
     socket.emit(
       "message",
       `${discordSdk.guildId}/${discordSdk.channelId}`,
       `${auth.user.global_name}: ${text}`
     );
-  document.getElementById("chatin").value = "";
+  chatInputEl.value = "";
 }

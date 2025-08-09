@@ -34,76 +34,78 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
 });
 
-import { connectDiscord, connectFakeDiscord, discordSdk } from "./discordSetup";
+import {
+  connectDiscord,
+  connectFakeDiscord,
+  discordSdk,
+} from "./discordSetup.js";
 
-import { socket, options, updatedClientSettings } from "./socketCore";
+import { socket, options, updatedClientSettings } from "./socketCore.js";
 
 import "../css/style.css";
-import { Skip } from "./windowFunctions";
+import { Skip } from "./windowFunctions.js";
+import { playerContainerEl, videoPlayerEl, volumeSliderEl } from "./appElements.js";
 
-export { videoPlayer, player, runningLocally };
+export { runningLocally };
 
 document.getElementById("Skip").hidden = true;
 document.getElementById("guessingZone").hidden = true;
 
 document.getElementById("playerTypeSwitch").dispatchEvent(new Event("change"));
 
-let videoPlayer = document.getElementById("videoPlayer");
-let player = document.getElementById("player");
-
 if (runningLocally) {
   connectFakeDiscord();
 } else {
-  await connectDiscord();
+  connectDiscord();
 }
 
-player.hidden = true;
+playerContainerEl.hidden = true;
 
 // if (window.innerHeight < window.innerWidth) player.style.top = "100px";
 // else player.style.left = "20px";
 
-videoPlayer.volume = 0.1;
-document.getElementById("volume-slider").value = videoPlayer.volume;
-document.getElementById("volume-slider").style.background =
+videoPlayerEl.volume = 0.1;
+volumeSliderEl.value = videoPlayerEl.volume.toString();
+volumeSliderEl.style.background =
   "linear-gradient(0deg, rgb(80,0,20), rgb(80,0,20) " +
-  Math.floor(document.getElementById("volume-slider").value * 100 - 1) +
+  Math.floor(Number(volumeSliderEl.value) * 100 - 1) +
   "%, #363232 " +
-  Math.floor(document.getElementById("volume-slider").value * 100) +
+  Math.floor(Number(volumeSliderEl.value) * 100) +
   "%, #363232)";
 
-document.getElementById("volume-slider").oninput = () => {
-  let value = document.getElementById("volume-slider").value;
-  videoPlayer.volume = value;
+volumeSliderEl.oninput = () => {
+  let value = volumeSliderEl.value;
+  videoPlayerEl.volume = Number(value);
   updatedClientSettings();
-  document.getElementById("volume-slider").style.background =
+  volumeSliderEl.style.background =
     "linear-gradient(0deg, rgb(80,0,20), rgb(80,0,20) " +
-    Math.floor(value * 100 - 1) +
+    Math.floor(Number(value) * 100 - 1) +
     "%, #363232 " +
-    Math.floor(value * 100) +
+    Math.floor(Number(value) * 100) +
     "%, #363232)";
 };
 
-videoPlayer.ontimeupdate = () => {
-  if (videoPlayer.currentTime < options.guessTime)
+videoPlayerEl.ontimeupdate = () => {
+  if (videoPlayerEl.currentTime < options.guessTime)
     document.getElementById("progress").style.width = `${
-      (videoPlayer.currentTime / options.guessTime) * 100
+      (videoPlayerEl.currentTime / options.guessTime) * 100
     }%`;
   else
     document.getElementById("progress").style.width = `${
-      (videoPlayer.currentTime / videoPlayer.duration) * 100
+      (videoPlayerEl.currentTime / videoPlayerEl.duration) * 100
     }%`;
 
   if (
-    videoPlayer.duration - videoPlayer.currentTime < 5 &&
-    !videoPlayer.triggeredSkip
+    videoPlayerEl.duration - videoPlayerEl.currentTime < 5 &&
+    !videoPlayerEl.triggeredSkip
   ) {
-    videoPlayer.triggeredSkip = true;
+    videoPlayerEl.triggeredSkip = true;
     Skip();
   }
 };
 
-videoPlayer.onended = () => {
-  player.hidden = true;
+videoPlayerEl.onended = () => {
+  playerContainerEl.hidden = true;
 };
 
 let UpdateTextGuessAutocompleteTimeout = null;
@@ -112,12 +114,12 @@ export function UpdateTextGuessAutocomplete() {
   if (UpdateTextGuessAutocompleteTimeout) return;
   UpdateTextGuessAutocompleteTimeout = setTimeout(() => {
     UpdateTextGuessAutocompleteTimeout = null;
-    if (document.getElementById("animeTextGuess").value.length < 2)
-      return (document.getElementById("autocomplete-list").innerHTML = "");
-    socket.emit(
-      "autocomplete",
-      document.getElementById("animeTextGuess").value
+    const animeTextGuess = /** @type {HTMLInputElement} */ (
+      document.getElementById("animeTextGuess")
     );
+    if (animeTextGuess.value.length < 2)
+      return (document.getElementById("autocomplete-list").innerHTML = "");
+    socket.emit("autocomplete", animeTextGuess.value);
   }, 300);
 }
 

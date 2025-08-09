@@ -1,12 +1,20 @@
+import { resolve } from "path";
 import { defineConfig } from "vite";
 import { loadEnv } from "vite";
 import handlebars from "vite-plugin-handlebars";
 
 // https://vitejs.dev/config/
+// @ts-ignore
 export default defineConfig((mode) => {
+  // @ts-ignore
   const env = loadEnv(mode, "../", "");
 
   return {
+    resolve: {
+      alias: {
+        src: resolve(__dirname, "src")
+      }
+    },
     envDir: "../",
     server: {
       proxy: {
@@ -47,6 +55,7 @@ export default defineConfig((mode) => {
     plugins: [
       handlebars({
         // point to the folder where your partials live:
+        // @ts-ignore
         partialDirectory: "html",
         // (optional) turn off full page reload when a partial changes:
         reloadOnPartialChange: false,

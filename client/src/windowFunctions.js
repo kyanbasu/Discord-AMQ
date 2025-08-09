@@ -1,8 +1,12 @@
-import { displayAnnoucement, getService } from "./helpers/helpers";
-import { auth } from "./discordSetup";
-import { discordSdk } from "./discordSetup";
+import { auth, discordSdk } from "src/discordSetup.js";
+import { displayAnnoucement, getService } from "src/helpers/helpers.js";
 
-import { clientSettings, socket, updatedClientSettings } from "./socketCore";
+import {
+  clientSettings,
+  socket,
+  updatedClientSettings,
+} from "src/socketCore.js";
+import { animeListNameEl } from "./appElements.js";
 // let animes = [];
 
 export function PlayPause() {
@@ -33,7 +37,7 @@ export function UpdateAnimeList() {
     "updateAL",
     `${discordSdk.guildId}/${discordSdk.channelId}`,
     auth.user,
-    document.getElementById("animelistname").value,
+    animeListNameEl.value,
     getService()
   );
   canUpdateAL = false;

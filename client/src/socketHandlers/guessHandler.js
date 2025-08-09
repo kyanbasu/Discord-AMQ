@@ -1,15 +1,15 @@
-import { auth } from "../discordSetup";
-import { displayMessage } from "../helpers/helpers";
-import { player } from "../main";
-import { autocompleteList } from "../optionsReload";
-import { clientSettings } from "../socketCore";
+import { playerContainerEl } from "src/appElements.js";
+import { auth } from "src/discordSetup.js";
+import { displayMessage } from "src/helpers/helpers.js";
+import { autocompleteList } from "src/optionsReload.js";
+import { clientSettings } from "src/socketCore.js";
 
 export function handleGuessing(socket) {
   socket.on("correctGuess", (title, themeType, usr) => {
     document.getElementById("themeTitle").innerText = `${
       title[clientSettings.themeLang]
     } ${themeType}`;
-    player.hidden = false;
+    playerContainerEl.hidden = false;
     autocompleteList.innerHTML = "";
     document.getElementById("guessingZone").hidden = true;
     displayMessage(
@@ -39,8 +39,9 @@ export function handleGuessing(socket) {
         result.title[clientSettings.themeLang]
       }</strong>`;
       div.addEventListener("click", () => {
-        document.getElementById("animeTextGuess").value =
-          result.title[clientSettings.themeLang];
+        /** @type {HTMLInputElement} */ (
+          document.getElementById("animeTextGuess")
+        ).value = result.title[clientSettings.themeLang];
         console.log("clicked ", result.id);
         socket.emit("guess", auth.user, result.id);
         autocompleteList.innerHTML = "";

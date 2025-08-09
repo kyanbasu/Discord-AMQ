@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es2024",
+    "module": "node16",
+    "allowJs": true,
+    "checkJs": true,
+    "noImplicitAny": false,
+    "moduleResolution": "node16",
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"]
+    },
+    "noEmit": true,
+    "lib": ["ES2020", "DOM"]
+  },
+  "include": ["src/**/*", "*.js"],
+  "exclude": ["node_modules"]
+}

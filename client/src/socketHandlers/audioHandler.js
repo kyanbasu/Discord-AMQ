@@ -1,7 +1,12 @@
-import { discordSdk, dscstatus } from "../discordSetup";
-import { player, videoPlayer } from "../main";
-import { options } from "../socketCore";
-import { selectedPlayerType } from "../windowEventListeners";
+import {
+  playerContainerEl,
+  videoPlayerEl,
+  videoPlayerImgBgEl,
+  videoPlayerImgEl,
+} from "src/appElements.js";
+import { discordSdk, dscstatus } from "src/discordSetup.js";
+import { clientSettings, options } from "src/socketCore.js";
+import { selectedPlayerType } from "src/windowEventListeners.js";
 
 import * as Sentry from "@sentry/browser";
 
@@ -18,7 +23,9 @@ export function handleOnAudio(socket) {
           document.getElementById(`guess${i}`).classList.remove("guessButton");
         }
       } else {
-        const animeTextGuess = document.getElementById("animeTextGuess");
+        const animeTextGuess = /** @type {HTMLInputElement} */ (
+          document.getElementById("animeTextGuess")
+        );
         if (animeTextGuess) animeTextGuess.value = "";
       }
       document.getElementById("guessingZone").hidden = false;
@@ -28,21 +35,19 @@ export function handleOnAudio(socket) {
       dscstatus.activity.details = `In game ${songCounter} of ${options.queueSize}`;
       await discordSdk.commands.setActivity(dscstatus);
 
-      player.hidden = true;
-      videoPlayer.src = `media/${url}/${selectedPlayerType}`;
-      videoPlayer.triggeredSkip = false;
+      playerContainerEl.hidden = true;
+      videoPlayerEl.src = `media/${url}/${selectedPlayerType}`;
+      videoPlayerEl.triggeredSkip = false;
 
-      document.getElementById(
-        "videoPlayerImgBg"
-      ).style.backgroundImage = `url('media/${url}/jpg')`;
+      videoPlayerImgBgEl.style.backgroundImage = `url('media/${url}/jpg')`;
 
       let _src = "";
       if (selectedPlayerType == "ogg") _src = `media/${url}/jpg`;
 
-      document.getElementById("videoPlayerImg").src = _src;
+      videoPlayerImgEl.src = _src;
 
       document.getElementById("Skip").hidden = true;
-      videoPlayer.play();
+      videoPlayerEl.play();
     } catch (e) {
       Sentry.withScope((scope) => {
         scope.setTag("socket.on", "audio");

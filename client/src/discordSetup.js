@@ -1,8 +1,9 @@
 import { DiscordSDK } from "@discord/embedded-app-sdk";
 import * as Sentry from "@sentry/browser";
-import { appendVoiceChannelName, incrementLoading } from "./helpers/helpers";
+import { appendVoiceChannelName, incrementLoading } from "./helpers/helpers.js";
 
-import { setupSocket, socket } from "./socketCore";
+import { setupSocket, socket } from "./socketCore.js";
+import { playerContainerEl } from "./appElements.js";
 
 export { dscstatus, discordSdk, auth };
 
@@ -38,8 +39,10 @@ async function setupDiscordSdk(discordSdk) {
       code,
     }),
   }).catch((e) => {
-    console.log(JSON.stringify(e));
+    console.error(JSON.stringify(e));
   });
+
+  if (!response) return;
 
   const { access_token } = await response.json();
 
@@ -111,10 +114,10 @@ export async function connectDiscord() {
   const handleLayoutModeUpdate = (update) => {
     if (update.layout_mode <= 0) {
       // UNHANDLED or FOCUSED
-      player.classList.remove("playerPIP");
+      playerContainerEl.classList.remove("playerPIP");
     } else {
       // PIP, GRID
-      player.classList.add("playerPIP");
+      playerContainerEl.classList.add("playerPIP");
     }
   };
 

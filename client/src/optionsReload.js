@@ -1,8 +1,13 @@
+import {
+  guessesCountInputEl,
+  guessTimeInputEl,
+  playPauseEl,
+  queueSizeInputEl,
+} from "./appElements.js";
+import { auth, discordSdk } from "./discordSetup.js";
 import { gameSettingsRefresh } from "./helpers/helpers.js";
 import { UpdateTextGuessAutocomplete } from "./main.js";
-import { auth } from "./discordSetup.js";
-import { discordSdk } from "./discordSetup.js";
-import { socket, options } from "./socketCore.js";
+import { options, socket } from "./socketCore.js";
 
 let autocompleteList;
 
@@ -21,7 +26,9 @@ export function optionsReload(hostID) {
   switch (options.guessingMode) {
     case "SELECTING":
       for (let i = 0; i < options.guessesCount; i++) {
-        const el = document.createElement("button");
+        const el = /** @type {HTMLButtonElement & {index: number}} */ (
+          document.createElement("button")
+        );
         el.id = `guess${i}`;
         el.addEventListener("click", GuessSelection);
         el.index = i;
@@ -63,9 +70,9 @@ export function optionsReload(hostID) {
         return "unknown";
     }
   })();
-  document.getElementById("queueSize").value = options.queueSize;
-  document.getElementById("guessTime").value = options.guessTime;
-  document.getElementById("guessesCount").value = options.guessesCount;
+  queueSizeInputEl.value = options.queueSize;
+  guessTimeInputEl.value = options.guessTime;
+  guessesCountInputEl.value = options.guessesCount;
 
   if (options.novideo) {
     document
@@ -75,7 +82,9 @@ export function optionsReload(hostID) {
 
   Object.entries(options.playerList).forEach(
     ([playerId, { included, entries }]) => {
-      const checkbox = document.getElementById(`checkbox-${playerId}`);
+      const checkbox = /** @type {HTMLInputElement} */ (
+        document.getElementById(`checkbox-${playerId}`)
+      );
       if (checkbox) {
         checkbox.checked = included;
       }
@@ -105,7 +114,7 @@ export function setThemeType(type) {
 let pendingOptionsUpdate = null;
 
 export function updateOptions(options) {
-  document.getElementById("PlayPause").disabled = true
+  playPauseEl.disabled = true;
   clearTimeout(pendingOptionsUpdate);
   pendingOptionsUpdate = setTimeout(() => {
     socket.emit(
@@ -114,7 +123,7 @@ export function updateOptions(options) {
       auth.user,
       options
     );
-    document.getElementById("PlayPause").disabled = false
+    playPauseEl.disabled = false;
   }, 1000);
 }
 

@@ -1,7 +1,7 @@
-import { discordSdk, dscstatus } from "../discordSetup";
-import { displayAnnoucement, displayMessage } from "../helpers/helpers";
-import { player, videoPlayer } from "../main";
-import { resetSongCounter } from "./audioHandler";
+import { playerContainerEl, videoPlayerEl } from "src/appElements.js";
+import { discordSdk, dscstatus } from "src/discordSetup.js";
+import { displayAnnoucement, displayMessage } from "src/helpers/helpers.js";
+import { resetSongCounter } from "./audioHandler.js";
 
 export function handleMessaging(socket) {
   socket.on("message", async (text, additionalInfo = null) => {
@@ -18,8 +18,8 @@ export function handleMessaging(socket) {
 
       case "end":
         document.getElementById("PlayPause").innerHTML = "Play";
-        videoPlayer.src = "";
-        player.hidden = true;
+        videoPlayerEl.src = "";
+        playerContainerEl.hidden = true;
         document.getElementById("guessingZone").hidden = true;
         document.getElementById("options").hidden = false;
         dscstatus.activity.details = "In the lobby";
