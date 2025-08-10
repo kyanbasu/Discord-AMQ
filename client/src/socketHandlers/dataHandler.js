@@ -1,12 +1,19 @@
-import { preloadMedia, setService, setupOptionsGUI } from "src/helpers/helpers.js";
+import {
+  preloadMedia,
+  setService,
+  setupOptionsGUI,
+} from "src/helpers/helpers.js";
 
 import { updatePlayerList } from "src/helpers/updatePlayerList.js";
 import { options } from "src/socketCore.js";
 import { selectedPlayerType } from "src/windowEventListeners.js";
 
+import {
+  animeListNameEl,
+  lastAnimeListUpdateEl,
+  volumeSliderEl,
+} from "src/appElements.js";
 import { optionsReload } from "src/optionsReload.js";
-import { animeListNameEl, volumeSliderEl } from "src/appElements.js";
-
 
 export function handleData(socket) {
   socket.on("optionsReload", (newOptions, hostID) => {
@@ -21,16 +28,16 @@ export function handleData(socket) {
 
   socket.on("data-list", (username, updated, service, count) => {
     animeListNameEl.value = username;
-    document.getElementById("lastAnimeListUpdate").innerText = new Date(
-      updated
-    ).toLocaleString();
+    lastAnimeListUpdateEl.innerText = new Date(updated).toLocaleString();
     setService(service, true, ` (${count} entries)`);
   });
 
   socket.on("clientSettingsReload", (_clientSettings) => {
     volumeSliderEl.value = _clientSettings.volume;
     volumeSliderEl.dispatchEvent(new Event("input"));
-    const radios = /** @type {NodeListOf<HTMLInputElement>} */ (document.getElementsByName("themeTitleLanguage"));
+    const radios = /** @type {NodeListOf<HTMLInputElement>} */ (
+      document.getElementsByName("themeTitleLanguage")
+    );
     // @ts-ignore
     for (let radio of radios) {
       if (radio.value === _clientSettings.themeLang) {

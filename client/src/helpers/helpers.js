@@ -1,15 +1,21 @@
-import { options } from "src/socketCore.js";
 import {
-  updateOptions,
-  setThemeType,
-  setGuessMode,
-} from "src/optionsReload.js";
-import {
+  animeServiceButtonEl,
+  animeServiceEl,
+  chatListEl,
+  currentServiceEl,
   guessesCountInputEl,
+  guessModeEl,
   guessTimeInputEl,
   loadingProgressEl,
   queueSizeInputEl,
+  themeTypeEl,
 } from "src/appElements.js";
+import {
+  setGuessMode,
+  setThemeType,
+  updateOptions,
+} from "src/optionsReload.js";
+import { options } from "src/socketCore.js";
 
 let ALservice = 0; // Default to MyAnimeList = 0, 1 = AniList
 const ALservices = ["MyAnimeList", "AniList"];
@@ -17,11 +23,10 @@ const ALservices = ["MyAnimeList", "AniList"];
 export function setService(_service, fromServer = false, astr = "") {
   ALservice = _service;
 
-  document.getElementById("animeServicebtn").innerHTML = ALservices[ALservice];
+  animeServiceButtonEl.innerHTML = ALservices[ALservice];
 
   if (fromServer) {
-    document.getElementById("currentService").innerText =
-      ALservices[ALservice] + astr;
+    currentServiceEl.innerText = ALservices[ALservice] + astr;
   }
 }
 
@@ -70,9 +75,8 @@ export function displayMessage(message) {
   const el = document.createElement("li");
   el.innerHTML = message;
   el.style.float = "none";
-  document.getElementById("chat").appendChild(el);
-  document.getElementById("chat").scrollTop =
-    document.getElementById("chat").scrollHeight;
+  chatListEl.appendChild(el);
+  chatListEl.scrollTop = chatListEl.scrollHeight;
 }
 
 export function displayAnnoucement(message, importanceLevel) {
@@ -102,20 +106,16 @@ export function displayAnnoucement(message, importanceLevel) {
 }
 
 export function gameSettingsRefresh(isHost) {
-  const queueSize = document.getElementById("queueSize");
-  const guessTime = document.getElementById("guessTime");
-  const guessesCount = document.getElementById("guessesCount");
-
   if (isHost) {
-    queueSize.removeAttribute("disabled");
-    guessTime.removeAttribute("disabled");
+    queueSizeInputEl.removeAttribute("disabled");
+    guessTimeInputEl.removeAttribute("disabled");
     if (options.guessingMode === "SELECTING")
-      guessesCount.removeAttribute("disabled");
-    else guessesCount.setAttribute("disabled", "true");
+      guessesCountInputEl.removeAttribute("disabled");
+    else guessesCountInputEl.setAttribute("disabled", "true");
   } else {
-    queueSize.setAttribute("disabled", "true");
-    guessTime.setAttribute("disabled", "true");
-    guessesCount.setAttribute("disabled", "true");
+    queueSizeInputEl.setAttribute("disabled", "true");
+    guessTimeInputEl.setAttribute("disabled", "true");
+    guessesCountInputEl.setAttribute("disabled", "true");
   }
 }
 
@@ -126,39 +126,39 @@ export function setupOptionsGUI() {
   let btnSelecting = document.createElement("button");
   btnSelecting.innerHTML = "Selecting";
   btnSelecting.addEventListener("click", () => setGuessMode("SELECTING"));
-  document.getElementById("guessMode").append(btnSelecting);
+  guessModeEl.append(btnSelecting);
 
   let btnTyping = document.createElement("button");
   btnTyping.innerHTML = "Typing";
   btnTyping.addEventListener("click", () => setGuessMode("TYPING"));
-  document.getElementById("guessMode").append(btnTyping);
+  guessModeEl.append(btnTyping);
 
   // Theme types
   let btnOP = document.createElement("button");
   btnOP.innerHTML = "OP";
   btnOP.addEventListener("click", () => setThemeType("OP"));
-  document.getElementById("themeType").append(btnOP);
+  themeTypeEl.append(btnOP);
 
   let btnED = document.createElement("button");
   btnED.innerHTML = "ED";
   btnED.addEventListener("click", () => setThemeType("ED"));
-  document.getElementById("themeType").append(btnED);
+  themeTypeEl.append(btnED);
 
   let btnALL = document.createElement("button");
   btnALL.innerHTML = "ALL";
   btnALL.addEventListener("click", () => setThemeType("ALL"));
-  document.getElementById("themeType").append(btnALL);
+  themeTypeEl.append(btnALL);
 
   // Anime list service selector
   let btnMal = document.createElement("button");
   btnMal.innerHTML = ALservices[0];
   btnMal.addEventListener("click", () => setService(0));
-  document.getElementById("animeService").append(btnMal);
+  animeServiceEl.append(btnMal);
 
   let btnAl = document.createElement("button");
   btnAl.innerHTML = ALservices[1];
   btnAl.addEventListener("click", () => setService(1));
-  document.getElementById("animeService").append(btnAl);
+  animeServiceEl.append(btnAl);
 
   // Guess options
   queueSizeInputEl.addEventListener("change", () => {

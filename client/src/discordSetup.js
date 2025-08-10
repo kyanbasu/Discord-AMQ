@@ -1,11 +1,10 @@
 import { DiscordSDK } from "@discord/embedded-app-sdk";
 import * as Sentry from "@sentry/browser";
-import { appendVoiceChannelName, incrementLoading } from "./helpers/helpers.js";
-
-import { setupSocket, socket } from "./socketCore.js";
 import { playerContainerEl } from "./appElements.js";
+import { appendVoiceChannelName, incrementLoading } from "./helpers/helpers.js";
+import { setupSocket, socket } from "./socketCore.js";
 
-export { dscstatus, discordSdk, auth };
+export { auth, discordSdk, dscstatus };
 
 // Will eventually store the authenticated user's access_token
 var auth;

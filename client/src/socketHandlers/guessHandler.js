@@ -1,4 +1,9 @@
-import { playerContainerEl } from "src/appElements.js";
+import {
+  guessingZoneEl,
+  playerContainerEl,
+  skipButtonEl,
+  themeTitleEl,
+} from "src/appElements.js";
 import { auth } from "src/discordSetup.js";
 import { displayMessage } from "src/helpers/helpers.js";
 import { autocompleteList } from "src/optionsReload.js";
@@ -6,19 +11,17 @@ import { clientSettings } from "src/socketCore.js";
 
 export function handleGuessing(socket) {
   socket.on("correctGuess", (title, themeType, usr) => {
-    document.getElementById("themeTitle").innerText = `${
-      title[clientSettings.themeLang]
-    } ${themeType}`;
+    themeTitleEl.innerText = `${title[clientSettings.themeLang]} ${themeType}`;
     playerContainerEl.hidden = false;
     autocompleteList.innerHTML = "";
-    document.getElementById("guessingZone").hidden = true;
+    guessingZoneEl.hidden = true;
     displayMessage(
       `That was ${
         title[clientSettings.themeLang]
       } ${themeType} from ${usr}'s list`
     );
     setTimeout(() => {
-      document.getElementById("Skip").hidden = false;
+      skipButtonEl.hidden = false;
     }, 3000);
   });
 

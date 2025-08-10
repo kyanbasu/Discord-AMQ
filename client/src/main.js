@@ -40,18 +40,25 @@ import {
   discordSdk,
 } from "./discordSetup.js";
 
-import { socket, options, updatedClientSettings } from "./socketCore.js";
+import { options, socket, updatedClientSettings } from "./socketCore.js";
 
 import "../css/style.css";
+import {
+  guessingZoneEl,
+  playerContainerEl,
+  playerTypeSwitchEl,
+  skipButtonEl,
+  videoPlayerEl,
+  volumeSliderEl,
+} from "./appElements.js";
 import { Skip } from "./windowFunctions.js";
-import { playerContainerEl, videoPlayerEl, volumeSliderEl } from "./appElements.js";
 
 export { runningLocally };
 
-document.getElementById("Skip").hidden = true;
-document.getElementById("guessingZone").hidden = true;
+skipButtonEl.hidden = true;
+guessingZoneEl.hidden = true;
 
-document.getElementById("playerTypeSwitch").dispatchEvent(new Event("change"));
+playerTypeSwitchEl.dispatchEvent(new Event("change"));
 
 if (runningLocally) {
   connectFakeDiscord();

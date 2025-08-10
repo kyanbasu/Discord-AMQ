@@ -1,4 +1,8 @@
-import { chatInputEl, playerTypeSwitchEl } from "./appElements.js";
+import {
+  chatButtonEl,
+  chatInputEl,
+  playerTypeSwitchEl,
+} from "./appElements.js";
 import { auth, discordSdk } from "./discordSetup.js";
 import { displayAnnoucement } from "./helpers/helpers.js";
 import { options, socket } from "./socketCore.js";
@@ -22,7 +26,7 @@ playerTypeSwitchEl.addEventListener("change", () => {
 });
 
 // Chat messages
-document.getElementById("chatbtn").onclick = () => {
+chatButtonEl.onclick = () => {
   sendMessage();
 };
 chatInputEl.onkeyup = (e) => {

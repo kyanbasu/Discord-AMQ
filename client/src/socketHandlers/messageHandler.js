@@ -1,4 +1,11 @@
-import { playerContainerEl, videoPlayerEl } from "src/appElements.js";
+import {
+  guessingZoneEl,
+  optionsEl,
+  playerContainerEl,
+  playPauseEl,
+  skipButtonEl,
+  videoPlayerEl,
+} from "src/appElements.js";
 import { discordSdk, dscstatus } from "src/discordSetup.js";
 import { displayAnnoucement, displayMessage } from "src/helpers/helpers.js";
 import { resetSongCounter } from "./audioHandler.js";
@@ -8,29 +15,29 @@ export function handleMessaging(socket) {
     displayMessage(text);
     switch (additionalInfo) {
       case "pause":
-        document.getElementById("PlayPause").innerHTML = "Play";
+        playPauseEl.innerHTML = "Play";
         break;
 
       case "play":
-        document.getElementById("PlayPause").innerHTML = "Pause";
-        document.getElementById("options").hidden = true;
+        playPauseEl.innerHTML = "Pause";
+        optionsEl.hidden = true;
         break;
 
       case "end":
-        document.getElementById("PlayPause").innerHTML = "Play";
+        playPauseEl.innerHTML = "Play";
         videoPlayerEl.src = "";
         playerContainerEl.hidden = true;
-        document.getElementById("guessingZone").hidden = true;
-        document.getElementById("options").hidden = false;
+        guessingZoneEl.hidden = true;
+        optionsEl.hidden = false;
         dscstatus.activity.details = "In the lobby";
         resetSongCounter();
         await discordSdk.commands.setActivity(dscstatus);
         break;
 
       case "playing": //when lobby is in game and playing
-        document.getElementById("options").hidden = true;
-        document.getElementById("player").hidden = false;
-        document.getElementById("Skip").hidden = false;
+        optionsEl.hidden = true;
+        playerContainerEl.hidden = false;
+        skipButtonEl.hidden = false;
         break;
 
       default:

@@ -1,9 +1,13 @@
 import {
   guessesCountInputEl,
+  guessingZoneEl,
+  guessModeButtonEl,
   guessTimeInputEl,
   playPauseEl,
   queueSizeInputEl,
+  themeTypeButtonEl,
 } from "./appElements.js";
+
 import { auth, discordSdk } from "./discordSetup.js";
 import { gameSettingsRefresh } from "./helpers/helpers.js";
 import { UpdateTextGuessAutocomplete } from "./main.js";
@@ -20,7 +24,7 @@ Options are:
    TYPING - need to write entire name (with help of autocomplete)
 */
 export function optionsReload(hostID) {
-  document.getElementById("guessingZone").innerHTML = ""; // clears guessing zone
+  guessingZoneEl.innerHTML = ""; // clears guessing zone
 
   //currently only works with picker
   switch (options.guessingMode) {
@@ -32,12 +36,12 @@ export function optionsReload(hostID) {
         el.id = `guess${i}`;
         el.addEventListener("click", GuessSelection);
         el.index = i;
-        document.getElementById("guessingZone").append(el);
+        guessingZoneEl.append(el);
       }
       break;
 
     case "TYPING":
-      document.getElementById("guessingZone").innerHTML = `
+      guessingZoneEl.innerHTML = `
         <div class="autocomplete">
           <input
             type="text"
@@ -59,8 +63,8 @@ export function optionsReload(hostID) {
       break;
   }
 
-  document.getElementById("themeTypebtn").innerHTML = options.themeType;
-  document.getElementById("guessModebtn").innerHTML = (() => {
+  themeTypeButtonEl.innerHTML = options.themeType;
+  guessModeButtonEl.innerHTML = (() => {
     switch (options.guessingMode) {
       case "SELECTING":
         return "Selecting";
@@ -138,3 +142,4 @@ function GuessSelection(evt) {
 }
 
 export { autocompleteList };
+

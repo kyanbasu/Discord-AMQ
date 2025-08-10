@@ -1,21 +1,19 @@
 // @ts-ignore
 import crownSrc from "/static/crown.svg";
 
+import { includedPlayerListsEl, playPauseEl } from "src/appElements.js";
 import { auth } from "src/discordSetup.js";
 import { runningLocally } from "src/main.js";
 import { updateOptions } from "src/optionsReload.js";
 import { options } from "src/socketCore.js";
 import { gameSettingsRefresh } from "./helpers.js";
-import { playPauseEl } from "src/appElements.js";
-
 var players = {};
 
 export async function updatePlayerList(playerList, hostID) {
   const playerListElement = document.getElementById("playerList");
   playerListElement.innerHTML = ""; // Clear existing list
 
-  const playerLabelList = document.getElementById("includedPlayerLists");
-  playerLabelList.innerHTML = ""; // Clear existing list
+  includedPlayerListsEl.innerHTML = ""; // Clear existing list
 
   players = playerList;
 
@@ -98,10 +96,10 @@ export async function updatePlayerList(playerList, hostID) {
       entriesLabel.id = `player-entries-${player.id}`;
 
       // Append all elements to the list line
-      playerLabelList.appendChild(playerLabel);
-      playerLabelList.appendChild(switchLabel);
-      playerLabelList.appendChild(entriesLabel);
-      playerLabelList.appendChild(document.createElement("br"));
+      includedPlayerListsEl.appendChild(playerLabel);
+      includedPlayerListsEl.appendChild(switchLabel);
+      includedPlayerListsEl.appendChild(entriesLabel);
+      includedPlayerListsEl.appendChild(document.createElement("br"));
 
       if (auth.user.id === hostID) {
         checkbox.addEventListener("change", setPlayerIncluded);

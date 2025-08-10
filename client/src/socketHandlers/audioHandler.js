@@ -1,9 +1,12 @@
 import {
+  guessingZoneEl,
   playerContainerEl,
+  skipButtonEl,
   videoPlayerEl,
   videoPlayerImgBgEl,
   videoPlayerImgEl,
 } from "src/appElements.js";
+
 import { discordSdk, dscstatus } from "src/discordSetup.js";
 import { clientSettings, options } from "src/socketCore.js";
 import { selectedPlayerType } from "src/windowEventListeners.js";
@@ -28,8 +31,8 @@ export function handleOnAudio(socket) {
         );
         if (animeTextGuess) animeTextGuess.value = "";
       }
-      document.getElementById("guessingZone").hidden = false;
-      //document.getElementById("options").hidden = true;
+      guessingZoneEl.hidden = false;
+      //optionsEl.hidden = true;
       songCounter += 1;
 
       dscstatus.activity.details = `In game ${songCounter} of ${options.queueSize}`;
@@ -46,7 +49,7 @@ export function handleOnAudio(socket) {
 
       videoPlayerImgEl.src = _src;
 
-      document.getElementById("Skip").hidden = true;
+      skipButtonEl.hidden = true;
       videoPlayerEl.play();
     } catch (e) {
       Sentry.withScope((scope) => {

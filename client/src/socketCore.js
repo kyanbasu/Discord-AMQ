@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { volumeSliderEl } from "./appElements.js";
 import { auth } from "./discordSetup.js";
 import { runningLocally } from "./main.js";
 
@@ -7,7 +8,6 @@ import { handleConnection } from "./socketHandlers/connectionHandler.js";
 import { handleData } from "./socketHandlers/dataHandler.js";
 import { handleGuessing } from "./socketHandlers/guessHandler.js";
 import { handleMessaging } from "./socketHandlers/messageHandler.js";
-import { volumeSliderEl } from "./appElements.js";
 
 export { clientSettings, options, socket };
 
@@ -38,9 +38,7 @@ const clientSettings = {
 
 let updateClientSettingsTimeout = null;
 export function updatedClientSettings() {
-  clientSettings.volume = Number(
-    volumeSliderEl.value
-  );
+  clientSettings.volume = Number(volumeSliderEl.value);
   if (updateClientSettingsTimeout) clearTimeout(updateClientSettingsTimeout);
   updateClientSettingsTimeout = setTimeout(() => {
     socket.emit("updateClientSettings", auth.user, clientSettings);
