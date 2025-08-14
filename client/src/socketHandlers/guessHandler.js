@@ -6,7 +6,7 @@ import {
 } from "src/appElements.js";
 import { auth } from "src/discordSetup.js";
 import { displayMessage } from "src/helpers/helpers.js";
-import { autocompleteList } from "src/optionsReload.js";
+import { animeTextGuess, autocompleteList } from "src/optionsReload.js";
 import { clientSettings } from "src/socketCore.js";
 
 export function handleGuessing(socket) {
@@ -38,13 +38,12 @@ export function handleGuessing(socket) {
     autocompleteList.innerHTML = "";
     results.forEach((result) => {
       const div = document.createElement("div");
+      div.className = "autocompleteItem";
       div.innerHTML = `<strong>${
         result.title[clientSettings.themeLang]
       }</strong>`;
       div.addEventListener("click", () => {
-        /** @type {HTMLInputElement} */ (
-          document.getElementById("animeTextGuess")
-        ).value = result.title[clientSettings.themeLang];
+        animeTextGuess.value = result.title[clientSettings.themeLang];
         console.log("clicked ", result.id);
         socket.emit("guess", auth.user, result.id);
         autocompleteList.innerHTML = "";

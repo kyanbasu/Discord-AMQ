@@ -128,5 +128,3 @@ export const settingsButtonEl = /** @type {HTMLButtonElement} */ (
 export const chatContainerEl = /** @type {HTMLDivElement} */ (
   document.getElementById("chatContainer")
 );
-
-//export const animeTextGuess = /** @type {} */ document.getElementById("animeTextGuess");

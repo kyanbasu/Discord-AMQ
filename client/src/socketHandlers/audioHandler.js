@@ -9,9 +9,13 @@ import {
 
 import { discordSdk, dscstatus } from "src/discordSetup.js";
 import { clientSettings, options } from "src/socketCore.js";
-import { selectedPlayerType } from "src/windowEventListeners.js";
+import {
+  resetAutocompleteSelection,
+  selectedPlayerType,
+} from "src/windowEventListeners.js";
 
 import * as Sentry from "@sentry/browser";
+import { animeTextGuess } from "src/optionsReload.js";
 
 var songCounter = 0;
 
@@ -25,13 +29,12 @@ export function handleOnAudio(socket) {
             guesses[i][clientSettings.themeLang];
           document.getElementById(`guess${i}`).classList.remove("guessButton");
         }
-      } else {
-        const animeTextGuess = /** @type {HTMLInputElement} */ (
-          document.getElementById("animeTextGuess")
-        );
-        if (animeTextGuess) animeTextGuess.value = "";
+      } else if (animeTextGuess) {
+        animeTextGuess.value = "";
+        resetAutocompleteSelection();
       }
       guessingZoneEl.hidden = false;
+      if(animeTextGuess) animeTextGuess.focus();
       //optionsEl.hidden = true;
       songCounter += 1;
 

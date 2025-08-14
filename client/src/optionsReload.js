@@ -12,8 +12,10 @@ import { auth, discordSdk } from "./discordSetup.js";
 import { gameSettingsRefresh } from "./helpers/helpers.js";
 import { UpdateTextGuessAutocomplete } from "./main.js";
 import { options, socket } from "./socketCore.js";
+import { registerAutocompleteNavigation } from "./windowEventListeners.js";
 
 let autocompleteList;
+let animeTextGuess;
 
 /*
 Options are:
@@ -49,14 +51,14 @@ export function optionsReload(hostID) {
             name="animeTextGuess"
             placeholder="enter guess..."
           />
-          <div id="autocomplete-list" class="autocomplete-items"></div>
+          <div id="autocompleteContainer" class="autocompleteContainer" tabindex="0" role="listbox" aria-label="Items list"></div>
         </div>`;
 
-      document
-        .getElementById("animeTextGuess")
-        .addEventListener("input", UpdateTextGuessAutocomplete);
+      animeTextGuess = document.getElementById("animeTextGuess");
+      animeTextGuess.addEventListener("input", UpdateTextGuessAutocomplete);
 
-      autocompleteList = document.getElementById("autocomplete-list");
+      autocompleteList = document.getElementById("autocompleteContainer");
+      registerAutocompleteNavigation();
       break;
 
     default:
@@ -141,5 +143,4 @@ function GuessSelection(evt) {
     .classList.add("guessButton");
 }
 
-export { autocompleteList };
-
+export { autocompleteList, animeTextGuess };

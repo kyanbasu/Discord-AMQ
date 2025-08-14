@@ -51,6 +51,7 @@ import {
   videoPlayerEl,
   volumeSliderEl,
 } from "./appElements.js";
+import { animeTextGuess } from "./optionsReload.js";
 import { Skip } from "./windowFunctions.js";
 
 export { runningLocally };
@@ -121,9 +122,7 @@ export function UpdateTextGuessAutocomplete() {
   if (UpdateTextGuessAutocompleteTimeout) return;
   UpdateTextGuessAutocompleteTimeout = setTimeout(() => {
     UpdateTextGuessAutocompleteTimeout = null;
-    const animeTextGuess = /** @type {HTMLInputElement} */ (
-      document.getElementById("animeTextGuess")
-    );
+
     if (animeTextGuess.value.length < 2)
       return (document.getElementById("autocomplete-list").innerHTML = "");
     socket.emit("autocomplete", animeTextGuess.value);
