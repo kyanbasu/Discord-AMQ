@@ -1,15 +1,23 @@
-import { discordUsers, io, rooms, runningLocally, users } from "../../constants.ts";
+import {
+  discordUsers,
+  io,
+  rooms,
+  runningLocally,
+  users,
+} from "../../constants.ts";
 import { AnimeSchema } from "../db/schemas.ts";
 import { getTheme } from "../helpers/getTheme.ts";
 import { shuffleArray } from "../helpers/helpers.ts";
 import { sendMessage, systemMessage } from "../helpers/messaging.ts";
-import { Guess, GuessingMode } from "../types.ts";
+import { AudioUrl, Guess, GuessingMode } from "../types.ts";
 import { getOtherTheme, summary, tryCache } from "./queueManagement.ts";
 
 export const playNextQueue = async (roomID: string) => {
-  if (!rooms[roomID] ||
+  if (
+    !rooms[roomID] ||
     rooms[roomID].playerPlaying ||
-    rooms[roomID].currentTimeout != null)
+    rooms[roomID].currentTimeout != null
+  )
     return; //to probably remove duplicate processes
 
   if (Object.keys(rooms[roomID].users).length == 0) {
@@ -64,149 +72,139 @@ export const playNextQueue = async (roomID: string) => {
 
     // Guessing part
     const usersGuessed: string[] = [];
-    if (rooms[roomID].options.guessingMode === GuessingMode.SELECTING) {
-      const concatLists: (string | undefined)[] = rooms[roomID].users
-        .flatMap((user) => users[user].list)
-        .filter((e) => e != audio.link.split("-")[0]); // to avoid duplicates in guesses
 
-      const ids: string[] = [audio.themeId];
-      for (let i = 0; i <
-        Math.min(rooms[roomID].options.guessesCount, concatLists.length) - 1; i++) {
-        const rng = Math.floor(Math.random() * concatLists.length);
-        if (!concatLists[rng]) return;
-        ids.push(concatLists[rng]);
-        concatLists.splice(rng, 1);
+    const result = await (async () => {
+      if (rooms[roomID].options.guessingMode === GuessingMode.SELECTING) {
+        return await setupSelectingGuessing(roomID, audio);
+      } else if (rooms[roomID].options.guessingMode === GuessingMode.TYPING) {
+        return await setupTypingGuessing(roomID, audio);
       }
 
-      const guesses: Guess[] = (
-        await AnimeSchema.find({ _id: { $in: ids } })
-      ).map((ani) => ({
-        en: ani.title.en,
-        ro: ani.title.ro,
-        ja: ani.title.ja,
-        themeId: ani._id,
-      }));
+      return await setupTypingGuessing(roomID, audio);
+    })();
 
-      shuffleArray(guesses);
+    const [guesses, correctGuess, correctGuessIndex] = result as [
+      Guess[],
+      Guess,
+      string
+    ];
 
-      const correctGuessIndex = guesses.findIndex(
-        (e) => e.themeId === audio.themeId
-      );
-      const correctGuess = guesses[correctGuessIndex];
+    Object.values(rooms[roomID].users).forEach((u) => {
+      users[u].guess = undefined;
+    });
+    console.log(audio.link);
+    console.log(guesses);
+    io.to(roomID).emit("audio", audio.link, guesses || undefined);
+    systemMessage(roomID, "Playing...");
 
-      Object.values(rooms[roomID].users).forEach((u) => {
-        users[u].guess = undefined;
-      });
-      console.log(audio.link);
-      console.log(guesses);
-      io.to(roomID).emit("audio", audio.link, guesses);
-      systemMessage(roomID, "Playing...");
+    const pickedTheme = rooms[roomID].queue[0];
+    rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
 
-      const pickedTheme = rooms[roomID].queue[0];
-      rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
+    if (rooms[roomID].currentTimeout == null) {
+      rooms[roomID].currentTimeout = setTimeout(async () => {
+        if (!rooms[roomID] || !pickedTheme) return;
 
-      if (rooms[roomID].currentTimeout == null) {
+        const pickedThemeUsername = pickedTheme.userId
+          ? users[pickedTheme.userId].name
+          : undefined;
+
+        console.log(`correct guess ${correctGuess}`);
+        io.to(roomID).emit(
+          "correctGuess",
+          correctGuess,
+          audio.themeType,
+          pickedThemeUsername
+        );
+        rooms[roomID].canPlayNext = true;
+
+        Object.values(rooms[roomID].users).forEach((usr) => {
+          if (correctGuessIndex === users[usr].guess) {
+            users[usr].score += 1;
+            usersGuessed.push(discordUsers[usr].global_name);
+          }
+        });
+
+        io.to(roomID).emit("correctlyGuessed", usersGuessed.join(", "));
+        systemMessage(
+          roomID,
+          `Queue: ${rooms[roomID].queue.length} songs remaining.`
+        );
+
         rooms[roomID].currentTimeout = setTimeout(async () => {
-          if (!rooms[roomID] || !pickedTheme) return;
-
-          const pickedThemeUsername = pickedTheme.userId
-            ? users[pickedTheme.userId].name
-            : undefined;
-          io.to(roomID).emit(
-            "guess",
-            correctGuess,
-            audio.themeType,
-            pickedThemeUsername
-          );
-          rooms[roomID].canPlayNext = true;
-
-          Object.values(rooms[roomID].users).forEach((usr) => {
-            if (correctGuessIndex === users[usr].guess) {
-              users[usr].score += 1;
-              usersGuessed.push(discordUsers[usr].global_name);
-            }
-          });
-
-          io.to(roomID).emit("correctlyGuessed", usersGuessed.join(", "));
-          systemMessage(
-            roomID,
-            `Queue: ${rooms[roomID].queue.length} songs remaining.`
-          );
-
-          rooms[roomID].currentTimeout = setTimeout(async () => {
-            if (!rooms[roomID]) return;
-            rooms[roomID].playerPlaying = false;
-            rooms[roomID].currentTimeout = null;
-            await playNextQueue(roomID);
-            return;
-          }, (100 - rooms[roomID].options.guessTime) * 1000);
-        }, rooms[roomID].options.guessTime * 1000 + 1000);
-      }
-    } else if (rooms[roomID].options.guessingMode === GuessingMode.TYPING) {
-      const correctGuessID = audio.themeId;
-
-      const correctGuess = await AnimeSchema.findOne({
-        _id: correctGuessID,
-      });
-
-      if (runningLocally) {
-        sendMessage(roomID, "it is " + correctGuess?.title.ro || "unknown");
-      }
-
-      if (!correctGuess) return;
-
-      Object.values(rooms[roomID].users).forEach((u) => {
-        users[u].guess = undefined;
-      });
-      console.log(audio.link);
-      console.log(correctGuessID);
-      io.to(roomID).emit("audio", audio.link);
-      systemMessage(roomID, "Playing...");
-
-      const pickedTheme = rooms[roomID].queue[0];
-      rooms[roomID].queueHistory.push(rooms[roomID].queue.shift()!);
-
-      if (rooms[roomID].currentTimeout == null) {
-        rooms[roomID].currentTimeout = setTimeout(async () => {
-          if (!rooms[roomID] || !pickedTheme) return;
-
-          const pickedThemeUsername = pickedTheme.userId
-            ? users[pickedTheme.userId].name
-            : undefined;
-          console.log(`correct guess ${correctGuess.title}`);
-          io.to(roomID).emit(
-            "correctGuess",
-            correctGuess.title,
-            audio.themeType,
-            pickedThemeUsername
-          );
-          rooms[roomID].canPlayNext = true;
-
-          Object.values(rooms[roomID].users).forEach((usr) => {
-            if (correctGuessID === users[usr].guess) {
-              users[usr].score += 1;
-              usersGuessed.push(discordUsers[usr].global_name);
-            }
-          });
-
-          io.to(roomID).emit("correctlyGuessed", usersGuessed.join(", "));
-          systemMessage(
-            roomID,
-            `Queue: ${rooms[roomID].queue.length} songs remaining.`
-          );
-
-          rooms[roomID].currentTimeout = setTimeout(async () => {
-            if (!rooms[roomID]) return;
-            rooms[roomID].playerPlaying = false;
-            rooms[roomID].currentTimeout = null;
-            await playNextQueue(roomID);
-            return;
-          }, (100 - rooms[roomID].options.guessTime) * 1000);
-        }, rooms[roomID].options.guessTime * 1000 + 1000);
-      }
+          if (!rooms[roomID]) return;
+          rooms[roomID].playerPlaying = false;
+          rooms[roomID].currentTimeout = null;
+          await playNextQueue(roomID);
+          return;
+        }, (100 - rooms[roomID].options.guessTime) * 1000);
+      }, rooms[roomID].options.guessTime * 1000 + 1000);
     }
   } else {
     systemMessage(roomID, "Paused.");
   }
 };
 
+async function setupSelectingGuessing(roomID: string, audio: AudioUrl) {
+  const concatLists: (string | undefined)[] = rooms[roomID].users
+    .flatMap((user) => users[user].list)
+    .filter((e) => e != audio.link.split("-")[0]); // to avoid duplicates in guesses
+
+  const ids: string[] = [audio.themeId];
+  for (
+    let i = 0;
+    i < Math.min(rooms[roomID].options.guessesCount, concatLists.length) - 1;
+    i++
+  ) {
+    const rng = Math.floor(Math.random() * concatLists.length);
+    const candidate = concatLists[rng];
+    if (!candidate) {
+      concatLists.splice(rng, 1);
+      i--; // adjust loop
+      continue;
+    }
+    ids.push(candidate);
+    concatLists.splice(rng, 1);
+  }
+
+  const aniDocs = await AnimeSchema.find({ _id: { $in: ids } });
+  const guesses: Guess[] = aniDocs.map((ani) => ({
+    en: ani.title.en,
+    ro: ani.title.ro,
+    ja: ani.title.ja,
+    themeId: ani._id,
+  }));
+
+  shuffleArray(guesses);
+
+  const correctGuessIndex = guesses.findIndex(
+    (e) => e.themeId === audio.themeId
+  );
+  if (correctGuessIndex === -1) {
+    throw new Error("Correct guess not found among picks");
+  }
+  const correctGuess = guesses[correctGuessIndex];
+
+  return [guesses, correctGuess, correctGuessIndex];
+}
+
+async function setupTypingGuessing(roomID: string, audio: AudioUrl) {
+  const correctGuessDoc = await AnimeSchema.findOne({ _id: audio.themeId });
+  if (!correctGuessDoc) {
+    throw new Error("Correct anime not found");
+  }
+
+  const correctGuess: Guess = {
+    en: correctGuessDoc.title.en,
+    ro: correctGuessDoc.title.ro,
+    ja: correctGuessDoc.title.ja,
+    themeId: correctGuessDoc._id,
+  };
+
+  if (runningLocally) {
+    sendMessage(roomID, "it is " + correctGuess?.ro || "unknown");
+  }
+
+  if (!correctGuess) return;
+
+  return [[], correctGuess, audio.themeId];
+}

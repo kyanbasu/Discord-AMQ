@@ -1,6 +1,6 @@
 import { runningLocally } from "../../constants";
 import { AnimeSchema } from "../db/schemas";
-import { ThemeType } from "../types";
+import { AudioUrl, ThemeType } from "../types";
 import { fileManager } from "./helpers";
 
 interface Video {
@@ -34,12 +34,6 @@ interface AnimeTheme {
 
 interface AnimeResponse {
   anime: [{ animethemes: AnimeTheme[]; name: string }];
-}
-
-interface AudioUrl {
-  link: string;
-  themeId: string;
-  themeType: string;
 }
 
 export function getTheme(

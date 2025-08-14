@@ -124,7 +124,11 @@ export function handleConnection(socket: Socket) {
 
       if (index > -1) rooms[roomID].users.splice(index, 1);
 
-      if (rooms[roomID].users.length === 0) delete rooms[roomID];
+      if (rooms[roomID].users.length === 0) {
+        if (rooms[roomID].currentTimeout)
+          clearTimeout(rooms[roomID].currentTimeout);
+        delete rooms[roomID];
+      }
 
       updatePlayerList(roomID);
     }

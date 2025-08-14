@@ -10,6 +10,7 @@ export {
   TitlePair,
   ClientSettings,
   Guess,
+  AudioUrl
 };
 
 // "Enums"
@@ -101,4 +102,10 @@ interface Room {
   currentTimeout: NodeJS.Timeout | null;
   chathistory: string;
   options: RoomOptions;
+}
+
+interface AudioUrl {
+  link: string;
+  themeId: string;
+  themeType: string;
 }
