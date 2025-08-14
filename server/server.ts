@@ -97,8 +97,41 @@ app.get("/media/:baseName/:type", (req: Request, res: Response) => {
           return;
       }
 
+      const total = buffer.length;
+      const range = req.headers.range; // e.g. "bytes=0-"
+      res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("Content-Type", contentType);
-      res.send(buffer);
+
+      if (range) {
+        // Range requested — parse and send partial content (206)
+        const matches = /bytes=(\d*)-(\d*)/.exec(range);
+        if (!matches) {
+          res.status(416).send("Requested Range Not Satisfiable");
+          return;
+        }
+
+        const start = matches[1] ? parseInt(matches[1], 10) : 0;
+        const end = matches[2] ? parseInt(matches[2], 10) : total - 1;
+
+        if (isNaN(start) || isNaN(end) || start > end || end >= total) {
+          res
+            .status(416)
+            .setHeader("Content-Range", `bytes */${total}`)
+            .send("Requested Range Not Satisfiable");
+          return;
+        }
+
+        const chunk = buffer.slice(start, end + 1);
+        res.status(206);
+        res.setHeader("Content-Range", `bytes ${start}-${end}/${total}`);
+        res.setHeader("Content-Length", String(chunk.length));
+        res.send(chunk);
+      } else {
+        // No range → send entire file with a Content-Length
+        res.status(200);
+        res.setHeader("Content-Length", String(total));
+        res.send(buffer);
+      }
     })
     .catch((err) => {
       console.error(err);

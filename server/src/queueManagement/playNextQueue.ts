@@ -108,7 +108,7 @@ export const playNextQueue = async (roomID: string) => {
           ? users[pickedTheme.userId].name
           : undefined;
 
-        console.log(`correct guess ${correctGuess}`);
+        console.log(`correct guess ${correctGuess.ro} ${correctGuess.themeId}`);
         io.to(roomID).emit(
           "correctGuess",
           correctGuess,

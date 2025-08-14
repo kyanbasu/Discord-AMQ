@@ -26,7 +26,8 @@
   height: 4px;
   width: 0;
   background-color: var(--maincontrast);
-  transition: 100ms ease-out;
+  transition-property: width;
+  transition-timing-function: linear;
 }
 
 a {

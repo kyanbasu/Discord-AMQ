@@ -16,13 +16,14 @@ import {
 
 import * as Sentry from "@sentry/browser";
 import { animeTextGuess } from "src/optionsReload.js";
+import { resetProgressBar } from "src/main.js";
 
 var songCounter = 0;
 
 export function handleOnAudio(socket) {
   socket.on("audio", async (url, guesses = null) => {
     try {
-      if (guesses) {
+      if (guesses.length > 0) {
         console.log(guesses);
         for (let i = 0; i < guesses.length; i++) {
           document.getElementById(`guess${i}`).innerHTML =
@@ -33,8 +34,9 @@ export function handleOnAudio(socket) {
         animeTextGuess.value = "";
         resetAutocompleteSelection();
       }
+      resetProgressBar();
       guessingZoneEl.hidden = false;
-      if(animeTextGuess) animeTextGuess.focus();
+      if (animeTextGuess) animeTextGuess.focus();
       //optionsEl.hidden = true;
       songCounter += 1;
 

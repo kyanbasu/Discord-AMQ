@@ -51,7 +51,7 @@ import {
   videoPlayerEl,
   volumeSliderEl,
 } from "./appElements.js";
-import { animeTextGuess } from "./optionsReload.js";
+import { animeTextGuess, autocompleteList } from "./optionsReload.js";
 import { Skip } from "./windowFunctions.js";
 
 export { runningLocally };
@@ -93,15 +93,23 @@ volumeSliderEl.oninput = () => {
     "%, #363232)";
 };
 
+const progress = document.getElementById("progress");
+
+progress.style.transitionDuration = "0s";
+progress.style.width = "0%";
+
 videoPlayerEl.ontimeupdate = () => {
-  if (videoPlayerEl.currentTime < options.guessTime)
-    document.getElementById("progress").style.width = `${
-      (videoPlayerEl.currentTime / options.guessTime) * 100
-    }%`;
-  else
-    document.getElementById("progress").style.width = `${
-      (videoPlayerEl.currentTime / videoPlayerEl.duration) * 100
-    }%`;
+  if (videoPlayerEl.currentTime < options.guessTime && !guessingZoneEl.hidden) {
+    progress.style.transitionDuration = `${
+      options.guessTime - videoPlayerEl.currentTime
+    }s`;
+    progress.style.width = "100%";
+  } else {
+    progress.style.transitionDuration = `${
+      videoPlayerEl.duration - videoPlayerEl.currentTime
+    }s`;
+    progress.style.width = "100%";
+  }
 
   if (
     videoPlayerEl.duration - videoPlayerEl.currentTime < 5 &&
@@ -111,6 +119,18 @@ videoPlayerEl.ontimeupdate = () => {
     Skip();
   }
 };
+
+export function resetProgressBar(positionInSeconds = 0) {
+  console.log("reset ", positionInSeconds)
+  progress.style.transitionDuration = "0s";
+  if (positionInSeconds === 0) {
+    progress.style.width = `0%`;
+  } else {
+    progress.style.width = `${
+      (positionInSeconds / videoPlayerEl.duration) * 100
+    }%`;
+  }
+}
 
 videoPlayerEl.onended = () => {
   playerContainerEl.hidden = true;
@@ -124,7 +144,7 @@ export function UpdateTextGuessAutocomplete() {
     UpdateTextGuessAutocompleteTimeout = null;
 
     if (animeTextGuess.value.length < 2)
-      return (document.getElementById("autocomplete-list").innerHTML = "");
+      return (autocompleteList.innerHTML = "");
     socket.emit("autocomplete", animeTextGuess.value);
   }, 300);
 }
