@@ -66,9 +66,10 @@ class FileManager {
   }
 
   async downloadFile(url: string): Promise<Buffer> {
-    console.log("downloading file ", url);
     if (runningLocally) {
-      return await this.getLocalFiles(url);
+      if (!["webm", "jpg", "ogg"].includes(url)) url = "jpg";
+      const res = Bun.file(`../test-res/example.${url}`);
+      return await res.arrayBuffer().then((buf) => Buffer.from(buf));
     }
 
     if (Bun.argv.includes("--no-video") && url.endsWith(".webm")) {
@@ -111,30 +112,6 @@ class FileManager {
 
     // Return promise
     return await Promise.all(downloads);
-  }
-
-  async getLocalFiles(url: string) {
-    switch (url) {
-      case "jpg": {
-        const res = Bun.file("../test-res/example.jpg");
-        return await res.arrayBuffer().then((buf) => Buffer.from(buf));
-      }
-
-      case "webm": {
-        const res = Bun.file("../test-res/example.webm");
-        return await res.arrayBuffer().then((buf) => Buffer.from(buf));
-      }
-
-      case "ogg": {
-        const res = Bun.file("../test-res/example.ogg");
-        return await res.arrayBuffer().then((buf) => Buffer.from(buf));
-      }
-
-      default: {
-        const res = Bun.file("../test-res/example.jpg");
-        return await res.arrayBuffer().then((buf) => Buffer.from(buf));
-      }
-    }
   }
 }
 
