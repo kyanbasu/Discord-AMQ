@@ -6,13 +6,14 @@ import {
 } from "src/appElements.js";
 import { auth } from "src/discordSetup.js";
 import { displayMessage } from "src/helpers/helpers.js";
-import { resetProgressBar } from "src/main.js";
+import { continueProgressBarAfterGuess } from "src/main.js";
 import { animeTextGuess, autocompleteList } from "src/optionsReload.js";
-import { clientSettings, options } from "src/socketCore.js";
+import { clientSettings } from "src/socketCore.js";
+import { resetAutocompleteSelection } from "src/windowEventListeners.js";
 
 export function handleGuessing(socket) {
   socket.on("correctGuess", (title, themeType, usr) => {
-    resetProgressBar(options.guessTime);
+    continueProgressBarAfterGuess();
     themeTitleEl.innerText = `${title[clientSettings.themeLang]} ${themeType}`;
     playerContainerEl.hidden = false;
     autocompleteList.innerHTML = "";
@@ -36,6 +37,8 @@ export function handleGuessing(socket) {
   socket.on("autocompleteResults", (results) => {
     if (results.length === 0) return;
     console.log(results);
+
+    resetAutocompleteSelection();
 
     autocompleteList.innerHTML = "";
     results.forEach((result) => {

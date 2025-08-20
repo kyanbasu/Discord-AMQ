@@ -99,18 +99,6 @@ progress.style.transitionDuration = "0s";
 progress.style.width = "0%";
 
 videoPlayerEl.ontimeupdate = () => {
-  if (videoPlayerEl.currentTime < options.guessTime && !guessingZoneEl.hidden) {
-    progress.style.transitionDuration = `${
-      options.guessTime - videoPlayerEl.currentTime
-    }s`;
-    progress.style.width = "100%";
-  } else {
-    progress.style.transitionDuration = `${
-      videoPlayerEl.duration - videoPlayerEl.currentTime
-    }s`;
-    progress.style.width = "100%";
-  }
-
   if (
     videoPlayerEl.duration - videoPlayerEl.currentTime < 5 &&
     !videoPlayerEl.triggeredSkip
@@ -120,16 +108,30 @@ videoPlayerEl.ontimeupdate = () => {
   }
 };
 
-export function resetProgressBar(positionInSeconds = 0) {
-  console.log("reset ", positionInSeconds)
+export function startGuessProgressBar() {
   progress.style.transitionDuration = "0s";
-  if (positionInSeconds === 0) {
-    progress.style.width = `0%`;
-  } else {
-    progress.style.width = `${
-      (positionInSeconds / videoPlayerEl.duration) * 100
-    }%`;
-  }
+  progress.style.width = "0%";
+
+  // Force reflow to ensure the width reset is applied before transition
+  void progress.offsetWidth;
+
+  progress.style.transitionDuration = `${options.guessTime}s`;
+  progress.style.width = "100%";
+}
+
+export function continueProgressBarAfterGuess() {
+  progress.style.transitionDuration = "0s";
+  progress.style.width = `${
+    (options.guessTime / videoPlayerEl.duration) * 100
+  }%`;
+
+  // Force reflow to ensure the width reset is applied before transition
+  void progress.offsetWidth;
+
+  progress.style.transitionDuration = `${
+    videoPlayerEl.duration - options.guessTime
+  }s`;
+  progress.style.width = "100%";
 }
 
 videoPlayerEl.onended = () => {

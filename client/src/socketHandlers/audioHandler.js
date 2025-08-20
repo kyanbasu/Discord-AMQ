@@ -16,7 +16,7 @@ import {
 
 import * as Sentry from "@sentry/browser";
 import { animeTextGuess } from "src/optionsReload.js";
-import { resetProgressBar } from "src/main.js";
+import { startGuessProgressBar } from "src/main.js";
 
 var songCounter = 0;
 
@@ -34,7 +34,7 @@ export function handleOnAudio(socket) {
         animeTextGuess.value = "";
         resetAutocompleteSelection();
       }
-      resetProgressBar();
+      startGuessProgressBar();
       guessingZoneEl.hidden = false;
       if (animeTextGuess) animeTextGuess.focus();
       //optionsEl.hidden = true;
